@@ -3,11 +3,18 @@ from discord.ext import commands
 from discord.ext import tasks
 from db.db import *
 from config import all
+import os
+import sys
 
 
 class Send(commands.Cog):
     def __init__(self, client):
         self.client = client
+
+    # @tasks.loop(minutes=20)
+    # async def restart_program(self):
+    #     python = sys.executable
+    #     os.execl(python, python, *sys.argv)
 
     @tasks.loop(minutes=15)
     async def set_message(self):
@@ -20,10 +27,13 @@ class Send(commands.Cog):
             channels.append(server)
         else:
             for channel in channels:
-                _channel = self.client.get_channel(channel)
-                if channel == None:
-                    continue
-                await _channel.send(random.choice(all))
+                try:
+                    if channel == None:
+                        continue
+                    _channel = self.client.get_channel(channel)
+                    await _channel.send(random.choice(all))
+                except:
+                    pass
                 # m += 1
 
                 time.sleep(10)
@@ -40,6 +50,7 @@ class Send(commands.Cog):
     async def on_ready(self):
         self.set_message.start()
         self.del_cooldown.start()
+        # self.restart_program.start()
         print("The Tasks is online")
 
 
