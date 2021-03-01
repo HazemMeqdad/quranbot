@@ -17,11 +17,11 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.CommandOnCooldown):
             m, s = divmod(error.retry_after, 60)
-            await ctx.send(f" يجب عليك الانتظار `{int(s)}` ثواني")
+            message = await ctx.send(f" يجب عليك الانتظار `{int(s)}` ثواني")
             db.cr.execute("INSERT OR IGNORE INTO cooldown(user_id) VALUES(?)", (ctx.author.id,))
             db.commit()
             time.sleep(1)
-            await ctx.message.delete()
+            await message.delete()
             return
         elif isinstance(ctx.channel, discord.channel.DMChannel):
             return
@@ -34,6 +34,8 @@ class Errors(commands.Cog):
         elif isinstance(error, commands.errors.BotMissingPermissions):
             await ctx.send("البوت لا يمتلك صلاحيات كافيه")
         elif isinstance(error, commands.errors.MessageNotFound):
+            return
+        elif isinstance(error, commands.errors.CommandInvokeError):
             return
         else:
             print(error)
