@@ -33,6 +33,8 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.errors.BotMissingPermissions):
             await ctx.send("البوت لا يمتلك صلاحيات كافيه")
+        elif isinstance(error, commands.errors.MessageNotFound):
+            return
         else:
             print(error)
 
