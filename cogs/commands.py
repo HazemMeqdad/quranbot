@@ -12,8 +12,7 @@ class Commands(commands.Cog):
     @cooldown(1, 10, commands.BucketType.user)
     @guild_only()
     async def ping_command(self, ctx):
-        msg = await ctx.send("pong!!!")
-        await msg.edit(content=f"سرعة اتصال البوت {round(self.client.latency * 1000)}ms")
+        await ctx.send(f"سرعة اتصال البوت {round(self.client.latency * 1000)}ms")
 
     @command(name="invite", aliases=['inv', "اضافه", "أضافه"])
     @cooldown(1, 10, commands.BucketType.user)

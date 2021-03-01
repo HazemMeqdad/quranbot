@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands, tasks
 from db.db import *
-from config import all
-import random
-import time
 
 
 def get_prefix(bot, message):
@@ -15,7 +12,7 @@ client = commands.AutoShardedBot(
     command_prefix=get_prefix,
     case_insensitive=True,
     description="بوت فذكروني",
-    shard_count=2
+    shard_count=3
 )
 
 client.remove_command("help")
@@ -55,6 +52,20 @@ async def on_guild_join(guild):
         "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix, channel) VALUES(?, ?, ?, ?)",
         (guild.id, guild.name, "!", None))
     db.commit()
+    try:
+        channel = client.get_channel(815926277965873173)
+        embed = discord.Embed(title="add guild", color=0x46FF00)
+        embed.add_field(name='name guild: ', value=guild.name, inline=False)
+        embed.add_field(name='id guild: ', value=guild.id, inline=False)
+        embed.add_field(name='owner guild: ', value='<@' + str(guild.owner_id) + ">", inline=False)
+        embed.add_field(name='owner id: ', value=str(guild.owner_id), inline=False)
+        embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
+        embed.add_field(name='bot server: ', value=f'{len(client.guilds)}', inline=False)
+        embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+        embed.set_author(name=client.user.name, icon_url=client.user.avatar_url)
+        await channel.send(embed=embed)
+    except Exception as Error:
+        print(Error)
 
 
 @client.event
@@ -63,5 +74,19 @@ async def on_guild_remove(guild):
         "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix, channel) VALUES(?, ?, ?, ?)",
         (guild.id, guild.name, "!", None))
     db.commit()
+    try:
+        channel = client.get_channel(815926277965873173)
+        embed = discord.Embed(title="remove guild", color=0xFF0000)
+        embed.add_field(name='name guild: ', value=guild.name, inline=False)
+        embed.add_field(name='id guild: ', value=guild.id, inline=False)
+        embed.add_field(name='owner guild: ', value='<@' + str(guild.owner_id) + ">", inline=False)
+        embed.add_field(name='owner id: ', value=str(guild.owner_id), inline=False)
+        embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
+        embed.add_field(name='bot server: ', value=f"{len(client.guilds)}", inline=False)
+        embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+        embed.set_author(name=client.user.name, icon_url=client.user.avatar_url)
+        await channel.send(embed=embed)
+    except Exception as Error:
+        print(Error)
 
 client.run("NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.mYlu3RbabV_0T1-Dym-YtsKZaNM")

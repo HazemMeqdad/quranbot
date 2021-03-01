@@ -27,6 +27,12 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.errors.MissingPermissions):
             await ctx.send("أنت بحاجة إلى صلاحيات.")
+        elif isinstance(error, commands.errors.CommandNotFound):
+            return
+        elif isinstance(error, commands.errors.ChannelNotFound):
+            return
+        else:
+            print(error)
 
 
 def setup(client):

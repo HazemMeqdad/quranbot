@@ -1,4 +1,4 @@
-import discord, random, time
+import random, time
 from discord.ext import commands
 from discord.ext import tasks
 from db.db import *
@@ -13,17 +13,13 @@ class Send(commands.Cog):
     async def set_message(self):
         channels = []
         date = cr.execute("SELECT channel FROM guilds").fetchall()
-        # print(date)
         for i in date:
             if i is None:
                 continue
             server = i[0]
-            # print(server)
             channels.append(server)
         else:
             for channel in channels:
-                # if m == 1:
-                #     return
                 _channel = self.client.get_channel(channel)
                 if channel == None:
                     continue

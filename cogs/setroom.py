@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord.ext.commands import command, has_permissions, cooldown, guild_only
 from db.db import *
 import asyncio
+from config import all
+import random
 
 
 class SetRoom(commands.Cog):
@@ -19,6 +21,7 @@ class SetRoom(commands.Cog):
         cr.execute("UPDATE guilds SET channel = ? WHERE guild_id = ?", (channel.id, ctx.guild.id))
         commit()
         await ctx.send(f"! الله يكتب اجرك راح ارسل الاذكار للروم {channel.mention}")
+        await channel.send(random.choice(all))
 
     @command(name="remove", aliases=["removeroom"])
     @has_permissions(manage_guild=True)

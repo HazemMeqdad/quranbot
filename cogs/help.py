@@ -21,10 +21,12 @@ __**commands**__
 `{0}invite` - لإضافة البوت الى سيرفرك
 `{0}ping` - ارسال سرعة اتصال البوت
 `{0}remove` - توقف البوت عن إرسال الأذكار
-`{0}setprefix` - set prefix command.
+`{0}setprefix` - أمر تعيين البادئة.
 `{0}setroom` - [#منشن الروم] - تحديد روم ارسال الاذكار
 `{0}support` - سيرفر الدعم الفني
-""".format(get_prefix(ctx))
+{1} ملاحضه : تم حذف جميع البيانات يرجاء إعادة ضبط بيانات البوت من جديد باستخدام أمر.{1} 
+`!setroom <#channel>`
+""".format(get_prefix(ctx), self.client.get_emoji(815909429010235442))
 
         )
         embed.set_author(name="Help - فاذكروني", icon_url=self.client.user.avatar_url)
