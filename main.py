@@ -56,8 +56,8 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     cr.execute(
-        "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix, channel) VALUES(?, ?, ?, ?)",
-        (guild.id, guild.name, "!", None))
+        "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix) VALUES(?, ?, ?)",
+        (guild.id, guild.name, "!"))
     db.commit()
     try:
         channel = client.get_channel(815926277965873173)
