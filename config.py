@@ -1,4 +1,4 @@
-token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.ZJFhNagK0WhAtJU1zM5IgrmPECQ"
+token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.sBspMBNNGBCnAeiQ0CJtX06VI-o"
 prefix: str = "!"
 
 all = [

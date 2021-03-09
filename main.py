@@ -5,8 +5,11 @@ from config import *
 
 
 def get_prefix(bot, message):
-    prefix = cr.execute("SELECT prefix FROM guilds WHERE guild_id = ?", (message.guild.id,))
-    return commands.when_mentioned_or(prefix.fetchone()[0])(bot, message)
+    try:
+        prefix = cr.execute("SELECT prefix FROM guilds WHERE guild_id = ?", (message.guild.id,))
+        return commands.when_mentioned_or(prefix.fetchone()[0])(bot, message)
+    except:
+        pass
 
 
 client = commands.AutoShardedBot(
@@ -74,10 +77,6 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_guild_remove(guild):
-    cr.execute(
-        "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix, channel) VALUES(?, ?, ?, ?)",
-        (guild.id, guild.name, "!", None))
-    db.commit()
     try:
         channel = client.get_channel(815926277965873173)
         embed = discord.Embed(title="remove guild", color=0xFF0000)

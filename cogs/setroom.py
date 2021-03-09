@@ -18,8 +18,15 @@ class SetRoom(commands.Cog):
     async def set_channel_command(self, ctx, channel: discord.TextChannel = None):
         if channel is None:
             await ctx.send("يرجى منشن الروم او ايديه")
-        cr.execute("UPDATE guilds SET channel = ? WHERE guild_id = ?", (channel.id, ctx.guild.id))
+        cr.execute(
+            "DELETE FROM channels WHERE guild_id = ? and guild_name = ?",
+            (ctx.guild.id, ctx.guild.name))
         commit()
+        cr.execute(
+            "INSERT OR IGNORE INTO channels(guild_id, guild_name, channel) VALUES(?, ?, ?)",
+            (ctx.guild.id, ctx.guild.name, channel.id))
+        commit()
+
         await ctx.send(f"! الله يكتب اجرك راح ارسل الاذكار للروم {channel.mention}")
         await channel.send(random.choice(all))
 
@@ -28,10 +35,6 @@ class SetRoom(commands.Cog):
     @cooldown(1, 10, commands.BucketType.guild)
     @guild_only()
     async def remove_command(self, ctx):
-        # channel = cr.execute("SELECT channel FROM guilds WHEN ?", (ctx.guild.id,))
-        # if channel is None:
-        #     await ctx.send("انت لم تحدد روم لل ارسال حتى تحذفها")
-        #     return
         message = await ctx.send("سيتم الغاء ارسال الاذكار هل انت موافق على هاذ الامر")
         await message.add_reaction("✅")
         await message.add_reaction("❌")
@@ -41,7 +44,9 @@ class SetRoom(commands.Cog):
         try:
             reaction, user = await self.client.wait_for("reaction_add", timeout=60, check=check)
             if str(reaction.emoji) == "✅":
-                cr.execute("UPDATE guilds SET channel = ? WHERE guild_id = ?", (None, ctx.guild.id))
+                cr.execute(
+                    "DELETE FROM channels WHERE guild_id = ? and guild_name = ?",
+                    (ctx.guild.id, ctx.guild.name))
                 commit()
                 await message.edit(content="تم الغاء ارسال الاذكار")
             elif str(reaction.emoji) == "✅":
