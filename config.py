@@ -1,3 +1,6 @@
+token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.ZJFhNagK0WhAtJU1zM5IgrmPECQ"
+prefix: str = "!"
+
 all = [
     "> ﴿ فَاذْكُرونِي أَذْكُركُمْ وأشْكُرُوا لِي وَلَا تَكْفُرونِ ﴾.",
     "> اللهم صل وسلم على نبينا محمد",

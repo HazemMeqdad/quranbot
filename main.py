@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from db.db import *
+from config import *
 
 
 def get_prefix(bot, message):
@@ -15,13 +16,16 @@ client = commands.AutoShardedBot(
     shard_count=3
 )
 
+client.token = token
+client.prefix = prefix
 client.remove_command("help")
 
 cogs = [
     "prefix",
     "help",
     "commands",
-    "setroom"
+    "setroom",
+    "time"
 ]
 
 for i in cogs:
@@ -39,8 +43,8 @@ client.load_extension("tasks.send")
 async def on_ready():
     for i in client.guilds:
         cr.execute(
-            "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix, channel) VALUES(?, ?, ?, ?)",
-            (i.id, i.name, "!", None))
+            "INSERT OR IGNORE INTO guilds(guild_id, guild_name, prefix) VALUES(?, ?, ?)",
+            (i.id, i.name, "!"))
     db.commit()
     await client.change_presence(activity=discord.Game(name="!help | فَاذْكُرونِي"))
     print(f"Name: {client.user.name}\nID: {client.user.id}")
@@ -89,4 +93,4 @@ async def on_guild_remove(guild):
     except Exception as Error:
         print(Error)
 
-client.run("NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.mYlu3RbabV_0T1-Dym-YtsKZaNM")
+client.run(client.token)
