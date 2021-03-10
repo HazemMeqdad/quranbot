@@ -5,11 +5,8 @@ from config import *
 
 
 def get_prefix(bot, message):
-    try:
-        prefix = cr.execute("SELECT prefix FROM guilds WHERE guild_id = ?", (message.guild.id,))
-        return commands.when_mentioned_or(prefix.fetchone()[0])(bot, message)
-    except:
-        pass
+    prefix = cr.execute("SELECT prefix FROM guilds WHERE guild_id = ?", (message.guild.id,))
+    return commands.when_mentioned_or(prefix.fetchone()[0])(bot, message)
 
 
 client = commands.AutoShardedBot(

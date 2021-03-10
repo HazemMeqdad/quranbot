@@ -18,7 +18,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "0.5":
+            time = guild_time.fetchone()[0]
+            if time != "0.5":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
@@ -35,7 +36,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "1":
+            time = guild_time.fetchone()[0]
+            if time != "1":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
@@ -52,7 +54,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "2":
+            time = guild_time.fetchone()[0]
+            if time != "2":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
@@ -69,7 +72,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "6":
+            time = guild_time.fetchone()[0]
+            if time != "6":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
@@ -86,7 +90,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "12":
+            time = guild_time.fetchone()[0]
+            if time != "12":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
@@ -103,7 +108,8 @@ class Send(commands.Cog):
             if i is None:
                 continue
             guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            if guild_time != "24":
+            time = guild_time.fetchone()[0]
+            if time != "24":
                 continue
             _channel = self.client.get_channel(i[0])
             try:
