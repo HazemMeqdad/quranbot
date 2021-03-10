@@ -25,7 +25,7 @@ __**commands**__
 `{0}setroom` - [#منشن الروم] - تحديد روم ارسال الاذكار
 `{0}support` - سيرفر الدعم الفني
 `{0}time` - [الوقت] تغير وقت ارسال الاذكار
-""".format(get_prefix(ctx), self.client.get_emoji(815909429010235442))
+***[𝐒upport](https://discord.gg/Ea9SUFUQCY) & [𝑰nvite](https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot)***""".format(get_prefix(ctx), self.client.get_emoji(815909429010235442))
 
         )
         embed.set_author(name="Help - فاذكروني", icon_url=self.client.user.avatar_url)

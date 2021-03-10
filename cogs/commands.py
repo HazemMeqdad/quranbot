@@ -12,25 +12,40 @@ class Commands(commands.Cog):
     @cooldown(1, 10, commands.BucketType.user)
     @guild_only()
     async def ping_command(self, ctx):
-        await ctx.send(f"سرعة اتصال البوت {round(self.client.latency * 1000)}ms")
+        embed = Embed(
+            description=f"سرعة اتصال البوت {round(self.client.latency * 1000)}ms",
+            color=Colour.red()
+        )
+        embed.set_author(name=" فاذكروني", icon_url=self.client.user.avatar_url)
+        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=self.client.user.avatar_url)
+        await ctx.send(embed=embed)
 
     @command(name="invite", aliases=['inv', "اضافه", "أضافه"])
     @cooldown(1, 10, commands.BucketType.user)
     @guild_only()
     async def invite_command(self, ctx):
-        await ctx.send(embed=Embed(
-            description=f"**[إضغط هنا لإضافة البوت](https://discord.com/oauth2/authorize?client_id={self.client.user.id}&permissions=8&scope=bot)**"
-        ))
+        embed = Embed(
+            description=f"**[إضغط هنا لإضافة البوت](https://discord.com/oauth2/authorize?client_id={self.client.user.id}&permissions=8&scope=bot)**",
+            color=Colour.red()
+        )
+        embed.set_author(name=" فاذكروني", icon_url=self.client.user.avatar_url)
+        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=self.client.user.avatar_url)
+        await ctx.send(embed=embed)
 
     @command(name="support", aliases=['server'])
     @cooldown(1, 10, commands.BucketType.user)
     @guild_only()
     async def support_command(self, ctx):
-        await ctx.send(embed=Embed(
-            description="**[سيرفر الدعم الفني للبوت](https://discord.gg/FB8Wps5)**"
-        ).set_thumbnail(
-            url="https://cdn.discordapp.com/avatars/728782652454469662/bfac83755b54d890fc8850bb6b3f09a7.png?size=1024")
+        embed = Embed(
+            description="**[سيرفر الدعم الفني للبوت](https://discord.gg/FB8Wps5)**",
+            color=Colour.red()
         )
+        embed.set_author(name="فاذكروني", icon_url=self.client.user.avatar_url)
+        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=self.client.user.avatar_url)
+        await ctx.send(embed=embed)
 
 
 def setup(client):
