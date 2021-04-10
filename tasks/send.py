@@ -1,144 +1,60 @@
-import random, time
+import random
 from discord.ext import commands
 from discord.ext import tasks
-from db.db import *
+import db
 from config import all
-import datetime
+import time
+
+limet = 0
 
 
 class Send(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.limet = 0
 
-    @tasks.loop(minutes=30.0)
-    async def half_an_hour(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        # print(date)
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "0.5":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(hours=1.0)
-    async def one_hour(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "1":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(hours=2.0)
-    async def two_hour(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "2":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(hours=6.0)
-    async def six_hour(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "6":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(hours=12.0)
-    async def twelve_hour(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "12":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(hours=24.0)
-    async def day(self):
-        date = cr.execute("SELECT channel FROM channels").fetchall()
-        for i in date:
-            if i is None:
-                continue
-            guild_time = cr.execute("SELECT date_time FROM channels WHERE channel = ?", (i[0],))
-            time = guild_time.fetchone()[0]
-            if time != "24":
-                continue
-            _channel = self.client.get_channel(i[0])
-            try:
-                if _channel is None:
-                    continue
-                await _channel.send(random.choice(all))
-            except:
-                pass
-
-    @tasks.loop(seconds=10)
-    async def del_cooldown(self):
-        if get_cooldown() == []:
+    @tasks.loop(minutes=1)
+    async def sender(self):
+        if self.limet == 0:
+            self.limet += 1
             return
-        cr.execute("DELETE FROM cooldown")
-        commit()
+        start = time.monotonic()
+        for i in db.get_all_channels():
+            channel_id = i[1]
+            guild_id = i[0]
+            if channel_id == None:
+                continue
+            channel = self.client.get_channel(channel_id)
+            guild = self.client.get_guild(guild_id)
+            if channel == None:
+                continue
+            if guild == None:
+                continue
+            try:
+                message = await channel.fetch_message(channel.last_message_id)
+                if db.get_spam(guild):
+                    if message.author == self.client.user:
+                        continue
+            except:
+                continue
+            new_time = db.get_timer(guild) - 60
+            db.edit_time(guild, new_time)
+            db.commit()
+            if db.get_timer(guild) < 0:
+                try:
+                    await channel.send(random.choice(all))
+                except:
+                    continue
+                else:
+                    db.rev_timer(guild)
+        print('---------------------------')
+        print(time.monotonic() - start)
+        print('---------------------------')
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.half_an_hour.start()
-
-        self.one_hour.start()
-        self.two_hour.start()
-        self.six_hour.start()
-        self.twelve_hour.start()
-        self.day.start()
-
-        self.del_cooldown.start()
-        # self.restart_program.start()
-        print("The Tasks is online")
+        print('`tasks has been ready`')
+        self.sender.start()
 
 
 def setup(client):
