@@ -9,7 +9,7 @@ class Send(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=2)
     async def sender(self):
         for i in db.get_all_channels():
             channel_id = i[1]
@@ -29,7 +29,7 @@ class Send(commands.Cog):
                         continue
             except:
                 continue
-            new_time = db.get_timer(guild) - 60
+            new_time = db.get_timer(guild) - 120
             db.edit_time(guild, new_time)
             db.commit()
             if db.get_timer(guild) < 0:
