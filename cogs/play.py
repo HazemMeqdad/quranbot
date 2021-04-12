@@ -53,7 +53,6 @@ class Play(commands.Cog):
             return
         qran = discord.FFmpegPCMAudio('quren.m4a')
         await ctx.guild.change_voice_state(channel=channel, self_deaf=True)
-
         try:
             voice_channel.play(qran)
             voice.loop()

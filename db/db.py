@@ -18,7 +18,8 @@ prefix TEXT DEFAULT '!',
 channel BIGINT(30) NOT NULL,
 time INT DEFAULT 3600 CHECK(time>=1800 AND time<=86400),
 timer INT DEFAULT 0,
-anti_spam BOOLEAN DEFAULT false)
+anti_spam BOOLEAN DEFAULT false,
+embed BOOLEAN DEFAULT false)
 """)
 
 print('`connect MySql database`')
@@ -122,6 +123,17 @@ def remove_guild(guild):
         commit()
     except:
         pass
+
+
+def embed(guild, status: bool):
+    if status:
+        cr.execute('UPDATE guilds SET embed = TRUE WHERE id = %s', (guild.id,))
+        commit()
+        return
+    cr.execute('UPDATE guilds SET embed = FALSE WHERE id = %s', (guild.id,))
+    commit()
+    return
+
 
 
 def commit():

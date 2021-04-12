@@ -24,6 +24,7 @@ class Set(commands.Cog):
 
     @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع')
     @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def anti_spam(self, ctx, enable=None):
         active = ['on', 'off']
@@ -36,6 +37,22 @@ class Set(commands.Cog):
         elif enable == 'off':
             db.anti_spam(ctx.guild, False)
             await ctx.send('تم اطفاء خاصيه عدم تكرار الاذكار في وقت عدم تفاعل الشات')
+
+    @commands.command(name='embed', help='تغير خاصيه ارسال الاذكار الى امبد')
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def embed_(self, ctx, enable=None):
+        active = ['on', 'off']
+        if enable not in active:
+            await ctx.send('يجب تحديد الوضع (on او off)')
+            return
+        if enable == 'on':
+            db.embed(ctx.guild, True)
+            await ctx.send('تم تفعيل خاصيه الأمبد بالأذكار')
+        elif enable == 'off':
+            db.embed(ctx.guild, False)
+            await ctx.send('تم اطفاء خاصيه الأمبد بالأذكار')
 
 
 def setup(client):
