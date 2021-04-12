@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-# from discord.ext.commands import command, has_permissions, cooldown, guild_only
 import db
 import asyncio
 from config import all
