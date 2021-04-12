@@ -1,8 +1,7 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 import db
 import config
-import asyncio
 
 
 def get_prefix(bot, msg):
@@ -45,7 +44,8 @@ client.load_extension("tasks.send")
 async def on_ready():
     for i in client.guilds:
         db.add_guild(i)
-    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help | رمضان كريم'))
+    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help | رمضان كريم'),
+                                 status=discord.Status.idle)
     print(f"Name: {client.user.name}\nID: {client.user.id}")
 
 

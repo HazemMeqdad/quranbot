@@ -52,10 +52,11 @@ class Play(commands.Cog):
             await ctx.send('القران الكريم يعمل الان')
             return
         qran = discord.FFmpegPCMAudio('quren.m4a')
+        await ctx.guild.change_voice_state(channel=channel, self_deaf=True)
+
         try:
             voice_channel.play(qran)
             voice.loop()
-            await ctx.guild.change_voice_state(channel=channel, self_deaf=True)
         except AttributeError:
             await ctx.send('القران الكريم قيد العمل الان')
 

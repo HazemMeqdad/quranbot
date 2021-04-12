@@ -7,7 +7,7 @@ class Set(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='set', invoke_without_command=True, aliases=['اعداد', 'settings'])
+    @commands.command(name='set', invoke_without_command=True, aliases=['اعداد', 'settings'], help='عرض اعدادات الخادم')
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def settings_(self, ctx):
@@ -16,14 +16,13 @@ class Set(commands.Cog):
             color=discord.Color.gold()
         )
         channel = db.get_channel(ctx.guild)
-        # if
         embed.add_field(name='روم الاذكار', value=self.client.get_channel(channel), inline=False)
         embed.add_field(name='وقت ارسال الاذكار', value=db.get_time(ctx.guild), inline=False)
         embed.add_field(name='البادئه', value=db.get_prefix(ctx.guild), inline=False)
         embed.add_field(name='وضع تكرار الرسائل', value=db.get_spam(ctx.guild), inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name='spam')
+    @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع')
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def anti_spam(self, ctx, enable=None):
