@@ -9,7 +9,7 @@ def get_prefix(bot, msg):
 
 
 client = commands.AutoShardedBot(
-    command_prefix=get_prefix,
+    command_prefix='طططططططططططططططططططططططططططططططط',
     case_insensitive=True,
     description="بوت فذكروني",
     Intents=discord.Intents.default(),
@@ -42,8 +42,25 @@ client.load_extension("tasks.send")
 
 @client.event
 async def on_ready():
+    users = 0
+    channels = 0
+    guilds__ = 0
+    _guilds = 0
     for i in client.guilds:
         db.add_guild(i)
+        users += i.member_count
+        channels += len(i.channels)
+        if i.member_count >= 100:
+            guilds__ += 1
+        if i.member_count >= 1000:
+            _guilds += 1
+    print('--------')
+    print(f'guilds: {len(client.guilds)}')
+    print(f'Users: {users}')
+    print(f'channels: {channels}')
+    print(f'guilds +100: {guilds__}')
+    print(f'guilds +1000: {_guilds}')
+    print('--------')
     await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help | رمضان كريم'),
                                  status=discord.Status.idle)
     print(f"Name: {client.user.name}\nID: {client.user.id}")

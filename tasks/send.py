@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord.ext import tasks
 import db
 from config import all
+import discord
+import time
 
 
 class Send(commands.Cog):
@@ -11,39 +13,67 @@ class Send(commands.Cog):
 
     @tasks.loop(minutes=2)
     async def sender(self):
+        start = time.monotonic()
         for i in db.get_all_channels():
             channel_id = i[1]
             guild_id = i[0]
-            if channel_id == None:
-                continue
             channel = self.client.get_channel(channel_id)
             guild = self.client.get_guild(guild_id)
-            if channel == None:
+            if guild is None:
+                db.delete_guild(guild_id)
                 continue
-            if guild == None:
-                continue
-            try:
-                message = await channel.fetch_message(channel.last_message_id)
-                if db.get_spam(guild):
-                    if message.author == self.client.user:
-                        continue
-            except:
+            if channel is None:
+                db.remove_channel(guild)
                 continue
             new_time = db.get_timer(guild) - 120
             db.edit_time(guild, new_time)
-            db.commit()
-            if db.get_timer(guild) < 0:
+        print('----------------------------')
+        print(time.monotonic() - start)
+        print('----------------------------')
+
+    @tasks.loop(minutes=2)
+    async def sender2(self):
+        start = time.monotonic()
+        for i in db.get_all_channels():
+            channel_id = i[1]
+            guild_id = i[0]
+            timer = i[2]
+            channel = self.client.get_channel(channel_id)
+            guild = self.client.get_guild(guild_id)
+
+            if timer <= 0:
                 try:
+                    message = await channel.fetch_message(channel.last_message_id)
+                    if db.get_spam(guild):
+                        if message.author == self.client.user:
+                            continue
+                except discord.NotFound:
+                    pass
+                except discord.HTTPException:
+                    pass
+                try:
+                    if db.get_embed(guild):
+                        await channel.send(embed=discord.Embed(
+                            description=random.choice(all),
+                            color=discord.Color.gold()
+                        ))
+                        db.rev_timer(guild)
+                        continue
                     await channel.send(random.choice(all))
-                except:
-                    continue
-                else:
                     db.rev_timer(guild)
+                    continue
+                except:
+                    db.remove_channel(guild)
+                    continue
+        print('=====================')
+        print(time.monotonic() - start)
+        print('=====================')
 
     @commands.Cog.listener()
     async def on_ready(self):
         print('`tasks has been ready`')
         self.sender.start()
+        self.sender2.start()
 
 
 def setup(client):

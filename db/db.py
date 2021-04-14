@@ -4,7 +4,7 @@ db = mysql.connector.connect(
     host="localhost",
     user="root",
     password="",
-    database='fdr_temp'
+    database='fdr_test'
 )
 
 
@@ -46,7 +46,7 @@ def get_timer(guild):
 
 
 def get_all_channels():
-    cr.execute('SELECT id, channel FROM guilds')
+    cr.execute('SELECT id, channel, timer FROM guilds WHERE channel IS NOT NULL')
     return cr.fetchall()
 
 
@@ -134,6 +134,12 @@ def embed(guild, status: bool):
     commit()
     return
 
+
+def get_embed(guild):
+    cr.execute('SELECT embed FROM guilds WHERE id = %s', (guild.id,))
+    if cr.fetchone()[0] == 1:
+        return True
+    return False
 
 
 def commit():

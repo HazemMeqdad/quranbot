@@ -7,25 +7,25 @@ class Play(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases=['c', 'connect'], help='لانضمام البوت الى الروم الصوتي')
-    @commands.guild_only()
-    @commands.has_permissions(manage_guild=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def join(self, ctx):
-        if not ctx.author.voice:
-            await ctx.send("يجب عليك دخول غرفه صوتيه")
-            return
-        channel = ctx.author.voice.channel
-        voice = get(self.client.voice_clients, guild=ctx.guild)
-
-        try:
-            await channel.connect()
-        except discord.errors.ClientException:
-            await voice.move_to(channel)
-        except discord.Forbidden:
-            await ctx.send('البوت لا يمتلك الصلاحيات الكافيه لدخول الغرقه الصوتيه')
-            return
-        await ctx.send("تم الاتصال في `{}`".format(channel))
+    # @commands.command(aliases=['c', 'connect'], help='لانضمام البوت الى الروم الصوتي')
+    # @commands.guild_only()
+    # @commands.has_permissions(manage_guild=True)
+    # @commands.cooldown(1, 10, commands.BucketType.user)
+    # async def join(self, ctx):
+    #     if not ctx.author.voice:
+    #         await ctx.send("يجب عليك دخول غرفه صوتيه")
+    #         return
+    #     channel = ctx.author.voice.channel
+    #     voice = get(self.client.voice_clients, guild=ctx.guild)
+    #
+    #     try:
+    #         await channel.connect()
+    #     except discord.errors.ClientException:
+    #         await voice.move_to(channel)
+    #     except discord.Forbidden:
+    #         await ctx.send('البوت لا يمتلك الصلاحيات الكافيه لدخول الغرقه الصوتيه')
+    #         return
+    #     await ctx.send("تم الاتصال في `{}`".format(channel))
 
     @commands.command(name='play', help='تشغيل القران الكريم على مدار 24 ساعه', aliases=['quren'])
     @commands.guild_only()

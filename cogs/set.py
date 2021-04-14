@@ -15,11 +15,19 @@ class Set(commands.Cog):
             description='إعدادات خادم: {}'.format(ctx.guild.name),
             color=discord.Color.gold()
         )
-        channel = db.get_channel(ctx.guild)
-        embed.add_field(name='روم الاذكار', value=self.client.get_channel(channel), inline=False)
+        channel = self.client.get_channel(db.get_channel(ctx.guild))
+        if channel is not None:
+            embed.add_field(name='روم الاذكار', value=channel.mention, inline=False)
         embed.add_field(name='وقت ارسال الاذكار', value=db.get_time(ctx.guild), inline=False)
         embed.add_field(name='البادئه', value=db.get_prefix(ctx.guild), inline=False)
-        embed.add_field(name='وضع تكرار الرسائل', value=db.get_spam(ctx.guild), inline=False)
+        if db.get_spam(ctx.guild) is True:
+            embed.add_field(name='وضع تكرار الرسائل', value="on", inline=False)
+        else:
+            embed.add_field(name='وضع تكرار الرسائل', value="off", inline=False)
+        if db.get_embed(ctx.guild) is True:
+            embed.add_field(name='وضع الامبد', value="on", inline=False)
+        else:
+            embed.add_field(name='وضع الامبد', value="off", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع')
