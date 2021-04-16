@@ -1,5 +1,8 @@
-token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.zDGBzP5UJ9ih91b2BpUXmwzmxk8"
+token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.xJUC7YlPQ_vsd62qC_VFBKmhZmo"
 # token = 'ODI2NzEyNjYxODQ0MTY0NjA5.YGQeKg.EDm2FsaADsW7Feiiu9zygQUiHAQ'
+
+
+owners = [277669327602188288, 739232997232082944, 716783245387235410, 385701197069418496, 532696546462924820]
 
 all = [
     "> ﴿ فَاذْكُرونِي أَذْكُركُمْ وأشْكُرُوا لِي وَلَا تَكْفُرونِ ﴾.",

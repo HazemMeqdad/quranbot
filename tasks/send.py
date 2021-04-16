@@ -13,7 +13,6 @@ class Send(commands.Cog):
 
     @tasks.loop(minutes=2)
     async def sender(self):
-        start = time.monotonic()
         for i in db.get_all_channels():
             channel_id = i[1]
             guild_id = i[0]
@@ -27,13 +26,9 @@ class Send(commands.Cog):
                 continue
             new_time = db.get_timer(guild) - 120
             db.edit_time(guild, new_time)
-        print('----------------------------')
-        print(time.monotonic() - start)
-        print('----------------------------')
 
     @tasks.loop(minutes=2)
     async def sender2(self):
-        start = time.monotonic()
         for i in db.get_all_channels():
             channel_id = i[1]
             guild_id = i[0]
@@ -56,7 +51,7 @@ class Send(commands.Cog):
                         await channel.send(embed=discord.Embed(
                             description=random.choice(all),
                             color=discord.Color.gold()
-                        ))
+                        ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         db.rev_timer(guild)
                         continue
                     await channel.send(random.choice(all))
@@ -65,9 +60,6 @@ class Send(commands.Cog):
                 except:
                     db.remove_channel(guild)
                     continue
-        print('=====================')
-        print(time.monotonic() - start)
-        print('=====================')
 
     @commands.Cog.listener()
     async def on_ready(self):

@@ -9,7 +9,7 @@ def get_prefix(bot, msg):
 
 
 client = commands.AutoShardedBot(
-    command_prefix='طططططططططططططططططططططططططططططططط',
+    command_prefix='!',
     case_insensitive=True,
     description="بوت فذكروني",
     Intents=discord.Intents.default(),
@@ -19,15 +19,16 @@ client = commands.AutoShardedBot(
 client.remove_command("help")
 
 cogs = [
-    "prefix",
-    "help",
-    "commands",
-    "setroom",
-    "set_time",
-    "play",
+    # "prefix",
+    # "help",
+    # "commands",
+    # "setroom",
+    # "set_time",
+    # "play",
     'errors',
-    'event',
-    'set'
+    # 'event',
+    # 'set'
+    'owner'
 ]
 
 for i in cogs:
@@ -37,7 +38,9 @@ for i in cogs:
     except Exception as error:
         print(f"the error is \n{error}")
 
-client.load_extension("tasks.send")
+# client.load_extension("tasks.send")
+
+client.owner_ids = config.owners
 
 
 @client.event
