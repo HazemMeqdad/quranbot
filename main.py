@@ -26,16 +26,16 @@ client = commands.AutoShardedBot(
 client.remove_command("help")
 
 cogs = [
-    # "prefix",
-    # "help",
-    # "commands",
-    # "setroom",
-    # "set_time",
-    # "play",
+    "prefix",
+    "help",
+    "commands",
+    "setroom",
+    "set_time",
+    "play",
     'errors',
     'event',
-    # 'set',
-    # 'owner'
+    'set',
+    'owner'
 ]
 
 for i in cogs:
