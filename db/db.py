@@ -1,10 +1,13 @@
 import mysql.connector
+import config
 import discord
+
+
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database='fdr_test'
+    host=config.database['host'],
+    user=config.database['user'],
+    password=config.database['password'],
+    database=config.database['database']
 )
 
 
@@ -25,22 +28,22 @@ embed BOOLEAN DEFAULT false)
 print('`connect MySql database`')
 
 
-def get_prefix(guild):
+def get_prefix(guild: discord.Guild):
     cr.execute("SELECT prefix FROM guilds WHERE id = %s", (guild.id,))
     return cr.fetchone()[0]
 
 
-def get_channel(guild):
+def get_channel(guild: discord.Guild):
     cr.execute("SELECT channel FROM guilds WHERE id = %s", (guild.id,))
     return cr.fetchone()[0]
 
 
-def get_time(guild):
+def get_time(guild: discord.Guild):
     cr.execute('SELECT time FROM guilds WHERE id = %s', (guild.id,))
     return cr.fetchone()[0]
 
 
-def get_timer(guild):
+def get_timer(guild: discord.Guild):
     cr.execute('SELECT timer FROM guilds WHERE id = %s', (guild.id,))
     return cr.fetchone()[0]
 
@@ -50,19 +53,19 @@ def get_all_channels():
     return cr.fetchall()
 
 
-def set_prefix(guild, new_prefix):
+def set_prefix(guild: discord.Guild, new_prefix: str):
     cr.execute('UPDATE guilds SET prefix = %s WHERE id = %s', (new_prefix, guild.id))
     commit()
     return
 
 
-def set_channel(guild, new_channel):
+def set_channel(guild: discord.Guild, new_channel: discord.TextChannel):
     cr.execute('UPDATE guilds SET channel = %s WHERE id = %s', (new_channel.id, guild.id))
     commit()
     return
 
 
-def set_time(guild, new_time):
+def set_time(guild: discord.Guild, new_time: int):
     cr.execute('UPDATE guilds SET time = %s WHERE id = %s', (new_time, guild.id))
     cr.execute('UPDATE guilds SET timer = %s WHERE id = %s', (new_time, guild.id))
     commit()
@@ -74,7 +77,7 @@ def edit_time(guild: discord.Guild, time: int):
     commit()
 
 
-def rev_timer(guild):
+def rev_timer(guild: discord.Guild):
     cr.execute('UPDATE guilds SET timer = %s WHERE id = %s', (get_time(guild), guild.id))
     commit()
     return
@@ -86,20 +89,20 @@ def delete_guild(guild_id: int):
     return
 
 
-def remove_channel(guild):
+def remove_channel(guild: discord.Guild):
     cr.execute('UPDATE guilds SET channel = %s WHERE id = %s', (None, guild.id))
     commit()
     return
 
 
-def get_spam(guild):
+def get_spam(guild: discord.Guild):
     cr.execute('SELECT anti_spam FROM guilds WHERE id = %s', (guild.id,))
     if cr.fetchone()[0] == 1:
         return True
     return False
 
 
-def anti_spam(guild, status: bool):
+def anti_spam(guild: discord.Guild, status: bool):
     if status:
         cr.execute('UPDATE guilds SET anti_spam = TRUE WHERE id = %s', (guild.id,))
         commit()
@@ -109,7 +112,7 @@ def anti_spam(guild, status: bool):
     return
 
 
-def add_guild(guild):
+def add_guild(guild: discord.Guild):
     try:
         cr.execute('INSERT INTO guilds(id, guild_name) VALUES(%s, %s)', (guild.id, guild.name))
         commit()
@@ -117,7 +120,7 @@ def add_guild(guild):
         pass
 
 
-def remove_guild(guild):
+def remove_guild(guild: discord.Guild):
     try:
         cr.execute('DELETE FROM guilds WHERE id = %s', (guild.id,))
         commit()
@@ -125,7 +128,7 @@ def remove_guild(guild):
         pass
 
 
-def embed(guild, status: bool):
+def embed(guild: discord.Guild, status: bool):
     if status:
         cr.execute('UPDATE guilds SET embed = TRUE WHERE id = %s', (guild.id,))
         commit()
@@ -135,7 +138,7 @@ def embed(guild, status: bool):
     return
 
 
-def get_embed(guild):
+def get_embed(guild: discord.Guild):
     cr.execute('SELECT embed FROM guilds WHERE id = %s', (guild.id,))
     if cr.fetchone()[0] == 1:
         return True

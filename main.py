@@ -5,7 +5,13 @@ import config
 
 
 def get_prefix(bot, msg):
-    return commands.when_mentioned_or(db.get_prefix(msg.guild))(bot, msg)
+    prefix = commands.when_mentioned_or('!')(bot, msg)
+    try:
+        prefix = commands.when_mentioned_or(db.get_prefix(msg.guild))(bot, msg)
+    except AttributeError:
+        prefix = commands.when_mentioned_or('!')(bot, msg)
+    finally:
+        return prefix
 
 
 client = commands.AutoShardedBot(
@@ -15,6 +21,7 @@ client = commands.AutoShardedBot(
     Intents=discord.Intents.default(),
     shard_count=5
 )
+
 
 client.remove_command("help")
 
@@ -26,9 +33,9 @@ cogs = [
     # "set_time",
     # "play",
     'errors',
-    # 'event',
-    # 'set'
-    'owner'
+    'event',
+    # 'set',
+    # 'owner'
 ]
 
 for i in cogs:
@@ -38,7 +45,7 @@ for i in cogs:
     except Exception as error:
         print(f"the error is \n{error}")
 
-# client.load_extension("tasks.send")
+client.load_extension("tasks.send")
 
 client.owner_ids = config.owners
 
@@ -47,22 +54,22 @@ client.owner_ids = config.owners
 async def on_ready():
     users = 0
     channels = 0
-    guilds__ = 0
-    _guilds = 0
+    guilds_plus_100 = 0
+    guilds_plus_1000 = 0
     for i in client.guilds:
         db.add_guild(i)
         users += i.member_count
         channels += len(i.channels)
         if i.member_count >= 100:
-            guilds__ += 1
+            guilds_plus_100 += 1
         if i.member_count >= 1000:
-            _guilds += 1
+            guilds_plus_1000 += 1
     print('--------')
     print(f'guilds: {len(client.guilds)}')
     print(f'Users: {users}')
     print(f'channels: {channels}')
-    print(f'guilds +100: {guilds__}')
-    print(f'guilds +1000: {_guilds}')
+    print(f'guilds +100: {guilds_plus_100}')
+    print(f'guilds +1000: {guilds_plus_1000}')
     print('--------')
     await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help | رمضان كريم'),
                                  status=discord.Status.idle)

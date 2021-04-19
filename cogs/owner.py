@@ -8,7 +8,7 @@ class Owner(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='about')
+    @commands.command(name='about', aliases=['bot', 'botinfo'], hidden=True)
     @commands.is_owner()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -55,7 +55,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def unload_cog(self, ctx, *, cog: str=None):
+    async def unload_cog(self, ctx, *, cog: str = None):
         if cog is None:
             await ctx.send('يجب تحديد اسم ملف ال cog')
             return
@@ -70,7 +70,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def reload_cog(self, ctx, *, cog: str=None):
+    async def reload_cog(self, ctx, *, cog: str = None):
         if cog is None:
             await ctx.send('يجب تحديد اسم ملف ال cog')
             return

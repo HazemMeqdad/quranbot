@@ -15,8 +15,7 @@ class Event(commands.Cog):
             embed = discord.Embed(title="add guild", color=0x46FF00)
             embed.add_field(name='name guild: ', value=guild.name, inline=False)
             embed.add_field(name='id guild: ', value=guild.id, inline=False)
-            embed.add_field(name='owner guild: ', value=f"<@{guild.owner_id}> | {self.client.get_user(guild.owner_id)}",
-                            inline=False)
+            embed.add_field(name='owner guild: ', value=f"<@{guild.owner_id}> ", inline=False)
             embed.add_field(name='owner id: ', value=str(guild.owner_id), inline=False)
             embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
             embed.add_field(name='bot server: ', value=f'{len(self.client.guilds)}', inline=False)
@@ -34,8 +33,7 @@ class Event(commands.Cog):
             embed = discord.Embed(title="remove guild", color=0xFF0000)
             embed.add_field(name='name guild: ', value=guild.name, inline=False)
             embed.add_field(name='id guild: ', value=guild.id, inline=False)
-            embed.add_field(name='owner guild: ', value=f"<@{guild.owner_id}> | {self.client.get_user(guild.owner_id)}",
-                            inline=False)
+            embed.add_field(name='owner guild: ', value=f"<@{guild.owner_id}>", inline=False)
             embed.add_field(name='owner id: ', value=str(guild.owner_id), inline=False)
             embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
             embed.add_field(name='bot server: ', value=f'{len(self.client.guilds)}', inline=False)
