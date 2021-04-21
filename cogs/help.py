@@ -23,8 +23,6 @@ class Help(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def help_command(self, ctx, *, command=None):
-        # for i in self.client.commands:
-        #     print(i.name)
         if command is not None:
             command = self.client.get_command(command)
             if command is None:
@@ -38,7 +36,7 @@ class Help(commands.Cog):
             embed = Embed(
                 description=f"**command:** {command.name}\n\
 **help:** {command.help}\n\
-**usage:** {db.get_prefix(ctx.guild)}{command.usage}\n\
+**usage:** {db.get_prefix(ctx.guild)}{command.name} {command.signature}\n\
 **aliases:** {aliases}\n",
                 color=Colour.red()
             ).set_author(name=command.cog_name)

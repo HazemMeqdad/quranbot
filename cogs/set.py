@@ -30,7 +30,7 @@ class Set(commands.Cog):
             embed.add_field(name='وضع الامبد', value="off", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع')
+    @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع', usage='[on or off]')
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -46,7 +46,7 @@ class Set(commands.Cog):
             db.anti_spam(ctx.guild, False)
             await ctx.send('تم اطفاء خاصيه عدم تكرار الاذكار في وقت عدم تفاعل الشات')
 
-    @commands.command(name='embed', help='تغير خاصيه ارسال الاذكار الى امبد')
+    @commands.command(name='embed', help='تغير خاصيه ارسال الاذكار الى امبد', usage='[on or off]')
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.user)

@@ -19,7 +19,7 @@ class Time(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name="time", aliases=["set_time", "settime"], help='تغير وقت ارسال الاذكار', usage='time [الوقت]')
+    @commands.command(name="time", aliases=["set_time", "settime"], help='تغير وقت ارسال الاذكار', usage='[الوقت]')
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.guild_only()

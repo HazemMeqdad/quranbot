@@ -10,7 +10,7 @@ class SetRoom(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name="setroom", aliases=["channel", "setchannel", "set_room", "set_channel"], help='تحديد روم ارسال الاذكار', usage='setroom [#الروم الجديده]')
+    @commands.command(name="setroom", aliases=["channel", "setchannel", "set_room", "set_channel"], help='تحديد روم ارسال الاذكار', usage='[#الروم الجديده]')
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.guild_only()

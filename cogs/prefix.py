@@ -7,7 +7,7 @@ class Prefix(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name="prefix", aliases=["setprefix", "set_prefix", "set-prefix"], help='أمر تعيين البادئة.', usage='prefix [البادئه الجديده]')
+    @commands.command(name="prefix", aliases=["setprefix", "set_prefix", "set-prefix"], help='أمر تعيين البادئة.', usage='[البادئه الجديده]')
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.guild_only()
