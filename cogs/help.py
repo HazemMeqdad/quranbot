@@ -13,10 +13,7 @@ class Help(commands.Cog):
         for i in self.client.commands:
             if i.hidden:
                 continue
-            if i.usage is not None:
-                list_commands.append(f"**`{db.get_prefix(ctx.guild)}{i.usage}`** - {i.help}")
-                continue
-            list_commands.append(f"**`{db.get_prefix(ctx.guild)}{i.name}`** - {i.help}")
+            list_commands.append(f"**`{db.get_prefix(ctx.guild)}{i.name} {i.signature}`** - {i.help}")
         return "\n".join(list_commands)
 
     @commands.command(name="help", description='قائمه الأوامر', help="عرض اوامر البوت")
