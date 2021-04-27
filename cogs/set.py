@@ -7,28 +7,28 @@ class Set(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='set', invoke_without_command=True, aliases=['اعداد', 'settings'], help='عرض اعدادات الخادم')
-    @commands.guild_only()
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def settings_(self, ctx):
-        embed = discord.Embed(
-            description='إعدادات خادم: {}'.format(ctx.guild.name),
-            color=discord.Color.gold()
-        )
-        channel = self.client.get_channel(db.get_channel(ctx.guild))
-        if channel is not None:
-            embed.add_field(name='روم الاذكار', value=channel.mention, inline=False)
-        embed.add_field(name='وقت ارسال الاذكار', value=db.get_time(ctx.guild), inline=False)
-        embed.add_field(name='البادئه', value=db.get_prefix(ctx.guild), inline=False)
-        if db.get_spam(ctx.guild) is True:
-            embed.add_field(name='وضع تكرار الرسائل', value="on", inline=False)
-        else:
-            embed.add_field(name='وضع تكرار الرسائل', value="off", inline=False)
-        if db.get_embed(ctx.guild) is True:
-            embed.add_field(name='وضع الامبد', value="on", inline=False)
-        else:
-            embed.add_field(name='وضع الامبد', value="off", inline=False)
-        await ctx.send(embed=embed)
+    # @commands.command(name='set', invoke_without_command=True, aliases=['اعداد', 'settings'], help='عرض اعدادات الخادم')
+    # @commands.guild_only()
+    # @commands.cooldown(1, 10, commands.BucketType.user)
+    # async def settings_(self, ctx):
+    #     embed = discord.Embed(
+    #         description='إعدادات خادم: {}'.format(ctx.guild.name),
+    #         color=discord.Color.gold()
+    #     )
+    #     channel = self.client.get_channel(db.get_channel(ctx.guild))
+    #     if channel is not None:
+    #         embed.add_field(name='روم الاذكار', value=channel.mention, inline=False)
+    #     embed.add_field(name='وقت ارسال الاذكار', value=db.get_time(ctx.guild), inline=False)
+    #     embed.add_field(name='البادئه', value=db.get_prefix(ctx.guild), inline=False)
+    #     if db.get_spam(ctx.guild) is True:
+    #         embed.add_field(name='وضع تكرار الرسائل', value="on", inline=False)
+    #     else:
+    #         embed.add_field(name='وضع تكرار الرسائل', value="off", inline=False)
+    #     if db.get_embed(ctx.guild) is True:
+    #         embed.add_field(name='وضع الامبد', value="on", inline=False)
+    #     else:
+    #         embed.add_field(name='وضع الامبد', value="off", inline=False)
+    #     await ctx.send(embed=embed)
 
     @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه للجميع', usage='[on or off]')
     @commands.guild_only()

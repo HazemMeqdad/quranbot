@@ -50,6 +50,8 @@ class Errors(commands.Cog):
             ).set_author(name=ctx.command.cog_name)
             await ctx.send(embed=embed)
             return
+        elif isinstance(error, discord.errors.Forbidden):
+            return
 
 
 def setup(client):

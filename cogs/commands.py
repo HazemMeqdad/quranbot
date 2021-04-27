@@ -2,7 +2,7 @@ import discord
 from discord import Embed, Colour
 from discord.ext import commands
 import time
-
+import db
 
 class Commands(commands.Cog):
     def __init__(self, client):
@@ -70,6 +70,24 @@ class Commands(commands.Cog):
         embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
         embed.set_footer(text="بطلب من: {}".format(ctx.author), icon_url=ctx.author.avatar_url)
         embed.set_thumbnail(url=self.client.user.avatar_url)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="info", aliases=['معلومات'], help="الحصول على معلومات الخادم المحفوضه")
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.guild_only()
+    async def info_(self, ctx):
+        data = db.get_info(ctx.guild)
+        embed = discord.Embed(
+            description='إعدادات خادم: {}'.format(ctx.guild.name),
+            color=discord.Color.gold()
+        )
+        embed.add_field(name='البادئه:', value=data[2], inline=True)
+        embed.add_field(name='روم الاذكار:', value=self.client.get_channel(data[3]).mention if data[3] is not None else "لا يوجد", inline=True)
+        embed.add_field(name='وقت ارسال الاذكار:', value=str(data[4]), inline=True)
+        embed.add_field(name='وضع تكرار الرسائل:', value="on" if data[6] == 1 else "off", inline=True)
+        embed.add_field(name='وضع الامبد:', value="on" if data[7] == 1 else "off", inline=True)
+        embed.add_field(name='shard id:', value=str(ctx.guild.shard_id), inline=True)
+        embed.add_field(name='shard ping:', value=f"{int(self.client.get_shard(ctx.guild.shard_id).latency * 1000)}ms", inline=True)
         await ctx.send(embed=embed)
 
 

@@ -145,5 +145,10 @@ def get_embed(guild: discord.Guild):
     return False
 
 
+def get_info(guild: discord.Guild):
+    cr.execute('SELECT * FROM guilds WHERE id = %s', (guild.id,))
+    return cr.fetchone()
+
+
 def commit():
     db.commit()

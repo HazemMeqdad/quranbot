@@ -1,5 +1,21 @@
-token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.xJUC7YlPQ_vsd62qC_VFBKmhZmo"
-# token = 'ODI2NzEyNjYxODQ0MTY0NjA5.YGQeKg.EDm2FsaADsW7Feiiu9zygQUiHAQ'
+token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.zg3oHWIMYEWwkcDqmLsyg2JGQNk"
+
+
+# database = {
+#     "host": "156.67.222.212",
+#     "user": "u162048435_fdr_team",
+#     "password": "Fdr__1234",
+#     "database": 'u162048435_fdr'
+# }
+
+
+database = {
+    "host": "localhost",
+    "user": "root",
+    "password": "",
+    "database": 'fdr_test'
+}
+
 
 
 owners = [277669327602188288, 739232997232082944, 716783245387235410, 385701197069418496, 532696546462924820]
