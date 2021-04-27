@@ -61,7 +61,7 @@ class Send(commands.Cog):
                 continue
             await asyncio.sleep(120 - int(timer))
 
-    @commands.command(name='status')
+    @commands.command(name='status', hidden=True)
     @commands.is_owner()
     async def status(self, ctx, status=None):
         if status is None:
