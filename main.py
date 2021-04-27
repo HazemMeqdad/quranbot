@@ -15,7 +15,7 @@ def get_prefix(bot, msg):
 
 
 client = commands.AutoShardedBot(
-    command_prefix='!',
+    command_prefix=get_prefix,
     case_insensitive=True,
     description="بوت فذكروني",
     Intents=discord.Intents.default(),

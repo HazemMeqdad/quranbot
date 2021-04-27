@@ -54,7 +54,7 @@ class Send(commands.Cog):
                             continue
                         await channel.send(random.choice(all))
                     except:
-                        db.remove_channel(guild)
+                        continue
             end = time.monotonic()
             timer = end - start
             if timer >= 0:
