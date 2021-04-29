@@ -51,27 +51,12 @@ client.load_extension("tasks.send")
 client.owner_ids = config.owners
 
 
-# @tasks.loop(seconds=5.0)
-# async def status():
-#     status = [
-#         '!help - فاذكروني',
-#         'رمضان كريم',
-#         random.choice(config.all)
-#     ]
-#     await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name=status[0]),
-#                                  status=discord.Status.idle)
-#     await asyncio.sleep(30)
-#     await client.change_presence(activity=discord.Game(type=discord.ActivityType.watching, name=status[1]),
-#                                  status=discord.Status.idle)
-#     await asyncio.sleep(10)
-#     await client.change_presence(activity=discord.Game(type=discord.ActivityType.playing, name=status[2]),
-#                                  status=discord.Status.idle)
-#     await asyncio.sleep(10)
-
-
+# !help - رمضان كريم 🌙
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help - رمضان كريم 🌙'),
+    for i in client.guilds:
+        db.add_guild(i)
+    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='صيانه... 🌙'),
                                  status=discord.Status.idle)
     print(f"Name: {client.user.name}\nID: {client.user.id}")
 
@@ -79,6 +64,18 @@ async def on_ready():
 @client.event
 async def on_shard_ready(shard_id):
     print(f'`shard {shard_id} is ready`')
+
+
+@client.event
+async def on_shard_disconnect(shard_id):
+    channel = client.get_channel(837105079093821470)
+    await channel.send(f'Shard {shard_id} has been disconnect.')
+
+
+@client.event
+async def on_shard_resumed(shard_id):
+    channel = client.get_channel(837105079093821470)
+    await channel.send(f'Shard {shard_id} has been resumed.')
 
 
 client.run(config.token)

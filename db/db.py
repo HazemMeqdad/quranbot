@@ -49,7 +49,8 @@ def get_timer(guild: discord.Guild):
 
 
 def get_all_channels():
-    cr.execute('SELECT id, channel, timer FROM guilds WHERE channel IS NOT NULL')
+    cr.execute('SELECT id, channel, time FROM guilds WHERE channel IS NOT NULL')
+    # cr.execute('SELECT * FROM guilds WHERE channel IS NOT NULL')
     return cr.fetchall()
 
 
@@ -152,3 +153,15 @@ def get_info(guild: discord.Guild):
 
 def commit():
     db.commit()
+
+
+# print(get_all_channels())
+
+
+# cr.execute('SELECT * FROM guilds WHERE id = 654423706294026270')
+
+# d = cr.fetchone()
+# print(d)
+# for i in d:
+#     print(f'{i}: {type(i)}')
+

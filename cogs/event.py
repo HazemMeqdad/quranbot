@@ -47,6 +47,8 @@ class Event(commands.Cog):
     async def on_message(self, ctx):
         if ctx.guild is None:
             return
+        # if ctx.guild.member_count >= 10000:
+        #     print(ctx.guild)
         db.add_guild(ctx.guild)
 
 

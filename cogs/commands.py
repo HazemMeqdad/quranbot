@@ -4,6 +4,7 @@ from discord.ext import commands
 import time
 import db
 
+
 class Commands(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -56,14 +57,14 @@ class Commands(commands.Cog):
         embed = Embed(
             title='شكرا على اختيارك بوت فاذكروني 🌹',
             description="""
-        **Link:**
-        [click here](https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot)
-        **Support:**
-        [click here](https://discord.gg/MYEvygbHXt)
-        **Vote:**
-        [click here](https://top.gg/bot/728782652454469662/vote)
-        **Support us:**
-        [click here](https://www.paypal.com/paypalme/codexv)     
+**Link:**
+[click here](https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot)
+**Support:**
+[click here](https://discord.gg/MYEvygbHXt)
+**Vote:**
+[click here](https://top.gg/bot/728782652454469662/vote)
+**Support us:**
+[click here](https://www.paypal.com/paypalme/codexv)     
                 """,
             color=0xEFD881)
         embed.set_image(url="https://i8.ae/djPWO")
@@ -84,8 +85,8 @@ class Commands(commands.Cog):
         embed.add_field(name='البادئه:', value=data[2], inline=True)
         embed.add_field(name='روم الاذكار:', value=self.client.get_channel(data[3]).mention if data[3] is not None else "لا يوجد", inline=True)
         embed.add_field(name='وقت ارسال الاذكار:', value=str(data[4]), inline=True)
-        embed.add_field(name='وضع تكرار الرسائل:', value="on" if data[6] == 1 else "off", inline=True)
-        embed.add_field(name='وضع الامبد:', value="on" if data[7] == 1 else "off", inline=True)
+        embed.add_field(name='وضع تكرار الرسائل:', value="on" if data[5] == 1 else "off", inline=True)
+        embed.add_field(name='وضع الامبد:', value="on" if data[6] == 1 else "off", inline=True)
         embed.add_field(name='shard id:', value=str(ctx.guild.shard_id), inline=True)
         embed.add_field(name='shard ping:', value=f"{int(self.client.get_shard(ctx.guild.shard_id).latency * 1000)}ms", inline=True)
         await ctx.send(embed=embed)
