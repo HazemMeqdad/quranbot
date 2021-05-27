@@ -40,14 +40,13 @@ class Help(commands.Cog):
             await ctx.send(embed=embed)
             return
         embed = Embed(
-            description=self.get_all_commands(ctx),
-            color=Colour.red()
+            description="<:111:846484560120250389><:115:846484554126196766><:112:846484559645638697><:113:846484558235828255><:114:846484555782684742><:115:846484554126196766><:116:846484554213752872>\n\n%s\n\n<:001:846485195884593263><:005:846485185271824495><:002:846485195016110100><:003:846485193380462662><:004:846485186476900402><:005:846485185271824495><:006:846485183070339072>" % self.get_all_commands(ctx),
+            color=0xEFD881
         )\
-            .set_thumbnail(url=self.client.user.avatar_url)\
             .set_footer(text="بطلب من: {}".format(ctx.author), icon_url=ctx.author.avatar_url)\
             .set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)\
             .add_field(name="معلومات اكثر:", value="***[Support](https://discord.gg/Ea9SUFUQCY) & [Invite](https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot) & [Vote](https://top.gg/bot/728782652454469662/vote)***")\
-            .set_image(url='https://i8.ae/sRlUh')
+            .set_image(url='https://i8.ae/IjVZC')
         await ctx.send(embed=embed)
         return
 

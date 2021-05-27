@@ -10,7 +10,7 @@ class Event(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         db.add_guild(guild)
-        channel = self.client.get_channel(815926277965873173)
+        channel = self.client.get_channel(846602326257172520)
         try:
             embed = discord.Embed(title="add guild", color=0x46FF00)
             embed.add_field(name='name guild: ', value=guild.name, inline=False)
@@ -28,7 +28,7 @@ class Event(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         db.delete_guild(guild.id)
-        channel = self.client.get_channel(815926277965873173)
+        channel = self.client.get_channel(846602326257172520)
         try:
             embed = discord.Embed(title="remove guild", color=0xFF0000)
             embed.add_field(name='name guild: ', value=guild.name, inline=False)

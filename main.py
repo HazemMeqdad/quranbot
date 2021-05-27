@@ -51,12 +51,11 @@ client.load_extension("tasks.send")
 client.owner_ids = config.owners
 
 
-# !help - رمضان كريم 🌙
 @client.event
 async def on_ready():
     for i in client.guilds:
         db.add_guild(i)
-    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='صيانه... 🌙'),
+    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help - بوت فاذكروني'),
                                  status=discord.Status.idle)
     print(f"Name: {client.user.name}\nID: {client.user.id}")
 
@@ -68,13 +67,13 @@ async def on_shard_ready(shard_id):
 
 @client.event
 async def on_shard_disconnect(shard_id):
-    channel = client.get_channel(837105079093821470)
+    channel = client.get_channel(846603777938030623)
     await channel.send(f'Shard {shard_id} has been disconnect.')
 
 
 @client.event
 async def on_shard_resumed(shard_id):
-    channel = client.get_channel(837105079093821470)
+    channel = client.get_channel(846603777938030623)
     await channel.send(f'Shard {shard_id} has been resumed.')
 
 

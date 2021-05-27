@@ -34,8 +34,9 @@ class Time(commands.Cog):
             time_ = 43200
         elif time == '24h':
             time_ = 86400
+        await ctx.send('تم تغير وقت ارسال الاذكار المخصص %s' % time)
         db.set_time(ctx.guild, time_)
-        await ctx.send('تم تغير وقت ارسال الاذكار المخصص {}'.format(time))
+        
 
 
 def setup(client):

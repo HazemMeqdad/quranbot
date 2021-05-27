@@ -17,7 +17,7 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.CommandOnCooldown):
             m, s = divmod(error.retry_after, 60)
-            await ctx.send(f" يجب عليك الانتظار `{int(s)}` ثواني", delete_after=1)
+            await ctx.send(f"<:errors:843739803870035979> يجب عليك الانتظار `{int(s)}` ثواني", delete_after=1)
             cooldown.append(ctx.author.id)
             await asyncio.sleep(10)
             cooldown.remove(ctx.author.id)
@@ -25,13 +25,13 @@ class Errors(commands.Cog):
         elif isinstance(ctx.channel, discord.channel.DMChannel):
             return
         elif isinstance(error, commands.errors.MissingPermissions):
-            await ctx.send("أنت بحاجة إلى صلاحيات `ADMINISTRATOR` .")
+            await ctx.send("أنت بحاجة إلى صلاحيات `ADMINISTRATOR` <:errors:843739803870035979>.")
         elif isinstance(error, commands.errors.CommandNotFound):
             return
         elif isinstance(error, commands.errors.ChannelNotFound):
             return
         elif isinstance(error, commands.errors.BotMissingPermissions):
-            await ctx.send("البوت لا يمتلك صلاحيات كافيه")
+            await ctx.send("<:errors:843739803870035979> البوت لا يمتلك صلاحيات كافيه")
         elif isinstance(error, commands.errors.MessageNotFound):
             return
         elif isinstance(error, commands.errors.CommandInvokeError):
@@ -51,6 +51,10 @@ class Errors(commands.Cog):
             await ctx.send(embed=embed)
             return
         elif isinstance(error, discord.errors.Forbidden):
+            return
+        else :
+            error_channel = self.client.get_channel(847459844382130197)
+            await error_channel.send("Error from %s (`%s`)\n%s" % (ctx.guild.name, ctx.guild.id, erorr))
             return
 
 
