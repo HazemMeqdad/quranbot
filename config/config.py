@@ -1,4 +1,4 @@
-token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.zg3oHWIMYEWwkcDqmLsyg2JGQNk"
+token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.UObQczUCoTyRdZbOcYTGbAcuiZs"
 
 
 # database = {
@@ -13,12 +13,12 @@ database = {
     "host": "localhost",
     "user": "root",
     "password": "",
-    "database": 'fdr_test'
+    "database": 'fdr'
 }
 
 
 
-owners = [277669327602188288, 739232997232082944, 716783245387235410, 385701197069418496, 532696546462924820]
+owners = [277669327602188288, 843516547595370516, 750376850768789534, 385701197069418496, 532696546462924820, 716783245387235410]
 
 all = [
     "> ﴿ فَاذْكُرونِي أَذْكُركُمْ وأشْكُرُوا لِي وَلَا تَكْفُرونِ ﴾.",
