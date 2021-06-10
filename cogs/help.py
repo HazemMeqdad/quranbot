@@ -32,10 +32,10 @@ class Help(commands.Cog):
                 aliases = ", ".join(command.aliases)
             embed = Embed(
                 description=f"**command:** {command.name}\n\
-**help:** {command.help}\n\
-**usage:** {db.get_prefix(ctx.guild)}{command.name} {command.signature}\n\
-**aliases:** {aliases}\n",
-                color=Colour.red()
+**<:fdr50:845022052482023495> - help:** {command.help}\n\
+**<:fdr50:845022052482023495> - usage:** {db.get_prefix(ctx.guild)}{command.name} {command.signature}\n\
+**<:fdr50:845022052482023495> - aliases:** {aliases}\n",
+                color=0xEFD881
             ).set_author(name=command.cog_name)
             await ctx.send(embed=embed)
             return
@@ -45,7 +45,7 @@ class Help(commands.Cog):
         )\
             .set_footer(text="بطلب من: {}".format(ctx.author), icon_url=ctx.author.avatar_url)\
             .set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)\
-            .add_field(name="معلومات اكثر:", value="***[Support](https://discord.gg/Ea9SUFUQCY) & [Invite](https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot) & [Vote](https://top.gg/bot/728782652454469662/vote)***")\
+            .add_field(name="معلومات اكثر:", value="***[Support](https://discord.gg/EpZJwpSgka) & [Invite](https://fdrbot.xyz/) & [Donation تبرع](https://fdrbot.xyz/paypal)***")\
             .set_image(url='https://i8.ae/IjVZC')
         await ctx.send(embed=embed)
         return

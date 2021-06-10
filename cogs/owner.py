@@ -119,8 +119,8 @@ class Owner(commands.Cog):
             color=discord.Color.gold())
                 .set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
                 .set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
-                .set_thumbnail(url=self.client.user.avatar_url)
-                .set_image(url='https://i8.ae/sRlUh')
+                # .set_thumbnail(url=self.client.user.avatar_url)
+                .set_image(url='https://i8.ae/IjVZC')
                )
 
     @commands.command(hidden=True)

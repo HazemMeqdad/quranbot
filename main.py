@@ -55,8 +55,7 @@ client.owner_ids = config.owners
 async def on_ready():
     for i in client.guilds:
         db.add_guild(i)
-    await client.change_presence(activity=discord.Game(type=discord.ActivityType.listening, name='!help - بوت فاذكروني'),
-                                 status=discord.Status.idle)
+    await client.change_presence(status=discord.Status.do_not_disturb, activity=discord.Game(name='!help - fdrbot.xyz'))
     print(f"Name: {client.user.name}\nID: {client.user.id}")
 
 
