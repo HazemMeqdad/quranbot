@@ -14,14 +14,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 1800:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -44,14 +44,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 3600:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -74,14 +74,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 7200:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -104,14 +104,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 21600:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -134,14 +134,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 43200:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -164,14 +164,14 @@ class Send(commands.Cog):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.client.get_guild(i[0])
-            x = db.Guild(guild)
-            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if channel is None:
                 continue
             if x.info[4] == 86400:
-                if bool():
+                if bool(x.info[5]):
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -191,7 +191,7 @@ class Send(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('`tasks has been ready`')
+        print('`events has been ready`')
         self.send_30m.start()
         self.send_1h.start()
         self.send_2h.start()

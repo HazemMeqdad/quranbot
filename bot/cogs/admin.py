@@ -50,6 +50,7 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def prefix_command(self, ctx, prefix=None):
         x = db.Guild(ctx.guild)
+        print(self.emoji.fdr_50)
         if prefix is None:
             return await ctx.send("%s الرجاء إدخال بادئة لتعيينها" % self.emoji.errors)
         if len(prefix) > 5:
@@ -220,8 +221,10 @@ class Admin(commands.Cog):
                 description="هل انت موافق على تغير روم الاذكار"
             ),
             components=[
-                [Button(style=ButtonStyle.green, emoji=self.emoji.yes, id='yap'),
-                 Button(style=ButtonStyle.red, emoji=self.emoji.no1, id='nop')]],
+                [
+                    Button(style=ButtonStyle.green, emoji=self.emoji.yes, id='yap'),
+                    Button(style=ButtonStyle.red, emoji=self.emoji.no1, id='nop')
+                ]],
         )
 
         def check(res):
@@ -275,6 +278,6 @@ class Admin(commands.Cog):
 
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Admin(bot))
+    DiscordComponents(bot)
 

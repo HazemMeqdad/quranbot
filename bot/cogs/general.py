@@ -10,6 +10,7 @@ class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.emoji = config.Emoji(self.bot)
+
     @staticmethod
     def _time(time):
         time_ = 0
@@ -101,8 +102,8 @@ class General(commands.Cog):
         embed.add_field(name='%s - وقت ارسال الاذكار:' % self.emoji.fdr_50, value=str(data[4]), inline=True)
         embed.add_field(name='%s - وضع تكرار الرسائل:' % self.emoji.fdr_50, value=self.emoji.on if data[5] == 1 else self.emoji.off, inline=True)
         embed.add_field(name='%s - وضع الامبد:' % self.emoji.fdr_50, value=self.emoji.on if data[6] == 1 else self.emoji.off, inline=True)
-        # embed.add_field(name='%s - ايدي الشارد:' % self.emoji.fdr_50, value=str(ctx.guild.shard_id), inline=True)
-        # embed.add_field(name='%s - سرعه الشارد:' % self.emoji.fdr_50, value=f"{int(self.bot.get_shard(ctx.guild.shard_id).latency * 1000)}ms <a:ping:845021892943544330>", inline=True)
+        embed.add_field(name='%s - ايدي الشارد:' % self.emoji.fdr_50, value=str(ctx.guild.shard_id), inline=True)
+        embed.add_field(name='%s - سرعه الشارد:' % self.emoji.fdr_50, value=f"{int(self.bot.get_shard(ctx.guild.shard_id).latency * 1000)}ms <a:ping:845021892943544330>", inline=True)
         embed.set_author(name=" فاذكروني", icon_url=self.bot.user.avatar_url)
         embed.set_footer(text="بطلب من: %s" % ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
