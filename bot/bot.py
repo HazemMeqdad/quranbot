@@ -26,6 +26,12 @@ class Bot(commands.AutoShardedBot):
             "owner",
             "admin"
         ]
+        for i in self._cogs:
+            try:
+                self.load_extension(f"bot.cogs.{i}")
+                print(f"load: {i}")
+            except Exception as error:
+                print(f"the error is \n{error}")
         self.load_extension("bot.tasks.send")
         self.add_check(self.check_blacklist)
 
@@ -44,16 +50,7 @@ class Bot(commands.AutoShardedBot):
         finally:
             return prefix(bot, msg)
 
-    async def _setup(self):
-        for i in self._cogs:
-            try:
-                self.load_extension(f"bot.cogs.{i}")
-                print(f"load: {i}")
-            except Exception as error:
-                print(f"the error is \n{error}")
-
     async def on_ready(self):
-        await self._setup()
         for i in self.guilds:
             x = db.Guild(i)
             x.insert()
