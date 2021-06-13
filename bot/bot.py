@@ -67,12 +67,15 @@ class Bot(commands.AutoShardedBot):
         return re.status_code
 
     async def on_shard_ready(self, shard_id):
+        print(f'`shard {shard_id} is ready`')
         await self._send_webhook("shard %s is ready" % shard_id)
 
     async def on_shard_disconnect(self, shard_id):
+        # print(f'Shard {shard_id} has been disconnect.')
         await self._send_webhook("Shard %s has been disconnect." % shard_id)
 
     async def on_shard_resumed(self, shard_id):
+        # print(f'Shard {shard_id} has been resumed.')
         await self._send_webhook("Shard %s has been resumed." % shard_id)
 
     async def on_guild_join(self, guild):
