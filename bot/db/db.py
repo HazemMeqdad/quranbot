@@ -43,7 +43,7 @@ def speedtest():
 class All:
     @staticmethod
     def get_all_channels():
-        cr.execute('SELECT id, channel, time FROM guilds WHERE channel IS NOT NULL')
+        cr.execute('SELECT * FROM guilds WHERE channel IS NOT NULL')
         return cr.fetchall()
 
 
