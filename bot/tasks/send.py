@@ -1,7 +1,7 @@
 import random
 from discord.ext import commands, tasks
-from bot import db
-from bot.config import all
+import bot.db as db
+import bot.config as config
 import discord
 
 
@@ -11,18 +11,17 @@ class Send(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def send_30m(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 1800:
-                if db.get_spam(guild):
+            if x.info[4] == 1800:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -30,30 +29,29 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 
     @tasks.loop(hours=1)
     async def send_1h(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 3600:
-                if db.get_spam(guild):
+            if x.info[4] == 3600:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -61,30 +59,29 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 
     @tasks.loop(hours=2)
     async def send_2h(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 7200:
-                if db.get_spam(guild):
+            if x.info[4] == 7200:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -92,30 +89,29 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 
     @tasks.loop(hours=6)
     async def send_6h(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 21600:
-                if db.get_spam(guild):
+            if x.info[4] == 21600:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -123,30 +119,29 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 
     @tasks.loop(hours=12)
     async def send_12h(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 43200:
-                if db.get_spam(guild):
+            if x.info[4] == 43200:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -154,30 +149,29 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 
     @tasks.loop(hours=24)
     async def send_24h(self):
-        for i in db.get_all_channels():
-            guild_id = i[0]
-            channel_id = i[1]
-            time = i[2]
-            guild = self.client.get_guild(guild_id)
-            channel = self.client.get_channel(channel_id)
+        _all = db.All
+        for i in _all.get_all_channels():
+            guild = self.client.get_guild(i[0])
+            x = db.Guild(guild)
+            channel = self.client.get_channel(x.info[3])
             if guild is None:
                 continue
             if channel is None:
                 continue
-            if time == 86400:
-                if db.get_spam(guild):
+            if x.info[4] == 86400:
+                if bool():
                     try:
                         message = await channel.fetch_message(channel.last_message_id)
                         if message.author == self.client.user:
@@ -185,13 +179,13 @@ class Send(commands.Cog):
                     except:
                         continue
                 try:
-                    if db.get_embed(guild):
+                    if bool(x.info[6]):
                         await channel.send(embed=discord.Embed(
-                            description=random.choice(all),
+                            description=random.choice(config.all),
                             color=discord.Color.gold()
                         ).set_footer(text=self.client.user.name, icon_url=guild.icon_url))
                         continue
-                    await channel.send(random.choice(all))
+                    await channel.send(random.choice(config.all))
                 except:
                     continue
 

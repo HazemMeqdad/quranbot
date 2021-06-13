@@ -26,6 +26,7 @@ class Bot(commands.AutoShardedBot):
             "owner",
             "admin"
         ]
+        self.load_extension("bot.tasks.send")
         self.add_check(self.check_blacklist)
 
     @staticmethod
