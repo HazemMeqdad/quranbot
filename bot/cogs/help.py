@@ -16,7 +16,7 @@ class Help(commands.Cog):
         embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         embed.set_image(url='https://i8.ae/IjVZC')
         for i in self.bot.cogs.keys():
-            if i in ["Help", "Owner", "Errors"]:
+            if i in ["Help", "Owner", "Errors", "Send", "Events"]:
                 continue
             _ = ""
             for x in self.bot.get_cog(i).walk_commands():

@@ -12,23 +12,6 @@ class General(commands.Cog):
         self.emoji = config.Emoji(self.bot)
 
     @staticmethod
-    def _time(time):
-        time_ = 0
-        if time == '30m':
-            time_ = 1800
-        elif time == '1h':
-            time_ = 3600
-        elif time == '2h':
-            time_ = 7200
-        elif time == '6h':
-            time_ = 21600
-        elif time == '12h':
-            time_ = 43200
-        elif time == '24h':
-            time_ = 86400
-        return time_
-
-    @staticmethod
     def int_to_time(_time: int):
         new_time = ""
         if _time == 1800:
@@ -99,7 +82,7 @@ class General(commands.Cog):
         )
         embed.add_field(name='%s - البادئه:' % self.emoji.fdr_50, value=data[2], inline=True)
         embed.add_field(name='%s - روم الاذكار:' % self.emoji.fdr_50, value=self.bot.get_channel(data[3]).mention if data[3] is not None else "لا يوجد", inline=True)
-        embed.add_field(name='%s - وقت ارسال الاذكار:' % self.emoji.fdr_50, value=str(data[4]), inline=True)
+        embed.add_field(name='%s - وقت ارسال الاذكار:' % self.emoji.fdr_50, value=self.int_to_time(data[4]), inline=True)
         embed.add_field(name='%s - وضع تكرار الرسائل:' % self.emoji.fdr_50, value=self.emoji.on if data[5] == 1 else self.emoji.off, inline=True)
         embed.add_field(name='%s - وضع الامبد:' % self.emoji.fdr_50, value=self.emoji.on if data[6] == 1 else self.emoji.off, inline=True)
         embed.add_field(name='%s - ايدي الشارد:' % self.emoji.fdr_50, value=str(ctx.guild.shard_id), inline=True)

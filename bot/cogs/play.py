@@ -43,7 +43,7 @@ class Quran(commands.Cog):
         )
 
         def check(res):
-            return ctx.author == res.user and res.channel == ctx.channel
+            return ctx.author == res.author and res.channel == ctx.channel
 
         try:
             res = await self.bot.wait_for("button_click", check=check, timeout=15)
