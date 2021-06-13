@@ -1,6 +1,8 @@
-token: str = "ODUyMjA3OTU1MjUyMjE1ODk5.YMDegQ.CIcKAleU7HFHa3WOKmgZef7TOCg"
+token: str = "ODQ0OTk4MTIxNTE1OTA5MTIw.YKaj0w.7dP3fCR1v0x4jpa6WEnOy0kJgt4"
 
-webhook: str = "https://discord.com/api/webhooks/853011194138722335/DUFLPMS8MOajI-7QxIZZ9cRDbIBuRpapBLYIoLKRtYhG2u10bYE03j7jhX9b3Fs_meGu"
+webhook_shard: str = "https://discord.com/api/webhooks/853011194138722335/DUFLPMS8MOajI-7QxIZZ9cRDbIBuRpapBLYIoLKRtYhG2u10bYE03j7jhX9b3Fs_meGu"
+webhook_errors: str = "https://discord.com/api/webhooks/853036685248167946/0XIsnNR25s8TMGfNiGjeNauhUAgG4ZL-09KepJTqSBpjsQQqngtPIXM_DnnAUO4d_8Cj"
+webhook_log: str = "https://discord.com/api/webhooks/853316492631605268/Pfrbp-En1BiIqnADnVRY7RGFGwMGxYNWwHBcSO_8SMvdEbMWMvD5ZgCAxMYhN3pKy1ON"
 
 
 database = {
@@ -10,8 +12,8 @@ database = {
     "database": 'fdr_test'
 }
 
-
-owners = [277669327602188288, 739232997232082944, 716783245387235410, 385701197069418496, 532696546462924820]
+#            HAZEM                 SAQR                 agustin          AbdullahQ8            Alk                F.S.N
+owners = [750376850768789534, 716783245387235410, 277669327602188288, 385701197069418496, 532696546462924820, 843516547595370516]
 
 all = [
     "> ﴿ فَاذْكُرونِي أَذْكُركُمْ وأشْكُرُوا لِي وَلَا تَكْفُرونِ ﴾.",

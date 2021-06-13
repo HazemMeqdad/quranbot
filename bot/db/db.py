@@ -1,16 +1,10 @@
 import mysql.connector
 import bot.config as config
 import discord
+import time
 import datetime
 
-
-db = mysql.connector.connect(
-    host=config.database['host'],
-    user=config.database['user'],
-    password=config.database['password'],
-    database=config.database['database']
-)
-
+db = mysql.connector.connect(**config.database)
 
 cr = db.cursor(buffered=True)
 
@@ -27,19 +21,23 @@ CREATE TABLE IF NOT EXISTS guilds(
 )
 """)
 
+cr.execute("""
+CREATE TABLE IF NOT EXISTS blacklist(
+    id BIGINT(30) PRIMARY KEY,
+    mod_id BIGINT(30) NOT NULL,
+    reason VARCHAR(30) DEFAULT NULL,
+    timestamp BIGINT(30) NOT NULL
+)
+""")
+
 print('`connect MySql database`')
 
 
-def speed_test():
-    start = datetime.datetime.now().timestamp()
-    db_test = mysql.connector.connect(
-        host=config.database['host'],
-        user=config.database['user'],
-        password=config.database['password'],
-        database=config.database['database']
-    )
-    db_test.close()
-    return round(datetime.datetime.now().timestamp() - start)
+def speedtest():
+    start = time.monotonic()
+    cr.execute("SELECT * FROM guilds")
+    end = time.monotonic()
+    return round((end - start) * 1000)
 
 
 class All:
@@ -63,10 +61,50 @@ class Guild:
         db.commit()
 
     def update_where(self, module, value):
-        cr.execute(f"UPDATE guilds SET '{module}' = %s WHERE id = %s", (value, self._guild.id))
+        cr.execute(f"UPDATE guilds SET {module} = %s WHERE id = %s", (value, self._guild.id))
+        self.commit()
 
     def delete_where(self, module, value):
-        cr.execute(f"UPDATE guilds SET '{module}' = %s WHERE id = %s", (value, self._guild.id))
+        cr.execute(f"UPDATE guilds SET {module} = %s WHERE id = %s", (value, self._guild.id))
+        self.commit()
 
     def insert(self):
-        cr.execute("INSERT INTO guilds(id, guild_name) VALUES(%s, %s)", (self._guild.id, self._guild.name))
+        try:
+            cr.execute("INSERT INTO guilds(id, guild_name) VALUES(%s, %s)", (self._guild.id, self._guild.name))
+            self.commit()
+        except mysql.connector.errors.IntegrityError:
+            return
+
+
+class BlackList:
+    def __init__(self, user: discord.User):
+        self._user = user
+
+    @staticmethod
+    def commit():
+        db.commit()
+
+    def insert(self, mod_id, reason=None):
+        try:
+            cr.execute(
+                "INSERT INTO blacklist(id, mod_id, reason, timestamp) VALUES(%s, %s, %s, %s)",
+                (self._user.id, mod_id, reason, datetime.datetime.now().timestamp())
+            )
+            self.commit()
+        except mysql.connector.errors.IntegrityError:
+            return
+
+    def delete(self):
+        cr.execute("DELETE FROM blacklist WHERE id = %s", self._user.id)
+        self.commit()
+
+    @property
+    def info(self):
+        cr.execute("SELECT * FROM blacklist WHERE id = %s", (self._user.id,))
+        return cr.fetchone()
+
+    @property
+    def check(self):
+        if not self.info:
+            return True
+        return False

@@ -17,7 +17,7 @@ class Errors(commands.Cog):
 
     @staticmethod
     def _send_webhook(msg):
-        re = requests.post(config.webhook, data={"content": msg})
+        re = requests.post(config.webhook_errors, data={"content": msg})
         return re.status_code
 
     @Cog.listener()
@@ -27,7 +27,7 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.CommandOnCooldown):
             m, s = divmod(error.retry_after, 60)
-            await ctx.send("%s يجب عليك الانتظار `%s` ثواني" % (round(s), self.emoji.errors), delete_after=2)
+            await ctx.send("%s يجب عليك الانتظار `%s` ثواني" % (self.emoji.errors, round(s)), delete_after=2)
             cooldown.append(ctx.author.id)
             await asyncio.sleep(10)
             cooldown.remove(ctx.author.id)
@@ -63,7 +63,18 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, discord.errors.Forbidden):
             return
+        elif isinstance(error, commands.errors.CheckFailure):
+            embed = discord.Embed(
+                description="انت ضمن القائمه السوداء لمعلومات اكثر تواصل مع [الدعم الفني](https://discord.gg/q3E6WCSThX)",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            cooldown.append(ctx.author.id)
+            await asyncio.sleep(10)
+            cooldown.remove(ctx.author.id)
+            return
         else:
+            await ctx.send("يبدو ان هنالك خطأ غير متوقع تم ارسال بلاغ للمطورين تلقائياً")
             self._send_webhook("Error from %s (`%s`)\n%s" % (ctx.guild.name, ctx.guild.id, error))
             return
 

@@ -3,9 +3,11 @@ from discord.ext import commands
 import bot.db as db
 import requests
 import bot.config as config
+from discord import Webhook, AsyncWebhookAdapter
+import aiohttp
 
 
-class Bot(commands.Bot):
+class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,
@@ -17,17 +19,18 @@ class Bot(commands.Bot):
         )
         self.remove_command("help")
         self._cogs = [
-            "prefix",
             "help",
-            "commands",
-            "setroom",
-            "set_time",
+            "general",
             "play",
-            'errors',
-            'event',
-            'set',
-            'owner'
+            "errors",
+            "owner",
+            "admin"
         ]
+        self.add_check(self.check_blacklist)
+
+    @staticmethod
+    def check_blacklist(ctx):
+        return db.BlackList(ctx.author).check
 
     @staticmethod
     def _get_prefix(bot, msg):
@@ -60,7 +63,7 @@ class Bot(commands.Bot):
 
     @staticmethod
     async def _send_webhook(msg):
-        re = requests.post(config.webhook, data={"content": msg})
+        re = requests.post(config.webhook_shard, data={"content": msg})
         return re.status_code
 
     async def on_shard_ready(self, shard_id):
@@ -71,6 +74,34 @@ class Bot(commands.Bot):
 
     async def on_shard_resumed(self, shard_id):
         await self._send_webhook("Shard %s has been resumed." % shard_id)
+
+    async def on_guild_join(self, guild):
+        x = db.Guild(guild)
+        x.insert()
+        async with aiohttp.ClientSession() as session:
+            webhook = Webhook.from_url(config.webhook_log, adapter=AsyncWebhookAdapter(session))
+            embed = discord.Embed(title="add guild", color=0x46FF00)
+            embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
+            embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
+            embed.add_field(name='owner guild: ', value="%s (`%s`)" % (self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
+            embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
+            embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+            embed.set_author(name=self.user.name, icon_url=self.user.avatar_url)
+            await webhook.send(embed=embed)
+
+    async def on_guild_remove(self, guild):
+        x = db.Guild(guild)
+        x.insert()
+        async with aiohttp.ClientSession() as session:
+            webhook = Webhook.from_url(config.webhook_log, adapter=AsyncWebhookAdapter(session))
+            embed = discord.Embed(title="remove guild", color=0xFF0000)
+            embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
+            embed.add_field(name='member guild: ', value=guild.member_count, inline=False)
+            embed.add_field(name='owner guild: ', value="%s (`%s`)" % (self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
+            embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
+            embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+            embed.set_author(name=self.user.name, icon_url=self.user.avatar_url)
+            await webhook.send(embed=embed)
 
     def run(self):
         super().run(config.token)
