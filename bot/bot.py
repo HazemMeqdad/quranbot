@@ -3,11 +3,10 @@ from discord.ext import commands
 import bot.db as db
 import requests
 import bot.config as config
-from discord import Webhook, AsyncWebhookAdapter
-import aiohttp
+import bot.events as event
 
 
-class Bot(commands.Bot):
+class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,
@@ -62,6 +61,8 @@ class Bot(commands.Bot):
             activity=discord.Game(name='!help - fdrbot.xyz'),
             status=discord.Status.dnd)
         print(f"Name: {self.user.name}\nID: {self.user.id}")
+        e = event.Loop(self)
+        await e.start()
 
     @staticmethod
     async def _send_webhook(msg):

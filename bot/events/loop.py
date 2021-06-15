@@ -1,16 +1,26 @@
 import random
-from discord.ext import commands, tasks
+from discord.ext import tasks
 import bot.db as db
 import bot.config as config
 import discord
 
 
-class Send(commands.Cog):
+class Loop:
     def __init__(self, bot):
         self.bot = bot
 
+    async def start(self):
+        print('`events has been ready`')
+
+        self._send_30m.start()
+        self._send_1h.start()
+        self._send_2h.start()
+        self._send_6h.start()
+        self._send_12h.start()
+        self._send_24h.start()
+
     @tasks.loop(minutes=30)
-    async def send_30m(self):
+    async def _send_30m(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -39,7 +49,7 @@ class Send(commands.Cog):
                     continue
 
     @tasks.loop(hours=1)
-    async def send_1h(self):
+    async def _send_1h(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -68,7 +78,7 @@ class Send(commands.Cog):
                     continue
 
     @tasks.loop(hours=2)
-    async def send_2h(self):
+    async def _send_2h(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -97,7 +107,7 @@ class Send(commands.Cog):
                     continue
 
     @tasks.loop(hours=6)
-    async def send_6h(self):
+    async def _send_6h(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -126,7 +136,7 @@ class Send(commands.Cog):
                     continue
 
     @tasks.loop(hours=12)
-    async def send_12h(self):
+    async def _send_12h(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -155,7 +165,7 @@ class Send(commands.Cog):
                     continue
 
     @tasks.loop(hours=24)
-    async def send_24h(self):
+    async def _send_24h(self):
         _all = db.All
         for i in _all.get_all_channels():
             guild = self.bot.get_guild(i[0])
@@ -183,16 +193,7 @@ class Send(commands.Cog):
                 except:
                     continue
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print('`events has been ready`')
-        self.send_30m.start()
-        self.send_1h.start()
-        self.send_2h.start()
-        self.send_6h.start()
-        self.send_12h.start()
-        self.send_24h.start()
 
 
-def setup(bot):
-    bot.add_cog(Send(bot))
+
+
