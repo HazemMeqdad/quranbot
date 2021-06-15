@@ -7,7 +7,7 @@ from discord import Webhook, AsyncWebhookAdapter
 import aiohttp
 
 
-class Bot(commands.AutoShardedBot):
+class Bot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,
@@ -19,14 +19,13 @@ class Bot(commands.AutoShardedBot):
         )
         self.remove_command("help")
         self._cogs = [
-            # "help",
-            # "general",
+            "help",
+            "general",
             "play",
-            # "owner",
-            # "admin"
+            "owner",
+            "admin"
         ]
         self.load_extension("bot.cogs.errors")
-        # self.load_extension("bot.events.loop")
         self.add_check(self.check_blacklist)
 
     @staticmethod
@@ -52,6 +51,7 @@ class Bot(commands.AutoShardedBot):
                 print(f"the error is \n{error}")
         self.load_extension("bot.events.events")
         self.load_extension("bot.events.loop")
+        self.reload_extension("bot.cogs.errors")
 
     async def on_ready(self):
         self._setup()

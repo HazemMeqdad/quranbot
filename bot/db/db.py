@@ -9,16 +9,15 @@ db = mysql.connector.connect(**config.database)
 cr = db.cursor(buffered=True)
 
 cr.execute("""
-CREATE TABLE IF NOT EXISTS guilds(
-    id BIGINT(30) PRIMARY KEY,
-    guild_name VARCHAR(25) NOT NULL,
-    prefix TEXT DEFAULT '!',
-    channel BIGINT(30) NOT NULL,
-    time INT DEFAULT 3600 CHECK(time>=1800 AND time<=86400),
-    timer INT DEFAULT 0,
-    anti_spam BOOLEAN DEFAULT false,
-    embed BOOLEAN DEFAULT false
-)
+CREATE TABLE if not exists `guilds` (
+  `id` bigint(30) PRIMARY KEY,
+  `guild_name` varchar(25) DEFAULT NULL,
+  `prefix` text DEFAULT '!',
+  `channel` bigint(30) DEFAULT NULL,
+  `time` int(11) DEFAULT 3600 CHECK (`time` >= 1800 and `time` <= 86400),
+  `anti_spam` tinyint(1) DEFAULT 0,
+  `embed` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 """)
 
 cr.execute("""
@@ -64,10 +63,6 @@ class Guild:
         cr.execute(f"UPDATE guilds SET {module} = %s WHERE id = %s", (value, self._guild.id))
         self.commit()
 
-    def delete_where(self, module, value):
-        cr.execute(f"UPDATE guilds SET {module} = %s WHERE id = %s", (value, self._guild.id))
-        self.commit()
-
     def insert(self):
         try:
             cr.execute("INSERT INTO guilds(id, guild_name) VALUES(%s, %s)", (self._guild.id, self._guild.name))
@@ -95,7 +90,7 @@ class BlackList:
             return
 
     def delete(self):
-        cr.execute("DELETE FROM blacklist WHERE id = %s", self._user.id)
+        cr.execute("DELETE FROM blacklist WHERE id = %s", (self._user.id,))
         self.commit()
 
     @property

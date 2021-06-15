@@ -13,6 +13,7 @@ class Emoji:
         self.fdr_5 = self.bot.get_emoji(851776233284304907)
         self.yes = self.bot.get_emoji(853378118928564234)
         self.no1 = self.bot.get_emoji(853379949641859072)
+        self.loading = self.bot.get_emoji(854391288023089182)
 
         # self.fdr_50 = str(self.bot.get_emoji(845022052482023495))
         # self.ping = str(self.bot.get_emoji(845021892943544330))

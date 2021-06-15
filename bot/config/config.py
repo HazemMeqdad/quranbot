@@ -1,4 +1,4 @@
-token: str = "NzI4NzgyNjUyNDU0NDY5NjYy.Xv_ZvA.O-9ZsWY57vJZhY6uCl9OVBH6z1A"
+token: str = "ODQ0OTk4MTIxNTE1OTA5MTIw.YKaj0w.7dP3fCR1v0x4jpa6WEnOy0kJgt4"
 
 webhook_shard: str = "https://discord.com/api/webhooks/853011194138722335/DUFLPMS8MOajI-7QxIZZ9cRDbIBuRpapBLYIoLKRtYhG2u10bYE03j7jhX9b3Fs_meGu"
 webhook_errors: str = "https://discord.com/api/webhooks/853036685248167946/0XIsnNR25s8TMGfNiGjeNauhUAgG4ZL-09KepJTqSBpjsQQqngtPIXM_DnnAUO4d_8Cj"
@@ -9,7 +9,7 @@ database = {
     "host": "localhost",
     "user": "root",
     "password": "",
-    "database": 'fdr_test'
+    "database": 'fdr'
 }
 
 #            HAZEM                 SAQR                 agustin          AbdullahQ8            Alk                F.S.N

@@ -167,7 +167,6 @@ class Owner(commands.Cog):
         x.insert(ctx.author.id, reason)
         await ctx.send("تم اضافه هاذ المستخدم الى القائمه السوداء")
 
-
     @commands.command(name='unblacklist', hidden=True)
     @commands.is_owner()
     @commands.guild_only()
