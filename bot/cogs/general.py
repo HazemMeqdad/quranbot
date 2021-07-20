@@ -4,6 +4,10 @@ from discord.ext import commands
 import time
 import bot.db as db
 import bot.config as config
+import prayer
+from discord_components import Button, ButtonStyle
+
+int_to_time = {1800: "30m", 3600: "1h", 7200: "2h", 21600: "6h", 43200: "12h", 86400: "24h"}
 
 
 class General(commands.Cog):
@@ -11,65 +15,45 @@ class General(commands.Cog):
         self.bot = bot
         self.emoji = config.Emoji(self.bot)
 
-    @staticmethod
-    def int_to_time(_time: int):
-        new_time = ""
-        if _time == 1800:
-            new_time = "30m"
-        elif _time == 3600:
-            new_time = "1h"
-        elif _time == 7200:
-            new_time = "2h"
-        elif _time == 21600:
-            new_time = "6h"
-        elif _time == 43200:
-            new_time = "12h"
-        elif _time == 86400:
-            new_time = "24h"
-        return new_time
-
     @commands.command(name="ping", help='ارسال سرعة اتصال البوت')
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def ping_command(self, ctx):
         before = time.monotonic()
-        msg = await ctx.send('pong!!!')
-        ping = (time.monotonic() - before) * 1000
-        embed = Embed(
-            description="Time taken: **%sms** \nDiscord API: **%sms**\nSpeedtest database: **%sms**" % (
-                int(ping),
-                round(self.bot.latency * 1000),
-                db.speedtest()
-            ),
-            color=0xEFD881
-        )
-        embed.set_author(name=" فاذكروني", icon_url=self.bot.user.avatar_url)
-        embed.set_footer(text="بطلب من: %s" % ctx.author, icon_url=ctx.author.avatar_url)
+        embed = discord.Embed(description="```\nping\n```")
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        await msg.edit(content="pong!! %s" % self.emoji.ping, embed=embed)
+        msg = await ctx.reply(embed=embed)
+        ping = (time.monotonic() - before) * 1000
+        embed = discord.Embed(
+            description="```py\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (int(ping), round(self.bot.latency * 1000), db.speedtest()),
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        await msg.edit(embed=embed)
 
     @commands.command(name="support", aliases=['server', "inv", "invite"], help="سيرفر الدعم الفني")
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.guild_only()
     async def support_command(self, ctx):
         embed = Embed(
-            title='شكرا على اختيارك بوت فاذكروني 🌹',
-            description="""
-**{0} - Link:**
-[click here](http://fdrbot.xyz/invite)
-**{0} - Support:**
-[click here](https://discord.gg/EpZJwpSgka)
-**{0} - Vote:**
-[click here](https://fdrbot.xyz/vote)
-**{0} - Donation  تبرع:**
-[click here](https://fdrbot.xyz/paypal) 
-""".format(self.emoji.fdr_50),
-            color=0xEFD881)
-        embed.set_image(url="https://i8.ae/IjVZC")
-        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        embed.set_footer(text="بطلب من: {}".format(ctx.author), icon_url=ctx.author.avatar_url)
-        await ctx.send(embed=embed)
+            title="**شكرا على اختيارك بوت فاذكروني 🌹**",
+            color=self.bot.get_color(self.bot.color.gold),
+        )
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        await ctx.reply(
+            embed=embed,
+            components=[
+                [
+                    Button(label="أضافة البوت", url="http://fdrbot.xyz/invite", style=ButtonStyle.URL),
+                    Button(label="الدعم الفني", url="http://discord.gg/fdrbot", style=ButtonStyle.URL),
+                    Button(label="التبرع", url="https://fdrbot.xyz/paypal", style=ButtonStyle.URL)
+                ]
+            ]
+        )
 
     @commands.command(name="info", aliases=['معلومات'], help="الحصول على معلومات الخادم المحفوظة")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -78,19 +62,66 @@ class General(commands.Cog):
         data = db.Guild(ctx.guild).info
         embed = discord.Embed(
             description='إعدادات خادم: %s' % ctx.guild.name,
-            color=0xEFD881
+            color=self.bot.get_color(self.bot.color.gold)
         )
-        embed.add_field(name='%s - البادئه:' % self.emoji.fdr_50, value=data[2], inline=True)
-        embed.add_field(name='%s - روم الاذكار:' % self.emoji.fdr_50, value=self.bot.get_channel(data[3]).mention if data[3] is not None else "لا يوجد", inline=True)
-        embed.add_field(name='%s - وقت ارسال الاذكار:' % self.emoji.fdr_50, value=self.int_to_time(data[4]), inline=True)
-        embed.add_field(name='%s - وضع تكرار الرسائل:' % self.emoji.fdr_50, value=self.emoji.on if data[5] == 1 else self.emoji.off, inline=True)
-        embed.add_field(name='%s - وضع الامبد:' % self.emoji.fdr_50, value=self.emoji.on if data[6] == 1 else self.emoji.off, inline=True)
-        embed.add_field(name='%s - ايدي الشارد:' % self.emoji.fdr_50, value=str(ctx.guild.shard_id), inline=True)
-        embed.add_field(name='%s - سرعه الشارد:' % self.emoji.fdr_50, value=f"{int(self.bot.get_shard(ctx.guild.shard_id).latency * 1000)}ms <a:ping:845021892943544330>", inline=True)
-        embed.set_author(name=" فاذكروني", icon_url=self.bot.user.avatar_url)
-        embed.set_footer(text="بطلب من: %s" % ctx.author, icon_url=ctx.author.avatar_url)
+        embed.add_field(name='%s - البادئه:' % self.emoji.fdr_50, value=data.get("prefix"), inline=True)
+        embed.add_field(name='%s - روم الاذكار:' % self.emoji.fdr_50, value=self.bot.get_channel(data.get("channel")).mention if data.get("channel") is not None else "لا يوجد", inline=True)
+        embed.add_field(name='%s - وقت ارسال الاذكار:' % self.emoji.fdr_50, value=int_to_time.get(data["time"]), inline=True)
+        embed.add_field(name='%s - وضع تكرار الرسائل:' % self.emoji.fdr_50, value=self.emoji.on if data["anti_spam"] else self.emoji.off, inline=True)
+        embed.add_field(name='%s - وضع الامبد:' % self.emoji.fdr_50, value=self.emoji.on if data["embed"] else self.emoji.off, inline=True)
+        # embed.add_field(name='%s - ايدي الشارد:' % self.emoji.fdr_50, value=str(ctx.guild.shard_id), inline=True)
+        # embed.add_field(name='%s - سرعه الشارد:' % self.emoji.fdr_50, value=f"{int(self.bot.get_shard(ctx.guild.shard_id).latency * 1000)}ms <a:ping:845021892943544330>", inline=True)
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
+
+    @commands.command(name="zker", aliases=["ذكر", "اذكار", "أذكار"], help='ارسال ذكر عشوائي')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.guild_only()
+    async def test(self, ctx):
+        x = db.Azkar()
+        rn = x.random
+        embed = discord.Embed(
+            title=str(rn["_id"]),
+            description=rn["msg"],
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        await ctx.reply(embed=embed)
+
+    @commands.command(name='azan', aliases=["الأذان", "الصلاه", "الصلاة"], help='معرف وقت رفع الاذان في دولتك')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.guild_only()
+    async def azan(self, ctx, country: str):
+        e = discord.Embed(
+            description="🔍 جاري البحث عن الدولة او المدينة",
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        msg = await ctx.reply(embed=e)
+        x = prayer.by_country(country)
+        if x.get("msg"):
+            x = prayer.by_city(country)
+            if x.get("msg"):
+                embed = discord.Embed(
+                    description="لم استطع العثور على المدينه او الدوله",
+                    color=self.bot.get_color(self.bot.color.gold)
+                )
+                await msg.edit(embed=embed)
+                return
+        embed = discord.Embed(
+            color=self.bot.get_color(self.bot.color.gold),
+        )
+        embed.set_author(name=x["description"], url=x["url"])
+        embed.add_field(name="صلاة الفجْر", value=x["fjer"])
+        embed.add_field(name="الشروق", value=x["sunrise"])
+        embed.add_field(name="صلاة الظُّهْر", value=x["noon"])
+        embed.add_field(name="صلاة العَصر", value=x["pressing"])
+        embed.add_field(name="صلاة المَغرب", value=x["moroccan"])
+        embed.add_field(name="صلاة العِشاء", value=x["supper"])
+        embed.set_footer(text=self.bot.footer)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        await msg.edit(embed=embed)
 
 
 def setup(bot):

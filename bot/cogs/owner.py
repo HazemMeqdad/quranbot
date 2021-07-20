@@ -1,8 +1,11 @@
 import discord
 from discord.ext import commands
 import bot.db as db
+import bot.config
 import datetime
 import inspect
+from functools import reduce
+import backup
 
 
 class Owner(commands.Cog):
@@ -15,29 +18,17 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_guild_permissions(embed_links=True)
     async def about(self, ctx):
-        _all = db.All().get_all_channels()
-        users = 0
-        channels = 0
-        guilds__ = 0
-        _guilds = 0
-        for i in self.bot.guilds:
-            users += i.member_count
-            channels += len(i.channels)
-            if i.member_count >= 100:
-                guilds__ += 1
-            if i.member_count >= 1000:
-                _guilds += 1
+        fun = lambda x, y: x + y
         embed = discord.Embed()
         embed.add_field(name='guilds:', value=str(len(self.bot.guilds)))
-        embed.add_field(name='users:', value=str(users))
-        embed.add_field(name='channels:', value=str(channels))
-        embed.add_field(name='guilds +100:', value=str(guilds__))
-        embed.add_field(name='guilds +1000:', value=str(_guilds))
-        embed.add_field(name='channel in database:', value=str(len(_all)))
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
-        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+        embed.add_field(name='users:', value=str(reduce(fun, [i.member_count for i in self.bot.guilds])))
+        embed.add_field(name='channels:', value=str(reduce(fun, [len(i.channels) for i in self.bot.guilds])))
+        embed.add_field(name='guilds +100:', value=str(len([i for i in self.bot.guilds if i.member_count >= 100])))
+        embed.add_field(name='guilds +1000:', value=str(len([i for i in self.bot.guilds if i.member_count >= 1000])))
+        embed.add_field(name='channel in database:', value=str(len(db.get_all_channels())))
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command(name='load', hidden=True)
     @commands.is_owner()
@@ -46,14 +37,22 @@ class Owner(commands.Cog):
     @commands.bot_has_guild_permissions(embed_links=True)
     async def load_cog(self, ctx, *, cog: str = None):
         if cog is None:
-            await ctx.send('يجب تحديد اسم ملف ال cog')
+            await ctx.reply('يجب تحديد اسم ملف الـ cog')
             return
         try:
             self.bot.load_extension(cog)
         except Exception as e:
-            await ctx.send(f'**ERROR:** {type(e).__name__} - {e}')
+            embed = discord.Embed(
+                title="ERROR %s" % type(e).__name__,
+                description="```bf\n%s\n```" % e
+            )
+            await ctx.reply(embed=embed)
         else:
-            await ctx.send(f'**SUCCESS** load {cog}')
+            embed = discord.Embed(
+                title=f"Load {cog}",
+                description=f"```diff\n+ Load: {cog}\n```"
+            )
+            await ctx.reply(embed=embed)
 
     @commands.command(name='unload', hidden=True)
     @commands.is_owner()
@@ -61,14 +60,22 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def unload_cog(self, ctx, *, cog: str = None):
         if cog is None:
-            await ctx.send('يجب تحديد اسم ملف ال cog')
+            await ctx.reply('يجب تحديد اسم ملف الـ cog')
             return
         try:
             self.bot.unload_extension(cog)
         except Exception as e:
-            await ctx.send(f'**ERROR:** {type(e).__name__} - {e}')
+            embed = discord.Embed(
+                title="ERROR %s" % type(e).__name__,
+                description="```bf\n%s\n```" % e
+            )
+            await ctx.reply(embed=embed)
         else:
-            await ctx.send(f'**SUCCESS** unload {cog}')
+            embed = discord.Embed(
+                title=f"Unload {cog}",
+                description=f"```diff\n- Unload: {cog}\n```"
+            )
+            await ctx.reply(embed=embed)
 
     @commands.command(name='reload', hidden=True)
     @commands.is_owner()
@@ -76,14 +83,22 @@ class Owner(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def reload_cog(self, ctx, *, cog: str = None):
         if cog is None:
-            await ctx.send('يجب تحديد اسم ملف ال cog')
+            await ctx.reply('يجب تحديد اسم ملف الـ cog')
             return
         try:
             self.bot.reload_extension(cog)
         except Exception as e:
-            await ctx.send(f'**ERROR:** {type(e).__name__} - {e}')
+            embed = discord.Embed(
+                title="ERROR %s" % type(e).__name__,
+                description="```bf\n%s\n```" % e
+            )
+            await ctx.reply(embed=embed)
         else:
-            await ctx.send(f'**SUCCESS** reload {cog}')
+            embed = discord.Embed(
+                title=f"Reload {cog}",
+                description=f"```fix\nReload: {cog}\n```"
+            )
+            await ctx.reply(embed=embed)
 
     @commands.command(name='eval', pass_context=True, hidden=True)
     @commands.is_owner()
@@ -180,6 +195,17 @@ class Owner(commands.Cog):
             return await ctx.send("هاذ المستخدم غير موجود بالقائمه السوداء")
         x.delete()
         await ctx.send("تم ازالة هاذ المستخدم من القائمه السوداء")
+
+    @commands.command(name='backup', hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_guild_permissions(attach_files=True)
+    async def backup_database(self, ctx):
+        backup_file = backup.backup("fdr")
+        print(backup_file)
+        file = discord.File(backup_file)
+        await ctx.send(file=file)
 
 
 def setup(client):

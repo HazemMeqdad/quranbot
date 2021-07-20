@@ -4,9 +4,10 @@ import bot.db as db
 import requests
 import bot.config as config
 import bot.events as event
+from discord_components import DiscordComponents
 
 
-class Bot(commands.AutoShardedBot):
+class Bot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,
@@ -22,9 +23,11 @@ class Bot(commands.AutoShardedBot):
             "general",
             "play",
             "owner",
-            "admin"
+            "admin",
         ]
-        self.load_extension("bot.cogs.errors")
+        self.footer = "بوت فاذكروني لإحياء سنة ذكر الله"
+        self.color = config.Color()
+        # self.load_extension("bot.cogs.errors")
         self.add_check(self.check_blacklist)
 
     @staticmethod
@@ -32,15 +35,16 @@ class Bot(commands.AutoShardedBot):
         return db.BlackList(ctx.author).check
 
     @staticmethod
+    def get_color(table: tuple):
+        return discord.Colour.from_rgb(*table)
+
+    @staticmethod
     def _get_prefix(bot, msg):
         x = db.Guild(msg.guild)
-        prefix = commands.when_mentioned_or('!')
-        try:
-            prefix = commands.when_mentioned_or(x.info[2])
-        except AttributeError:
-            prefix = commands.when_mentioned_or('!')
-        finally:
-            return prefix(bot, msg)
+        prefix = x.info.get("prefix")
+        if not prefix:
+            prefix = "!"
+        return commands.when_mentioned_or(prefix)(bot, msg)
 
     def _setup(self):
         for i in self._cogs:
@@ -50,9 +54,10 @@ class Bot(commands.AutoShardedBot):
                 print(f"the error is \n{error}")
         self.load_extension("bot.events.events")
         self.load_extension("bot.events.loop")
-        self.reload_extension("bot.cogs.errors")
+        # self.reload_extension("bot.cogs.errors")
 
     async def on_ready(self):
+        DiscordComponents(self)
         self._setup()
         for i in self.guilds:
             x = db.Guild(i)

@@ -1,16 +1,17 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
+from discord_components import Select, SelectOption
 import bot.config as config
 import asyncio
+
+last = {}
 
 
 class Quran(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.emoji = config.Emoji(self.bot)
-        self.color = config.Color()
 
     @commands.command(name='play', help='تشغيل القران الكريم على مدار 24 ساعه', aliases=['quren'])
     @commands.guild_only()
@@ -18,7 +19,10 @@ class Quran(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def play_command(self, ctx):
         if not ctx.author.voice:
-            return await ctx.send("يجب عليك دخول غرفه صوتيه")
+            return await ctx.send(embed=discord.Embed(
+                description="يجب عليك دخول غرفه صوتيه",
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
         channel = ctx.author.voice.channel
         voice = get(self.bot.voice_clients, guild=ctx.guild)
         try:
@@ -26,51 +30,62 @@ class Quran(commands.Cog):
         except discord.errors.ClientException:
             voice_channel = await voice.move_to(channel)
         await ctx.guild.change_voice_state(channel=channel, self_deaf=True)
-        list_emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '❌']
-        m = await ctx.send(embed=discord.Embed(description="الرجاء الانتضار بعض الثواني %s" % self.emoji.loading))
-        for i in list_emojis:
-            await m.add_reaction(i)
         embed = discord.Embed(
-            description="""
-اختر القارئ المناسب:
-> :one: - ماهر المعيقلي
-> :two: - ياسر الدوسري
-> :three: - عبد الرحمن السديس
-> :four: - عبد الباسط عبد الصمد
-> :five: - اسلام صبحي
-> :six: - مشاري بن راشد العفاسي
-> :x: - الغاء الامر
-            """)
-        await m.edit(embed=embed)
+            title="تشغيل القرآن الكريم",
+            description="اختر القارئ المناسب من القائمة في الأسفل!",
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        embed.set_footer(text=self.bot.footer)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        msg = await ctx.send(
+            embed=embed,
+            components=[
+                Select(
+                    placeholder="اختر القارئ المناسب",
+                    max_values=1,
+                    options=[
+                        SelectOption(label="ماهر المعيقلي", value="maher", emoji=self.emoji.MaherAlmaikulai),
+                        SelectOption(label="ياسر الدوسري", value="yasser", emoji=self.emoji.YasserAlDousari),
+                        SelectOption(label="عبد الرحمن السديس", value="sudais", emoji=self.emoji.AbdullrahmanAlsudais),
+                        SelectOption(label="عبد الباسط عبد الصمد", value="baset", emoji=self.emoji.AbdulBasitAbdulSamad),
+                        SelectOption(label="اسلام صبحي", value="islam", emoji=self.emoji.IslamSobhi),
+                        SelectOption(label="مشاري بن راشد العفاسي", value="sourate", emoji=self.emoji.MisharyAlafasy),
+                        SelectOption(label="الغاء", value="7", emoji="❌"),
+                    ],
+                ),
+            ],
+        )
 
-        def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in list_emojis
+        def check(res):
+            return ctx.author == res.user and res.channel == ctx.channel
+
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30)
-        except asyncio.TimeoutError:
-            return await m.delete()
-        else:
-            # -----------------------------------------------------------------------
-            _id = {"1️⃣": "maher", "2️⃣": "yasser", "3️⃣": "sudais", "4️⃣": "baset", "5️⃣": "islam", "6️⃣": "sourate"}
-            name = {
-                "maher": "ماهر المعيقلي",
-                "yasser": "ياسر الدوسري",
-                "sudais": "عبد الرحمن السديس",
-                "baset": "عبد الباسط عبد الصمد",
-                "islam": "اسلام صبحي",
-                "sourate": "مشاري بن راشد العفاسي"
-            }
-            # -----------------------------------------------------------------------
-            qran = discord.FFmpegPCMAudio('bot/quran/%s.m4a' % _id.get(str(reaction.emoji)))
-            embed = discord.Embed(
-                description="تم تشغيل القرآن الكريم بصوت الشيخ: `%s`" % name.get(_id.get(str(reaction.emoji)))
+            res = await self.bot.wait_for("select_option", check=check, timeout=30)
+            value = list(map(lambda x: x.value, res.component))[0]
+            reader = list(map(lambda x: x.label, res.component))[0]
+            if value == "7":
+                return await msg.delete()
+            await res.respond(
+                embed=discord.Embed(
+                    description="تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % reader,
+                    color=self.bot.get_color(self.bot.color.gold)
+                ),
+                ephemeral=False
             )
-            await m.edit(embed=embed)
+            await msg.delete()
+            qran = discord.FFmpegOpusAudio('bot/quran/%s.m4a' % value)
+            if not last.get(ctx.guild.id):
+                last[ctx.guild.id] = None
+            last[ctx.guild.id] = value
 
-            def repeat(guild, voice, audio):
-                voice.play(audio, after=lambda e: repeat(guild, voice, audio))
-                voice.is_playing()
-            voice_channel.play(qran, after=lambda e: repeat(ctx.guild, voice, qran))
+            def repeat(guild, voice):
+                x = discord.FFmpegOpusAudio(f"bot/quran/{last[ctx.guild.id]}.m4a")
+                if not x:
+                    return
+                voice.play(x, after=lambda e: repeat(guild, voice))
+            voice_channel.play(qran, after=lambda e: repeat(ctx.guild, voice))
+        except asyncio.TimeoutError:
+            await msg.delete()
 
     @commands.command(aliases=['disconnect', 'dc'], help='لايقاف القران الكريم')
     @commands.guild_only()
@@ -80,11 +95,16 @@ class Quran(commands.Cog):
         voice = get(self.bot.voice_clients, guild=ctx.guild)
         try:
             await voice.disconnect()
-            await ctx.send('تم مغادره الروم الصوتي')
+            await ctx.send(embed=discord.Embed(
+                description="تم مغادره الروم الصوتي",
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
         except AttributeError:
-            await ctx.send('البوت ليس موجود في روم صوتي')
+            await ctx.send(embed=discord.Embed(
+                description='البوت ليس موجود في روم صوتي',
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
 
 
 def setup(bot):
-    DiscordComponents(bot)
     bot.add_cog(Quran(bot))

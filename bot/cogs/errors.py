@@ -23,11 +23,21 @@ class Errors(commands.Cog):
     @Cog.listener()
     async def on_command_error(self, ctx, error):
         x = db.Guild(ctx.guild)
+
+        def embed(description) -> discord.Embed:
+            _embed = discord.Embed(
+                description=description,
+                color=self.bot.get_color(self.bot.color.gold)
+            )
+            return _embed
         if ctx.author.id in cooldown:
             return
         elif isinstance(error, commands.CommandOnCooldown):
             m, s = divmod(error.retry_after, 60)
-            await ctx.send("%s يجب عليك الانتظار `%s` ثواني" % (self.emoji.errors, round(s)), delete_after=2)
+            await ctx.send(
+                embed=embed("%s يجب عليك الانتظار `%s` ثواني" % (self.emoji.errors, round(s))),
+                delete_after=2
+            )
             cooldown.append(ctx.author.id)
             await asyncio.sleep(10)
             cooldown.remove(ctx.author.id)
@@ -35,14 +45,20 @@ class Errors(commands.Cog):
         elif isinstance(ctx.channel, discord.channel.DMChannel):
             return
         elif isinstance(error, commands.errors.MissingPermissions):
-            await ctx.send("أنت بحاجة إلى صلاحيات `%s` %s" % (", ".join(error.missing_perms), self.emoji.errors))
+            await ctx.send(
+                embed=embed("أنت بحاجة إلى صلاحيات `%s` %s" % (", ".join(error.missing_perms), self.emoji.errors))
+            )
         elif isinstance(error, commands.errors.CommandNotFound):
             return
         elif isinstance(error, commands.errors.ChannelNotFound):
-            await ctx.send("يجب التحقق من نوع الروم المحدده %s" % self.emoji.errors)
+            await ctx.send(
+                embed=embed("يجب التحقق من نوع الروم المحدده %s" % self.emoji.errors)
+            )
             return
         elif isinstance(error, commands.errors.BotMissingPermissions):
-            await ctx.send("البوت لا يمتلك صلاحيات `%s` %s" % (", ".join(error.missing_perms), self.emoji.errors))
+            await ctx.send(
+                embed=embed("البوت لا يمتلك صلاحيات `%s` %s" % (", ".join(error.missing_perms), self.emoji.errors))
+            )
         elif isinstance(error, commands.errors.MessageNotFound):
             return
         elif isinstance(error, commands.errors.CommandInvokeError):
@@ -50,14 +66,14 @@ class Errors(commands.Cog):
         elif isinstance(error, commands.MissingRequiredArgument):
             embed = discord.Embed(
                 description=f"{x.info[2]}{ctx.command.name} {ctx.command.signature}",
-                color=discord.Colour.red()
+                color=self.bot.get_color(self.bot.color.gold)
             ).set_author(name=ctx.command.cog_name)
             await ctx.send(embed=embed)
             return
         elif isinstance(error, commands.errors.BadArgument):
             embed = discord.Embed(
                 description=f"{x.info[2]}{ctx.command.name} {ctx.command.signature}",
-                color=discord.Colour.red()
+                color=self.bot.get_color(self.bot.color.gold)
             ).set_author(name=ctx.command.cog_name)
             await ctx.send(embed=embed)
             return
@@ -66,7 +82,7 @@ class Errors(commands.Cog):
         elif isinstance(error, commands.errors.CheckFailure):
             embed = discord.Embed(
                 description="انت ضمن القائمه السوداء لمعلومات اكثر تواصل مع [الدعم الفني](https://discord.gg/q3E6WCSThX)",
-                color=discord.Color.red()
+                color=self.bot.get_color(self.bot.color.gold)
             )
             await ctx.send(embed=embed)
             cooldown.append(ctx.author.id)
@@ -74,7 +90,7 @@ class Errors(commands.Cog):
             cooldown.remove(ctx.author.id)
             return
         else:
-            await ctx.send("يبدو ان هنالك خطأ غير متوقع تم ارسال بلاغ للمطورين تلقائياً")
+            await ctx.send(embed=embed("يبدو ان هنالك خطأ غير متوقع تم ارسال بلاغ للمطورين تلقائياً"))
             self._send_webhook("Error from %s (`%s`)\n%s" % (ctx.guild.name, ctx.guild.id, error))
             return
 

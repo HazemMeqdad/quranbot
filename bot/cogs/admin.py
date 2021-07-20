@@ -3,13 +3,13 @@ import bot.db as db
 import bot.config as config
 import discord
 import asyncio
+from discord_components import Select, SelectOption, Button, ButtonStyle, InteractionType
 
 
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.emoji = config.Emoji(self.bot)
-        self.color = config.Color()
 
     @commands.command(name="prefix", aliases=["setprefix", "set_prefix", "set-prefix"], help='أمر تعيين البادئة.', usage='[البادئه الجديده]')
     @commands.has_permissions(manage_guild=True)
@@ -18,15 +18,22 @@ class Admin(commands.Cog):
     async def prefix_command(self, ctx, prefix=None):
         x = db.Guild(ctx.guild)
         if prefix is None:
-            return await ctx.send("%s الرجاء إدخال بادئة لتعيينها" % self.emoji.errors)
+            return await ctx.reply(embed=discord.Embed(
+                description="%s الرجاء إدخال بادئة لتعيينها" % self.emoji.errors,
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
         if len(prefix) > 5:
-            await ctx.send("%s لا يمكنك وضع بادئه اكثر من خمس حروف" % self.emoji.errors)
+            await ctx.reply(embed=discord.Embed(
+                description="%s لا يمكنك وضع بادئه اكثر من خمس حروف" % self.emoji.errors,
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
             return
         x.update_where("prefix", prefix)
         embed = discord.Embed(
-            description="تم تغير البادئه الى `%s`" % prefix
+            description="تم تغير البادئه الى `%s`" % prefix,
+            color=self.bot.get_color(self.bot.color.gold)
         )
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.command(name='spam', help='عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه',
                       aliases=['anti-spam', "anti_spam"])
@@ -35,21 +42,20 @@ class Admin(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def anti_spam(self, ctx):
         x = db.Guild(ctx.guild)
-        if bool(x.info[5]):
+        if x.info["anti_spam"]:
             x.update_where("anti_spam", False)
             embed = discord.Embed(
                 description="تم اطفاء خاصية تكرار الرسائل",
-                color=discord.Color.red()
+                color=self.bot.get_color(self.bot.color.gold)
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
             return
-        elif bool(x.info[5]) is False:
-            x.update_where("anti_spam", True)
-            embed = discord.Embed(
-                description="تم تفعيل خاصية تكرار الرسائل",
-                color=discord.Color.green()
-            )
-            await ctx.send(embed=embed)
+        x.update_where("anti_spam", True)
+        embed = discord.Embed(
+            description="تم تفعيل خاصية تكرار الرسائل",
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        await ctx.reply(embed=embed)
 
     @commands.command(name='embed', help='تغير خاصيه ارسال الاذكار الى امبد')
     @commands.guild_only()
@@ -57,21 +63,20 @@ class Admin(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def embed(self, ctx):
         x = db.Guild(ctx.guild)
-        if bool(x.info[6]):
+        if x.info["embed"]:
             x.update_where("embed", False)
             embed = discord.Embed(
                 description="تم اطفاء خاصية الأمبد",
-                color=discord.Color.red()
+                color=self.bot.get_color(self.bot.color.gold)
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
             return
-        elif bool(x.info[6]) is False:
-            x.update_where("embed", True)
-            embed = discord.Embed(
-                description="تم تفعيل خاصية الأمبد",
-                color=discord.Color.red()
-            )
-            await ctx.send(embed=embed)
+        x.update_where("embed", True)
+        embed = discord.Embed(
+            description="تم تفعيل خاصية الأمبد",
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        await ctx.reply(embed=embed)
 
     @commands.command(name="time", aliases=["set_time", "settime"], help='تغير وقت ارسال الاذكار')
     @commands.has_permissions(manage_guild=True)
@@ -79,49 +84,55 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def set_timer(self, ctx):
         x = db.Guild(ctx.guild)
-        if not x.info[3]:
-            await ctx.send("%s يجب عليك تثبيت روم لاستعمال هاذ الامر `setroom%s`" % (self.emoji.errors, x.info[2]))
+        if not x.info["channel"]:
+            await ctx.reply(embed=discord.Embed(
+                description="يجب عليك تثبيت روم لاستعمال هاذ الامر",
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
             return
-        list_emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '❌']
-        embed = discord.Embed(description="""
-اختر الوقت المناسب من خلال الضغط على الراكشن المناسب:
-> :one: - 30 دقيقه
-> :two: - ساعه
-> :three: - ساعتين
-> :four: - 6 ساعات
-> :five: - 12 ساعه
-> :six: - 24 ساعه
-> :x: - الغاء الامر
-""")
+        embed = discord.Embed(
+            description="اختر الوقت المناسب من خلال القائمة في الأسفل",
+            color=self.bot.get_color(self.bot.color.gold)
+        )
 
-        m = await ctx.send(embed=discord.Embed(description="الرجاء الانتضار بعض الثواني %s" % self.emoji.loading))
-        for i in list_emojis:
-            await m.add_reaction(i)
-        await m.edit(embed=embed)
+        msg = await ctx.reply(
+            embed=embed,
+            components=[
+                Select(
+                    placeholder="اختر الوقت المناسب",
+                    max_values=1,
+                    options=[
+                        SelectOption(label="30 دقيقة", value="1800"),
+                        SelectOption(label="ساعه", value="3600"),
+                        SelectOption(label="ساعتين", value="7200"),
+                        SelectOption(label="6 ساعات", value="21600"),
+                        SelectOption(label="12 ساعه", value="43200"),
+                        SelectOption(label="24 ساعه", value="86400"),
+                        SelectOption(label="الغاء", value="7", emoji="❌"),
+                    ]
+                )
+            ]
+        )
 
-        def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in list_emojis
+        def check(res):
+            return ctx.author == res.user and res.channel == ctx.channel
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30)
-        except asyncio.TimeoutError:
-            return await m.delete()
-        else:
-            if str(reaction.emoji) == "❌":
-                return await m.delete()
-
-            # -------------------------------------------------------------------------------------
-            emojis = {"1️⃣": 1800, "2️⃣": 3600, "3️⃣": 7200, "4️⃣": 21600, "5️⃣": 43200, "6️⃣": 86400}
-            times = {1800: "30m", 3600: "1h", 7200: "2h", 21600: "6h", 43200: "12h", 86400: "24h"}
-            new_time = emojis.get(str(reaction.emoji))
-            # -------------------------------------------------------------------------------------
-
-            x.update_where("time", new_time)
-            embed = discord.Embed(
-                description="تم تغير الوقت الى `%s`" % times.get(new_time),
-                color=discord.Color.green()
+            res = await self.bot.wait_for("select_option", check=check, timeout=30)
+            value = list(map(lambda x: x.value, res.component))[0]
+            lable = list(map(lambda x: x.label, res.component))[0]
+            if value == "7":
+                return await msg.delete()
+            x.update_where("time", int(value))
+            await res.respond(
+                embed=discord.Embed(
+                    description="تم تغير وقت ارسال الأذكار إلى: **%s**" % lable,
+                    color=self.bot.get_color(self.bot.color.gold)
+                ),
+                ephemeral=False
             )
-            await m.edit(embed=embed)
-            await m.clear_reactions()
+            await msg.delete()
+        except asyncio.TimeoutError:
+            return await msg.delete()
 
     @commands.command(name="setroom", aliases=["channel", "setchannel", "set_room", "set_channel"],
                       help='تحديد روم ارسال الاذكار', usage='[#الروم الجديده]')
@@ -130,15 +141,16 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def set_channel_command(self, ctx, channel: discord.TextChannel):
         x = db.Guild(ctx.guild)
-        if channel.id == x.info[3]:
+        if channel.id == x.info["channel"]:
             embed = discord.Embed(
-                description="لقد قمت بتحديد هاذه الروم من قبل"
+                description="لقد قمت بتحديد هاذه الروم من قبل",
+                color=self.bot.get_color(self.bot.color.gold)
             )
-            return await ctx.send(embed=embed)
+            return await ctx.reply(embed=embed)
         x.update_where("channel", channel.id)
-        await ctx.send(embed=discord.Embed(
+        await ctx.reply(embed=discord.Embed(
             description="! الله يكتب اجرك راح ارسل الاذكار للروم %s" % channel.mention,
-            color=discord.Color.green()
+            color=self.bot.get_color(self.bot.color.gold)
         ))
 
     @commands.command(name="remove", aliases=["removeroom"], help='توقف البوت عن إرسال الأذكار')
@@ -147,33 +159,55 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def remove_command(self, ctx):
         x = db.Guild(ctx.guild)
-        if not x.info[2]:
-            return await ctx.send(embed=discord.Embed(description="انت لم تقم بتثبيت الروم", color=discord.Colour.red()))
-        info = x.info
-        m = await ctx.send(embed=discord.Embed(
-            description="هل انت موافق على ايقاف ارسال الاذكار في روم <#%s>" % info[3]
-        ))
-        await m.add_reaction("✅")
-        await m.add_reaction("❌")
+        if not x.info["channel"]:
+            return await ctx.reply(embed=discord.Embed(
+                description="انت لم تقم بتثبيت الروم من قبل",
+                color=self.bot.get_color(self.bot.color.gold)
+            ))
+        embed = discord.Embed(
+            description="هل انت موافق على ايقاف ارسال الاذكار في روم <#%s>" % x.info["channel"],
+            color=self.bot.get_color(self.bot.color.gold)
+        )
+        m = await ctx.reply(
+            embed=embed,
+            components=[
+                [
+                    Button(label="موافق", style=ButtonStyle.green, emoji=self.emoji.yes, id="true"),
+                    Button(label="غير موافق", style=ButtonStyle.red, emoji=self.emoji.no1, id="false")
+                ]
 
-        def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ["✅", "❌"]
+            ]
+        )
 
+        def check(res):
+            return ctx.author == res.user and res.channel == ctx.channel
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=30, check=check)
-        except asyncio.TimeoutError:
-            return await m.delete()
-        else:
-            if str(reaction.emoji) == "✅":
+            res = await self.bot.wait_for("button_click", check=check, timeout=15)
+            if res.component.id == "true":
                 x.update_where("channel", None)
                 embed = discord.Embed(
                     description="تم الغاء ارسال الاذكار بنجاح",
-                    color=discord.Color.green()
+                    color=self.bot.get_color(self.bot.color.gold)
                 )
-                await m.edit(embed=embed)
-                await m.clear_reactions()
+                await res.respond(
+                    embed=embed,
+                    type=InteractionType.ChannelMessageWithSource,
+                    ephemeral=False
+                )
+                await m.delete()
                 return
+            embed = discord.Embed(
+                description="تم الغاء الأمر",
+                color=self.bot.get_color(self.bot.color.gold)
+            )
+            await res.respond(
+                embed=embed,
+                type=InteractionType.ChannelMessageWithSource,
+                ephemeral=False
+            )
             await m.delete()
+        except asyncio.TimeoutError:
+            return await m.delete()
 
 
 def setup(bot):
