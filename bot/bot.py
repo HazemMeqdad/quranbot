@@ -3,11 +3,10 @@ from discord.ext import commands
 import bot.db as db
 import requests
 import bot.config as config
-import bot.events as event
 from discord_components import DiscordComponents
 
 
-class Bot(commands.Bot):
+class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,
@@ -27,7 +26,7 @@ class Bot(commands.Bot):
         ]
         self.footer = "بوت فاذكروني لإحياء سنة ذكر الله"
         self.color = config.Color()
-        # self.load_extension("bot.cogs.errors")
+        self.load_extension("bot.cogs.errors")
         self.add_check(self.check_blacklist)
 
     @staticmethod
@@ -54,7 +53,7 @@ class Bot(commands.Bot):
                 print(f"the error is \n{error}")
         self.load_extension("bot.events.events")
         self.load_extension("bot.events.loop")
-        # self.reload_extension("bot.cogs.errors")
+        self.reload_extension("bot.cogs.errors")
 
     async def on_ready(self):
         DiscordComponents(self)
@@ -63,11 +62,10 @@ class Bot(commands.Bot):
             x = db.Guild(i)
             x.insert()
         await self.change_presence(
-            activity=discord.Game(name='!help - fdrbot.xyz'),
-            status=discord.Status.dnd)
+            activity=discord.Game(name='!help - كل عام و أنتم بخير'),
+            status=discord.Status.dnd
+        )
         print(f"Name: {self.user.name}\nID: {self.user.id}")
-        e = event.Loop(self)
-        await e.start()
 
     @staticmethod
     async def _send_webhook(msg):
