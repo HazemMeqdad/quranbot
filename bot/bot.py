@@ -3,7 +3,6 @@ from discord.ext import commands
 import bot.db as db
 from requests import request
 import bot.config as config
-from base64 import b64encode
 
 
 class Bot(commands.Bot):

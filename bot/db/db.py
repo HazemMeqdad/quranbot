@@ -121,7 +121,6 @@ class BlackListGuild(object):
 
 
 class Azkar(object):
-
     @property
     def last_id(self) -> int:
         try:

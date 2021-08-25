@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands, tasks
 from bot import db
 from datetime import datetime

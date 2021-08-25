@@ -141,7 +141,7 @@ class General(commands.Cog):
         if isinstance(self.bot, commands.AutoShardedBot):
             embed.add_field(name="%s - الشاردات" % self.emoji.fdr_50, value="%s/%s" % (
                 len(self.bot.shards),
-                len([self.bot.get_shard(i) for i in self.bot.shards if self.bot.get_shard(i).is_closed() == False])
+                len([self.bot.get_shard(i) for i in self.bot.shards if self.bot.get_shard(i).is_closed() is False])
             ))
         embed.add_field(name="%s - أصدار المكتبة" % self.emoji.fdr_50, value="`discord.py %s %s`" % (
             discord.__version__, discord.version_info.releaselevel))

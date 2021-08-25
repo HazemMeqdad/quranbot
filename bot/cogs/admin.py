@@ -107,7 +107,6 @@ class Admin(commands.Cog):
             "21600": _["time"]["6h"],
             "43200": _["time"]["12h"],
             "86400": _["time"]["24h"]
-
         }
         for value, lable in data.items():
             select.append_option(discord.SelectOption(label=lable, value=value))
@@ -219,4 +218,3 @@ class Admin(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Admin(bot))
-
