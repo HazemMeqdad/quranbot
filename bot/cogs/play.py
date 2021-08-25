@@ -4,6 +4,7 @@ from discord.utils import get
 from discord_components import Select, SelectOption
 import bot.config as config
 import asyncio
+import bot.lang as lang
 
 last = {}
 
@@ -18,9 +19,10 @@ class Quran(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def play_command(self, ctx):
+        _ = lang.Languages(ctx.guild).get_response(ctx.command)
         if not ctx.author.voice:
-            return await ctx.send(embed=discord.Embed(
-                description="يجب عليك دخول غرفه صوتيه",
+            return await ctx.reply(embed=discord.Embed(
+                description=_["if_not_voice_channel"],
                 color=self.bot.get_color(self.bot.color.gold)
             ))
         channel = ctx.author.voice.channel
@@ -31,26 +33,34 @@ class Quran(commands.Cog):
             voice_channel = await voice.move_to(channel)
         await ctx.guild.change_voice_state(channel=channel, self_deaf=True)
         embed = discord.Embed(
-            title="تشغيل القرآن الكريم",
-            description="اختر القارئ المناسب من القائمة في الأسفل!",
+            title=_["title"],
+            description=_["description"],
             color=self.bot.get_color(self.bot.color.gold)
         )
         embed.set_footer(text=self.bot.footer)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        msg = await ctx.send(
+        select = _["select"]
+        msg = await ctx.reply(
             embed=embed,
             components=[
                 Select(
-                    placeholder="اختر القارئ المناسب",
+                    placeholder=select["placeholder"],
                     max_values=1,
                     options=[
-                        SelectOption(label="ماهر المعيقلي", value="maher", emoji=self.emoji.MaherAlmaikulai),
-                        SelectOption(label="ياسر الدوسري", value="yasser", emoji=self.emoji.YasserAlDousari),
-                        SelectOption(label="عبد الرحمن السديس", value="sudais", emoji=self.emoji.AbdullrahmanAlsudais),
-                        SelectOption(label="عبد الباسط عبد الصمد", value="baset", emoji=self.emoji.AbdulBasitAbdulSamad),
-                        SelectOption(label="اسلام صبحي", value="islam", emoji=self.emoji.IslamSobhi),
-                        SelectOption(label="مشاري بن راشد العفاسي", value="sourate", emoji=self.emoji.MisharyAlafasy),
-                        SelectOption(label="الغاء", value="7", emoji="❌"),
+                        SelectOption(
+                            label=select["options"]["maher"], value="maher", emoji=self.emoji.MaherAlmaikulai),
+                        SelectOption(
+                            label=select["options"]["yasser"], value="yasser", emoji=self.emoji.YasserAlDousari),
+                        SelectOption(
+                            label=select["options"]["sudais"], value="sudais", emoji=self.emoji.AbdullrahmanAlsudais),
+                        SelectOption(
+                            label=select["options"]["baset"], value="baset", emoji=self.emoji.AbdulBasitAbdulSamad),
+                        SelectOption(
+                            label=select["options"]["islam"], value="islam", emoji=self.emoji.IslamSobhi),
+                        SelectOption(
+                            label=select["options"]["sourate"], value="sourate", emoji=self.emoji.MisharyAlafasy),
+                        SelectOption(
+                            label=select["options"]["cancel"], value="7", emoji="❌"),
                     ],
                 ),
             ],
@@ -67,7 +77,7 @@ class Quran(commands.Cog):
                 return await msg.delete()
             await res.respond(
                 embed=discord.Embed(
-                    description="تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % reader,
+                    description=_["on_play"] % reader,
                     color=self.bot.get_color(self.bot.color.gold)
                 ),
                 ephemeral=False
@@ -92,16 +102,17 @@ class Quran(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stop(self, ctx):
+        _ = lang.Languages(ctx.guild).get_response(ctx.command)
         voice = get(self.bot.voice_clients, guild=ctx.guild)
         try:
             await voice.disconnect()
-            await ctx.send(embed=discord.Embed(
-                description="تم مغادره الروم الصوتي",
+            await ctx.reply(embed=discord.Embed(
+                description=_["disconnect"],
                 color=self.bot.get_color(self.bot.color.gold)
             ))
         except AttributeError:
-            await ctx.send(embed=discord.Embed(
-                description='البوت ليس موجود في روم صوتي',
+            await ctx.reply(embed=discord.Embed(
+                description=_["if_bot_connect"],
                 color=self.bot.get_color(self.bot.color.gold)
             ))
 

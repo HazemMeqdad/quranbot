@@ -64,7 +64,8 @@ class Loop(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def start(self):
+    @Cog.listener()
+    async def on_ready(self):
         print('`events has been ready`')
 
         self._send_30m.start()

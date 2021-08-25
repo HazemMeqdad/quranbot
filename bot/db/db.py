@@ -1,102 +1,86 @@
-from mysql.connector import connect, errors
-import bot.config as config
-import discord
-from time import monotonic
+from pymongo import MongoClient
+from bot import config
 from datetime import datetime
-from os.path import isfile
-import os
+from discord import Guild as GuildObject
+from discord import User as UserObject
 from random import choice
 
-build_path = r"\build.sql"
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-db = connect(**config.database)
-cr = db.cursor(buffered=True)
-
-
-if isfile(build_path):
-    cr.execute("source %s" % dir_path+build_path)
+db = MongoClient(config.mongo_url)
+db_client = db["fa-azcrone"]
+col_guilds = db_client["guilds"]
+col_blacklist_user = db_client["blacklist_users"]
+col_blacklist_guild = db_client["blacklist_guilds"]
+col_azkar = db_client["azkar"]
 
 
-print('`connect MySql database`')
+print('`connect MongoDB database`')
 
 
-def speedtest():
-    start = monotonic()
-    cr.execute("SELECT * FROM guilds")
-    end = monotonic()
+def speedtest() -> int:
+    start = datetime.now().timestamp()
+    test_connection = MongoClient(config.mongo_url)
+    test_connection.close()
+    end = datetime.now().timestamp()
     return round((end - start) * 1000)
 
 
-class Main:
-    @staticmethod
-    def commit():
-        db.commit()
-
-
 def get_all_channels():
-    cr.execute('SELECT * FROM guilds WHERE channel IS NOT NULL')
-    return cr.fetchall()
+    return col_guilds.find()
 
 
 def get_all_channels_by_time(time: int):
-    cr.execute('SELECT id FROM guilds WHERE channel IS NOT NULL AND time = %s' % (time,))
-    return cr.fetchall()
+    return col_guilds.find({"time": time})
 
 
-class Guild(Main):
-    def __init__(self, guild: discord.Guild):
+class Guild(object):
+    def __init__(self, guild: GuildObject):
         self._guild = guild
 
     @property
     def info(self) -> dict:
-        cr.execute("SELECT * FROM guilds WHERE id = %s" % self._guild.id)
-        x = cr.fetchone()
-        m = {
-            "id": x[0],
-            "guild_name": x[1],
-            "prefix": x[2],
-            "channel": x[3],
-            "time": x[4],
-            "anti_spam": x[5],
-            "embed": x[6]
+        return col_guilds.find_one({"_id": self._guild.id})
+
+    def update_where(self, module, value) -> dict:
+        col_guilds.update_one({"_id": self._guild.id}, {"$set": {module: value}})
+        return self.info
+
+    def insert(self) -> dict:
+        if self.info:
+            return {"msg": "This guild already exists"}
+        data = {
+            "_id": self._guild.id,
+            "name": self._guild.name,
+            "prefix": config.default_prefix,
+            "time": config.default_time,
+            "anti_spam": False,
+            "embed": False
         }
-        return m
-
-    def update_where(self, module, value):
-        cr.execute(f"UPDATE guilds SET {module} = %s WHERE id = %s", (value, self._guild.id))
-        self.commit()
-
-    def insert(self):
-        try:
-            cr.execute("INSERT INTO guilds(id, guild_name) VALUES(%s, %s)", (self._guild.id, self._guild.name))
-            self.commit()
-        except errors.IntegrityError:
-            return
+        col_guilds.insert_one(data)
+        return self.info
 
 
-class BlackList(Main):
-    def __init__(self, user: discord.User):
+class BlackListUser(object):
+    def __init__(self, user: UserObject):
         self._user = user
 
-    def insert(self, mod_id, reason=None):
-        try:
-            cr.execute(
-                "INSERT INTO blacklist(id, mod_id, reason, timestamp) VALUES(%s, %s, %s, %s)",
-                (self._user.id, mod_id, reason, datetime.now().timestamp())
-            )
-            self.commit()
-        except errors.IntegrityError:
-            return
+    def insert(self, mod_id: int, reason=None) -> dict:
+        if self.info:
+            return {"msg": "This user already exists"}
+        data = {
+            "_id": self._user.id,
+            "mod_id": mod_id,
+            "reason": reason,
+            "timestamp": datetime.now().timestamp()
+        }
+        col_blacklist_user.insert(data)
+        return self.info
 
     def delete(self):
-        cr.execute("DELETE FROM blacklist WHERE id = %s", (self._user.id,))
-        self.commit()
+        col_blacklist_user.delete_one({"_id": self._user.id})
 
     @property
-    def info(self):
-        cr.execute("SELECT * FROM blacklist WHERE id = %s", (self._user.id,))
-        return cr.fetchone()
+    def info(self) -> dict:
+        return col_blacklist_user.find_one({"_id": self._user.id})
 
     @property
     def check(self) -> bool:
@@ -105,18 +89,56 @@ class BlackList(Main):
         return False
 
 
-class Azkar(Main):
-    def add(self, msg: str):
-        cr.execute("INSERT INTO azkar(msg) VALUES(%s)", (msg,))
-        self.commit()
+class BlackListGuild(object):
+    def __init__(self, user: GuildObject):
+        self._user = user
 
-    def remove(self, _id: int):
-        cr.execute("DELETE FROM azkar WHERE id = %s", (_id,))
-        self.commit()
+    def insert(self, mod_id: int, reason=None) -> dict:
+        if self.info:
+            return {"msg": "This user already exists"}
+        data = {
+            "_id": self._user.id,
+            "mod_id": mod_id,
+            "reason": reason,
+            "timestamp": datetime.now().timestamp()
+        }
+        col_blacklist_guild.insert(data)
+        return self.info
+
+    def delete(self):
+        col_blacklist_guild.delete_one({"_id": self._user.id})
+
+    @property
+    def info(self) -> dict:
+        return col_blacklist_guild.find_one({"_id": self._user.id})
+
+    @property
+    def check(self) -> bool:
+        if not self.info:
+            return True
+        return False
+
+
+class Azkar(object):
+
+    @property
+    def last_id(self) -> int:
+        if not col_azkar.find():
+            return 1
+        return col_azkar.find().sort("_id", -1).limit(1)[0].get("_id") + 1
+
+    def add(self, msg: str):
+        col_azkar.insert_one({"_id": self.last_id, "msg": msg})
+
+    @staticmethod
+    def remove(_id: int):
+        col_azkar.delete_one({"_id": _id})
+
+    @staticmethod
+    def edit(_id: int, new_msg: str):
+        col_azkar.update_one({"_id": _id}, {"$set": {"msg": new_msg}})
 
     @property
     def random(self) -> dict:
-        cr.execute("SELECT * FROM azkar")
-        x = choice(cr.fetchall())
-        return {"_id": x[0], "msg": x[1]}
-
+        x = choice(col_azkar.find())
+        return x

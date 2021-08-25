@@ -2,6 +2,7 @@ from discord.ext import commands
 import bot.db as db
 import discord
 import bot.config as config
+import bot.lang as lang
 
 
 class Help(commands.Cog):
@@ -9,21 +10,23 @@ class Help(commands.Cog):
         self.bot = bot
         self.emoji = config.Emoji(self.bot)
 
-    def get_all_commands(self, ctx):
+    def get_all_commands(self, ctx, _):
         m = db.Guild(ctx.guild)
         embed = discord.Embed(color=self.bot.get_color(self.bot.color.gold))
-        embed.set_footer(text="بطلب من: {}".format(ctx.author), icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=_["request_by"].format(ctx.author), icon_url=ctx.author.avatar_url)
         embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
         embed.set_image(url='https://i8.ae/IjVZC')
         cogs = ["General", "Admin", "Quran"]
         for i in cogs:
-            _ = ""
+            o = ""
             for x in self.bot.get_cog(i).walk_commands():
                 if x.hidden:
                     continue
-                _ += f"`{m.info['prefix']}{x.name}{' %s' % x.signature if x.signature else ''}` - {x.short_doc}\n"
-            embed.add_field(name=str(i), value=_.strip(), inline=False)
-        embed.add_field(name="معلومات اكثر:", value="***[Support](https://discord.gg/EpZJwpSgka) & [Invite](https://fdrbot.xyz/) & [Donation تبرع](https://fdrbot.xyz/paypal)***")
+                o += f"`{m.info['prefix']}{x.name}{' %s' % x.signature if x.signature else ''}` - {x.short_doc}\n"
+            embed.add_field(name=str(i), value=o.strip(), inline=False)
+        embed.add_field(name=_["other_info"], value="***[Support](https://discord.gg/EpZJwpSgka) & "
+                                                    "[Invite](https://fdrbot.xyz/) & "
+                                                    "[Donation](https://fdrbot.xyz/paypal)***")
         return embed
 
     @commands.command(name="help", description='قائمه الأوامر', help="عرض اوامر البوت", hidden=True)
@@ -31,28 +34,31 @@ class Help(commands.Cog):
     @commands.guild_only()
     async def help_command(self, ctx, *, command=None):
         x = db.Guild(ctx.guild)
+        _ = lang.Languages(ctx.guild).get_response(ctx.command)
         if command is not None:
             command = self.bot.get_command(command)
             if command is None:
-                await ctx.send(embed=discord.Embed(
-                    description="لم استطع العثور على هاذ الأمر.",
+                await ctx.reply(embed=discord.Embed(
+                    description=_["if_not_find_command"],
                     color=self.bot.get_color(self.bot.color.gold)
                 ))
                 return
             if not command.aliases:
-                aliases = "لا يوجد"
+                aliases = _["not_find"]
             else:
                 aliases = ", ".join(command.aliases)
             embed = discord.Embed(
-                description=f"**الأمر:** {command.name}\n\
-**{self.emoji.fdr_50} - الوصف:** {command.help}\n\
-**{self.emoji.fdr_50} - الاستعمال:** {x.info['prefix']}{command.name} {command.signature}\n\
-**{self.emoji.fdr_50} - الأختصارات:** {aliases}\n",
+                description=f"""
+{_["command"]} {command.name}
+**{self.emoji.fdr_50} - {_["description"]}:** {command.help}
+**{self.emoji.fdr_50} - {_["usage"]} {x.info['prefix']}{command.name} {command.signature}
+**{self.emoji.fdr_50} - {_["aliases"]}:** {aliases}
+""",
                 color=self.bot.get_color(self.bot.color.gold)
             )
             embed.set_author(name=command.cog_name)
             return await ctx.reply(embed=embed)
-        await ctx.reply(embed=self.get_all_commands(ctx))
+        await ctx.reply(embed=self.get_all_commands(ctx, _))
 
 
 def setup(client):

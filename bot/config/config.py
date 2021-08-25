@@ -5,18 +5,15 @@ x.read("config.ini")
 
 token = x.get("BOT", "token")
 owners = list(map(int, x.get("BOT", "owners").split(",")))
+default_prefix = x.get("BOT", "default_prefix")
+default_time = x.getint("BOT", "default_time")
 
 webhook_shard = x.get("WEBHOOK", "shards")
 webhook_errors = x.get("WEBHOOK", "errors")
 webhook_log = x.get("WEBHOOK", "logs")
 
 
-database = {
-    "host": x.get("DATABASE", "host"),
-    "user": x.get("DATABASE", "user"),
-    "password": x.get("DATABASE", "password"),
-    "database": x.get("DATABASE", "database")
-}
+mongo_url = x.get("DATABASE", "mongo_url")
 
 
 class Emoji:
