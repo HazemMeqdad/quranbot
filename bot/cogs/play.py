@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-from discord_components import Select, SelectOption
 import bot.config as config
 import asyncio
 import bot.lang as lang
@@ -38,62 +37,54 @@ class Quran(commands.Cog):
             color=self.bot.get_color(self.bot.color.gold)
         )
         embed.set_footer(text=self.bot.footer)
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         select = _["select"]
-        msg = await ctx.reply(
-            embed=embed,
-            components=[
-                Select(
-                    placeholder=select["placeholder"],
-                    max_values=1,
-                    options=[
-                        SelectOption(
-                            label=select["options"]["maher"], value="maher", emoji=self.emoji.MaherAlmaikulai),
-                        SelectOption(
-                            label=select["options"]["yasser"], value="yasser", emoji=self.emoji.YasserAlDousari),
-                        SelectOption(
-                            label=select["options"]["sudais"], value="sudais", emoji=self.emoji.AbdullrahmanAlsudais),
-                        SelectOption(
-                            label=select["options"]["baset"], value="baset", emoji=self.emoji.AbdulBasitAbdulSamad),
-                        SelectOption(
-                            label=select["options"]["islam"], value="islam", emoji=self.emoji.IslamSobhi),
-                        SelectOption(
-                            label=select["options"]["sourate"], value="sourate", emoji=self.emoji.MisharyAlafasy),
-                        SelectOption(
-                            label=select["options"]["cancel"], value="7", emoji="❌"),
-                    ],
-                ),
-            ],
-        )
+        view = discord.ui.View()
+        selected = discord.ui.Select(placeholder=select["placeholder"])
+        data = {
+            "maher": [select["options"]["maher"], self.emoji.MaherAlmaikulai],
+            "yasser": [select["options"]["yasser"], self.emoji.YasserAlDousari],
+            "sudais": [select["options"]["sudais"], self.emoji.AbdullrahmanAlsudais],
+            "baset": [select["options"]["baset"], self.emoji.AbdulBasitAbdulSamad],
+            "islam": [select["options"]["islam"], self.emoji.IslamSobhi],
+            "sourate": [select["options"]["sourate"], self.emoji.MisharyAlafasy],
+            "7": [select["options"]["cancel"], "❌"]
+        }
+        for item, value in data.items():
+            selected.append_option(discord.SelectOption(label=value[0], value=item, emoji=value[1]))
+        view.add_item(item=selected)
+        msg = await ctx.reply(embed=embed, view=view)
 
         def check(res):
             return ctx.author == res.user and res.channel == ctx.channel
 
         try:
-            res = await self.bot.wait_for("select_option", check=check, timeout=30)
-            value = list(map(lambda x: x.value, res.component))[0]
-            reader = list(map(lambda x: x.label, res.component))[0]
+            res = await self.bot.wait_for("interaction", check=check, timeout=30)
+            value = res.data.get("values")[0]
+            lable = data.get(value)
             if value == "7":
                 return await msg.delete()
-            await res.respond(
+            selected.disabled = True
+            await res.edit_original_message(
                 embed=discord.Embed(
-                    description=_["on_play"] % reader,
+                    description=_["on_play"] % lable[0],
                     color=self.bot.get_color(self.bot.color.gold)
                 ),
-                ephemeral=False
+                view=view
             )
-            await msg.delete()
-            qran = discord.FFmpegOpusAudio('bot/quran/%s.m4a' % value)
+            qran = discord.FFmpegOpusAudio('bot/quran/%s.m4a' % "quren")
             if not last.get(ctx.guild.id):
                 last[ctx.guild.id] = None
             last[ctx.guild.id] = value
 
             def repeat(guild, voice):
+                if not last.get(ctx.guild.id) or voice_channel.is_connected() == False:
+                    return
                 x = discord.FFmpegOpusAudio(f"bot/quran/{last[ctx.guild.id]}.m4a")
                 if not x:
                     return
-                voice.play(x, after=lambda e: repeat(guild, voice))
-            voice_channel.play(qran, after=lambda e: repeat(ctx.guild, voice))
+                voice_channel.play(x, after=lambda e: repeat(guild, voice))
+            voice_channel.play(qran, after=lambda e: repeat(ctx.guild, voice_channel))
         except asyncio.TimeoutError:
             await msg.delete()
 

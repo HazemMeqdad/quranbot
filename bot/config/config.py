@@ -7,6 +7,7 @@ token = x.get("BOT", "token")
 owners = list(map(int, x.get("BOT", "owners").split(",")))
 default_prefix = x.get("BOT", "default_prefix")
 default_time = x.getint("BOT", "default_time")
+shards_count = x.getint("BOT", "shards_count")
 
 webhook_shard = x.get("WEBHOOK", "shards")
 webhook_errors = x.get("WEBHOOK", "errors")

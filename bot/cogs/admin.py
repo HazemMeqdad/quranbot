@@ -3,7 +3,6 @@ import bot.db as db
 import bot.config as config
 import discord
 import asyncio
-from discord_components import Select, SelectOption, Button, ButtonStyle
 import bot.lang as lang
 
 
@@ -99,43 +98,40 @@ class Admin(commands.Cog):
             description=_["select_time"],
             color=self.bot.get_color(self.bot.color.gold)
         )
+        view = discord.ui.View()
+        select = discord.ui.Select(placeholder=_["select_time_placeholder"])
+        data = {
+            "1800": _["time"]["30m"],
+            "3600": _["time"]["1h"],
+            "7200": _["time"]["2h"],
+            "21600": _["time"]["6h"],
+            "43200": _["time"]["12h"],
+            "86400": _["time"]["24h"]
 
-        msg = await ctx.reply(
-            embed=embed,
-            components=[
-                Select(
-                    placeholder=_["select_time_placeholder"],
-                    max_values=1,
-                    options=[
-                        SelectOption(label=_["time"]["30m"], value="1800"),
-                        SelectOption(label=_["time"]["1h"], value="3600"),
-                        SelectOption(label=_["time"]["2h"], value="7200"),
-                        SelectOption(label=_["time"]["6h"], value="21600"),
-                        SelectOption(label=_["time"]["12h"], value="43200"),
-                        SelectOption(label=_["time"]["24h"], value="86400"),
-                        SelectOption(label=_["time"]["cancel"], value="0", emoji="❌"),
-                    ]
-                )
-            ]
-        )
+        }
+        for value, lable in data.items():
+            select.append_option(discord.SelectOption(label=lable, value=value))
+        select.append_option(discord.SelectOption(label=_["time"]["cancel"], value="0", emoji="❌"))
+        view.add_item(item=select)
+        msg = await ctx.reply(embed=embed, view=view)
 
         def check(res):
             return ctx.author == res.user and res.channel == ctx.channel
         try:
-            res = await self.bot.wait_for("select_option", check=check, timeout=30)
-            value = list(map(lambda x: x.value, res.component))[0]
-            lable = list(map(lambda x: x.label, res.component))[0]
+            res = await self.bot.wait_for("interaction", check=check, timeout=30)
+            value = res.data.get("values")[0]
+            lable = data.get(value)
             if value == "0":
                 return await msg.delete()
             x.update_where("time", int(value))
-            await res.respond(
+            select.disabled = True
+            await res.edit_original_message(
                 embed=discord.Embed(
                     description=_["set_time"] % lable,
                     color=self.bot.get_color(self.bot.color.gold)
                 ),
-                ephemeral=False
+                view=view
             )
-            await msg.delete()
         except asyncio.TimeoutError:
             return await msg.delete()
 
@@ -175,44 +171,48 @@ class Admin(commands.Cog):
             description=_["check"]["msg"] % x.info["channel"],
             color=self.bot.get_color(self.bot.color.gold)
         )
-        m = await ctx.reply(
-            embed=embed,
-            components=[
-                [
-                    Button(label=_["check"]["true"], style=ButtonStyle.green, emoji=self.emoji.yes, id="true"),
-                    Button(label=_["check"]["false"], style=ButtonStyle.red, emoji=self.emoji.no1, id="false")
-                ]
-
-            ]
+        view = discord.ui.View()
+        true = discord.ui.Button(
+            label=_["check"]["true"],
+            style=discord.ButtonStyle.green,
+            emoji=self.emoji.yes,
+            custom_id="true"
         )
+        false = discord.ui.Button(
+            label=_["check"]["false"],
+            style=discord.ButtonStyle.red,
+            emoji=self.emoji.no1,
+            custom_id="false"
+        )
+        view.add_item(item=true)
+        view.add_item(item=false)
+        m = await ctx.reply(embed=embed, view=view)
 
         def check(res):
             return ctx.author == res.user and res.channel == ctx.channel
         try:
-            res = await self.bot.wait_for("button_click", check=check, timeout=15)
-            if res.component.id == "true":
+            res = await self.bot.wait_for("interaction", check=check, timeout=15)
+            true.disabled = True
+            false.disabled = True
+            if res.data["custom_id"] == "true":
                 x.update_where("channel", None)
                 embed = discord.Embed(
                     description=_["done"],
                     color=self.bot.get_color(self.bot.color.gold)
                 )
-                await res.respond(
+                await res.edit_original_message(
                     embed=embed,
-                    type=7,
-                    ephemeral=False
+                    view=view
                 )
-                await m.delete()
                 return
             embed = discord.Embed(
                 description=_["cancel"],
                 color=self.bot.get_color(self.bot.color.gold)
             )
-            await res.respond(
+            await res.edit_original_message(
                 embed=embed,
-                type=7,
-                ephemeral=False
+                view=view
             )
-            await m.delete()
         except asyncio.TimeoutError:
             return await m.delete()
 

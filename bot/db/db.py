@@ -11,7 +11,7 @@ col_guilds = db_client["guilds"]
 col_blacklist_user = db_client["blacklist_users"]
 col_blacklist_guild = db_client["blacklist_guilds"]
 col_azkar = db_client["azkar"]
-
+col_shards = db_client["shards"]
 
 print('`connect MongoDB database`')
 
@@ -29,7 +29,7 @@ def get_all_channels():
 
 
 def get_all_channels_by_time(time: int):
-    return col_guilds.find({"time": time})
+    return [i for i in col_guilds.find({"time": time}) if i.get("channel")]
 
 
 class Guild(object):
@@ -51,6 +51,7 @@ class Guild(object):
             "_id": self._guild.id,
             "name": self._guild.name,
             "prefix": config.default_prefix,
+            "channel": None,
             "time": config.default_time,
             "anti_spam": False,
             "embed": False
@@ -123,9 +124,10 @@ class Azkar(object):
 
     @property
     def last_id(self) -> int:
-        if not col_azkar.find():
+        try:
+            return col_azkar.find().sort("_id", -1).limit(1)[0].get("_id") + 1
+        except:
             return 1
-        return col_azkar.find().sort("_id", -1).limit(1)[0].get("_id") + 1
 
     def add(self, msg: str):
         col_azkar.insert_one({"_id": self.last_id, "msg": msg})
@@ -140,5 +142,28 @@ class Azkar(object):
 
     @property
     def random(self) -> dict:
-        x = choice(col_azkar.find())
-        return x
+        return choice([i for i in col_azkar.find()])
+
+
+class Shards(object):
+    def __init__(self, shard_id, **kwargs):
+        self.shard_id = shard_id
+        self.data = kwargs
+
+    def insert(self):
+        if self.info:
+            return
+        json = {
+            "_id": self.shard_id,
+            **self.data
+        }
+        col_shards.insert_one(json)
+
+    @property
+    def info(self):
+        return col_shards.find_one({"_id": self.shard_id})
+
+    def update(self):
+        if not self.info:
+            self.insert()
+        col_shards.update_one({"_id": self.shard_id}, {"$set": {**self.data}})

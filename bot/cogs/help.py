@@ -13,8 +13,8 @@ class Help(commands.Cog):
     def get_all_commands(self, ctx, _):
         m = db.Guild(ctx.guild)
         embed = discord.Embed(color=self.bot.get_color(self.bot.color.gold))
-        embed.set_footer(text=_["request_by"].format(ctx.author), icon_url=ctx.author.avatar_url)
-        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+        embed.set_footer(text=_["request_by"].format(ctx.author), icon_url=ctx.author.avatar.url)
+        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
         embed.set_image(url='https://i8.ae/IjVZC')
         cogs = ["General", "Admin", "Quran"]
         for i in cogs:

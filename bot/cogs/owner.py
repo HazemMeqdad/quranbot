@@ -23,8 +23,8 @@ class Owner(commands.Cog):
         embed.add_field(name='guilds +100:', value=str(len([i for i in self.bot.guilds if i.member_count >= 100])))
         embed.add_field(name='guilds +1000:', value=str(len([i for i in self.bot.guilds if i.member_count >= 1000])))
         embed.add_field(name='channel in database:', value=str(len(db.get_all_channels())))
-        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar_url)
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.reply(embed=embed)
 
     @commands.command(name='load', hidden=True, help="أضافه ملف cog")
@@ -134,9 +134,9 @@ class Owner(commands.Cog):
             description="\n".join(commands),
             color=discord.Color.gold()
         )
-        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
-        embed.set_footer(text='Requested By: {}'.format(ctx.author), icon_url=ctx.author.avatar_url)
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
+        embed.set_footer(text='Requested By: {}'.format(ctx.author), icon_url=ctx.author.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.reply(embed=embed)
 
     @commands.group(name='blacklist', hidden=True, invoke_without_command=True, help="القائمة السوداء")
@@ -170,9 +170,9 @@ class Owner(commands.Cog):
         prefix = db.Guild(ctx.guild).info.get("prefix")
         embed = discord.Embed(
             description="""
-`{0}blacklist -s add <user_id>` - اضافه خادم
-`{0}blacklist -s remove <user_id>` - حذف خادم
-`{0}blacklist -s info <user_id>` - معلومات خادم
+`{0}blacklist -s add <guild_id>` - اضافه خادم
+`{0}blacklist -s remove <guild_id>` - حذف خادم
+`{0}blacklist -s info <guild_id>` - معلومات خادم
 """.format(prefix)
         )
         await ctx.reply(embed=embed)
