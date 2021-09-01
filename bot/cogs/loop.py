@@ -62,6 +62,7 @@ class Loop(commands.Cog):
                         method="POST",
                         url=webhook.url,
                         json={
+                            "username": self.bot.user.name,
                             "avatar_url": self.bot.user.avatar.url,
                             "embeds": [embed.to_dict()]
                         }
@@ -71,6 +72,7 @@ class Loop(commands.Cog):
                     method="POST",
                     url=webhook.url,
                     json={
+                        "username": self.bot.user.name,
                         "avatar_url": self.bot.user.avatar.url,
                         "content": "> " + z["msg"]
                     }

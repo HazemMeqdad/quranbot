@@ -1,8 +1,10 @@
 import discord
 from discord.ext import commands
-import bot.db as db
+from bot import db
 from requests import request
-import bot.config as config
+from bot import config
+from collections import Counter
+from datetime import datetime
 
 
 class Bot(commands.Bot):
@@ -31,13 +33,10 @@ class Bot(commands.Bot):
         self.support_url = "https://discord.gg/q3E6WCSThX"
         self.color = config.Color()
         self.version = "`V2.1`"
-        self.add_check(self.check_blacklist)
         self.config = config
         self._cogs = _cogs
-
-    @staticmethod
-    def check_blacklist(ctx):
-        return db.BlackListUser(ctx.author).check
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+        self._auto_spam_count = Counter()
 
     @staticmethod
     def get_color(table: tuple):
@@ -124,6 +123,59 @@ class Bot(commands.Bot):
                 "embeds": [embed.to_dict()]
             }
         )
+
+    def log_spammer(self, *args, **kwargs):
+        embed = discord.Embed(color=self.get_color(self.color.red), title=args[0])
+        for name, kwarg in kwargs.items():
+            embed.add_field(name=name, value=kwarg)
+        request(
+            method="POST",
+            url=config.webhook_blacklist,
+            json={
+                "embeds": [embed.to_dict()]
+            }
+        )
+
+    async def process_commands(self, message):
+        # https://github.com/Rapptz/RoboDanny/blob/rewrite/bot.py#L323
+        ctx = await self.get_context(message)
+        if not ctx.command or db.BlackListUser(ctx.author).check or not ctx.guild or db.BlackListGuild(ctx.guild).check:
+            return
+
+        bucket = self.spam_control.get_bucket(message)
+        current = message.created_at.timestamp()
+        retry_after = bucket.update_rate_limit(current)
+        author = message.author
+        user = db.BlackListUser(ctx.author)
+        if retry_after and author.id not in self.owner_ids:
+            self._auto_spam_count[author.id] += 1
+            if self._auto_spam_count[author.id] == 15:
+                user.insert(self.user.id, reason="Auto spam")
+                del self._auto_spam_count[author.id]
+                self.log_spammer(
+                    "بلاك ليست تلقائي",
+                    user_id=author.id,
+                    username=str(author),
+                    guild_id=message.guild.id,
+                    channel_id=message.channel.id,
+                    data=datetime.now().strftime("")
+                )
+            elif self._auto_spam_count[author.id] == 11:
+                self.log_spammer(
+                    title="تحذير سبام",
+                    user_id=author.id,
+                    guild_id=message.guild.id,
+                    channel_id=message.channel.id,
+                    data=datetime.now()
+                )
+                return
+        else:
+            self._auto_spam_count.pop(author.id, None)
+
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+        await self.process_commands(message)
 
     def run(self):
         super().run(config.token)

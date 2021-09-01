@@ -12,7 +12,7 @@ shards_count = x.getint("BOT", "shards_count")
 webhook_shard = x.get("WEBHOOK", "shards")
 webhook_errors = x.get("WEBHOOK", "errors")
 webhook_log = x.get("WEBHOOK", "logs")
-
+webhook_blacklist = x.get("WEBHOOK", "blacklist")
 
 mongo_url = x.get("DATABASE", "mongo_url")
 
