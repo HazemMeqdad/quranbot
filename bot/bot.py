@@ -13,9 +13,11 @@ class Bot(commands.Bot):
             command_prefix=self._get_prefix,
             case_insensitive=True,
             description="بوت فذكروني",
-            Intents=discord.Intents.default(),
+            intents=discord.Intents.default(),
             shard_count=config.shards_count,
-            owner_ids=config.owners
+            owner_ids=config.owners,
+            activity=discord.Game(name='!help - fdrbot.xyz'),
+            status=discord.Status.dnd
         )
         self.remove_command("help")
         _cogs = [
@@ -63,10 +65,6 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         self._setup()
-        await self.change_presence(
-            activity=discord.Game(name='!help - fdrbot.xyz'),
-            status=discord.Status.dnd
-        )
         print(f"Name: {self.user.name}\nID: {self.user.id}")
 
     @staticmethod
@@ -87,95 +85,48 @@ class Bot(commands.Bot):
     async def on_guild_join(self, guild):
         x = db.Guild(guild)
         x.insert()
-        embed = discord.Embed(title="add guild", color=0x46FF00)
-        embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
-        embed.add_field(name='member guild: ', value=str(guild.member_count), inline=False)
-        embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
-            await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
-        embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
-        embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
-        request(
-            method="POST",
-            url=config.webhook_log,
-            json={
-                "avatar_url": self.user.avatar.url,
-                "embeds": [embed.to_dict()]
-            }
-        )
+        try:
+            embed = discord.Embed(title="add guild", color=0x46FF00)
+            embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
+            embed.add_field(name='member guild: ', value=str(guild.member_count), inline=False)
+            embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
+                await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
+            embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
+            request(
+                method="POST",
+                url=config.webhook_log,
+                json={
+                    "avatar_url": self.user.avatar.url,
+                    "embeds": [embed.to_dict()]
+                }
+            )
+        except:
+            pass
 
     async def on_guild_remove(self, guild):
         x = db.Guild(guild)
         x.insert()
-        embed = discord.Embed(title="remove guild", color=0xFF0000)
-        embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
-        embed.add_field(name='member guild: ', value=str(guild.member_count), inline=False)
-        embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
-            await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
-        embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
-        embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
-        request(
-            method="POST",
-            url=config.webhook_log,
-            json={
-                "avatar_url": self.user.avatar.url,
-                "embeds": [embed.to_dict()]
-            }
-        )
-
-    def log_spammer(self, *args, **kwargs):
-        embed = discord.Embed(color=self.get_color(self.color.red), title=args[0])
-        for name, kwarg in kwargs.items():
-            embed.add_field(name=name, value=kwarg)
-        request(
-            method="POST",
-            url=config.webhook_blacklist,
-            json={
-                "embeds": [embed.to_dict()]
-            }
-        )
-
-    async def process_commands(self, message):
-        # https://github.com/Rapptz/RoboDanny/blob/rewrite/bot.py#L323
-        ctx = await self.get_context(message)
-        if not ctx.command or db.BlackListUser(ctx.author).check or not ctx.guild or db.BlackListGuild(ctx.guild).check:
-            return
-
-        bucket = self.spam_control.get_bucket(message)
-        current = message.created_at.timestamp()
-        retry_after = bucket.update_rate_limit(current)
-        author = message.author
-        user = db.BlackListUser(ctx.author)
-        if retry_after and author.id not in self.owner_ids:
-            self._auto_spam_count[author.id] += 1
-            if self._auto_spam_count[author.id] == 15:
-                user.insert(self.user.id, reason="Auto spam")
-                del self._auto_spam_count[author.id]
-                self.log_spammer(
-                    "بلاك ليست تلقائي",
-                    user_id=author.id,
-                    username=str(author),
-                    guild_id=message.guild.id,
-                    channel_id=message.channel.id,
-                    data=datetime.now().strftime("")
-                )
-            elif self._auto_spam_count[author.id] == 11:
-                self.log_spammer(
-                    title="تحذير سبام",
-                    user_id=author.id,
-                    guild_id=message.guild.id,
-                    channel_id=message.channel.id,
-                    data=datetime.now()
-                )
-                return
-        else:
-            self._auto_spam_count.pop(author.id, None)
-
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        await self.process_commands(message)
+        try:
+            embed = discord.Embed(title="remove guild", color=0xFF0000)
+            embed.add_field(name='name guild: ', value="%s (`%s`)" % (guild.name, guild.id), inline=False)
+            embed.add_field(name='member guild: ', value=str(guild.member_count), inline=False)
+            embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
+                await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
+            embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
+            request(
+                method="POST",
+                url=config.webhook_log,
+                json={
+                    "avatar_url": self.user.avatar.url,
+                    "embeds": [embed.to_dict()]
+                }
+            )
+        except:
+            pass
 
     def run(self):
         super().run(config.token)

@@ -31,6 +31,8 @@ class Loop(commands.Cog):
             channel = guild.get_channel(x.info.get("channel"))
             if not channel:
                 continue
+            if guild.me.guild_permissions.manage_webhooks is False:
+                continue
             webhooks = await channel.webhooks()
             webhook = discord.utils.get(webhooks, name='فاذكروني')
             if x.info.get("anti_spam"):
