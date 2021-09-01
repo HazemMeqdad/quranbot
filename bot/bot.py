@@ -7,7 +7,7 @@ from collections import Counter
 from datetime import datetime
 
 
-class Bot(commands.Bot):
+class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix,

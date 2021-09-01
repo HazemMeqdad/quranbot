@@ -29,9 +29,7 @@ class Loop(commands.Cog):
                 continue
             x = db.Guild(guild)
             channel = guild.get_channel(x.info.get("channel"))
-            if not channel:
-                continue
-            if guild.me.guild_permissions.manage_webhooks is False:
+            if not guild.me.guild_permissions.manage_webhooks or not channel:
                 continue
             webhooks = await channel.webhooks()
             webhook = discord.utils.get(webhooks, name='فاذكروني')
