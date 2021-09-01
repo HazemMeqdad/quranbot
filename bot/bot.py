@@ -93,7 +93,7 @@ class Bot(commands.Bot):
         embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
             await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
         embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
-        embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
         embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
         request(
             method="POST",
@@ -113,7 +113,7 @@ class Bot(commands.Bot):
         embed.add_field(name='owner guild: ', value="%s (`%s`)" % (
             await self.fetch_user(int(guild.owner_id)), guild.owner_id), inline=False)
         embed.add_field(name='bot server: ', value=f'{len(self.guilds)}', inline=False)
-        embed.set_footer(text=guild.name, icon_url=guild.icon_url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
         embed.set_author(name=self.user.name, icon_url=self.user.avatar.url)
         request(
             method="POST",
