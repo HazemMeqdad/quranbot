@@ -29,19 +29,20 @@ class Loop(commands.Cog):
                 continue
             x = db.Guild(guild)
             channel = guild.get_channel(x.info.get("channel"))
-            if not guild.me.guild_permissions.manage_webhooks or not channel:
+            if guild.me.guild_permissions.manage_webhooks is False or not channel:
                 continue
             webhooks = await channel.webhooks()
             webhook = discord.utils.get(webhooks, name='فاذكروني')
             if x.info.get("anti_spam"):
                 if not webhook:
                     pass
-                try:
-                    message = await channel.fetch_message(channel.last_message_id)
-                    if message.author.id == webhook.id:
-                        continue
-                except:
-                    continue
+                else:
+                    try:
+                        message = await channel.fetch_message(channel.last_message_id)
+                        if message.author.id == webhook.id:
+                            continue
+                    except:
+                        pass
             try:
                 z = db.Azkar().random
                 if not webhook:
@@ -54,7 +55,7 @@ class Loop(commands.Cog):
                     embed = discord.Embed(
                         title=str(z["_id"]),
                         description="> " + z["msg"],
-                        color=discord.Color.gold()
+                        color=self.bot.get_color(self.bot.color.gold)
                     )
                     embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar.url)
                     embed.set_thumbnail(url=self.bot.user.avatar.url)
