@@ -31,7 +31,10 @@ class Loop(commands.Cog):
             channel = guild.get_channel(x.info.get("channel"))
             if guild.me.guild_permissions.manage_webhooks is False or not channel:
                 continue
-            webhooks = await channel.webhooks()
+            try:
+                webhooks = await channel.webhooks()
+            except:
+                continue
             webhook = discord.utils.get(webhooks, name='فاذكروني')
             if x.info.get("anti_spam"):
                 if not webhook:
@@ -55,7 +58,7 @@ class Loop(commands.Cog):
                     embed = discord.Embed(
                         title=str(z["_id"]),
                         description="> " + z["msg"],
-                        color=self.bot.get_color(self.bot.color.gold)
+                        color=0xffd430
                     )
                     embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar.url)
                     embed.set_thumbnail(url=self.bot.user.avatar.url)
