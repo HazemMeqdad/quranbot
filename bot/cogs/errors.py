@@ -28,7 +28,7 @@ class Errors(commands.Cog):
     async def on_command_error(self, ctx, error):
         x = db.Guild(ctx.guild)
         _ = lang.Languages(ctx.guild).get_response_errors()
-        color = self.bot.color.red
+        color = self.bot.get_color(self.bot.color.red)
         if ctx.author.id in cooldown:
             return
         # cooldown
@@ -99,8 +99,8 @@ class Errors(commands.Cog):
             embed.set_author(name=ctx.command.cog_name)
             await ctx.reply(embed=embed)
             return
-        # forbidden
-        elif isinstance(error, discord.errors.Forbidden):
+        # forbidden & not found
+        elif isinstance(error, discord.errors.Forbidden) or isinstance(error, discord.errors.NotFound):
             return
         # blacklist
         elif isinstance(error, commands.errors.CheckFailure):
