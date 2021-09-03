@@ -4,7 +4,7 @@ from discord.ext import commands
 import time
 import bot.db as db
 import bot.config as config
-import prayer
+import lib
 import bot.lang as lang
 
 
@@ -100,9 +100,10 @@ class General(commands.Cog):
             color=self.bot.get_color(self.bot.color.gold)
         )
         msg = await ctx.reply(embed=e)
-        x = prayer.by_country(country)
+        prayer = lib.Prayer(country=country)
+        x = prayer.country()
         if x.get("msg"):
-            x = prayer.by_city(country)
+            x = prayer.city()
             if x.get("msg"):
                 embed = discord.Embed(
                     description=_["if_not_found"],
@@ -148,6 +149,12 @@ class General(commands.Cog):
         embed.set_footer(text=self.bot.footer, icon_url=self.bot.user.avatar.url)
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.reply(embed=embed)
+
+    @commands.command(name='7deth', help="البحث عن أحاديث في السنه النبوية الشريفه")
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.guild_only()
+    async def search_7deth(self, ctx, *, tags):
+        pass
 
 
 def setup(bot):
