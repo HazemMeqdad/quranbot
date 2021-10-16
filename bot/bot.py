@@ -64,8 +64,8 @@ class Bot(lightbulb.Bot):
         self.add_check(self.check_only_guild)
 
     async def tasks_ready(self, event: hikari.ShardReadyEvent):
-        t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
-        t.start()
+        # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
+        # t.start()
         logging.info("tasks now ready")
 
     async def start_lavalink(self, event: hikari.ShardReadyEvent):

@@ -22,7 +22,7 @@ GUILD_ID = 843865725886398554
 class Play(SlashCommand):
     name = "play"
     description = "تشغيل القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     choice: str = Option("اختر القارئ المناسب", name="القارئ", required=True, choices=list(choics.keys()))
 
@@ -41,7 +41,7 @@ class Play(SlashCommand):
 class Live(SlashCommand):
     name = "live"
     description = "تشغيل اذاعه القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -57,7 +57,7 @@ class Live(SlashCommand):
 class Stop(SlashCommand):
     name = "stop"
     description = "ايقاف تشغيل القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -73,7 +73,7 @@ class Stop(SlashCommand):
 class Join(SlashCommand):
     name = "join"
     description = "انظمام البوت الى روم صوتي"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         channel_id = await join_voice_channel(context)
@@ -87,7 +87,7 @@ class Join(SlashCommand):
 class Volume(SlashCommand):
     name = "volume"
     description = "تغير مستوى الصوت للقران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
     
     volume: int = Option("المستوى الجديد للصوت", name="المتسوى")
     async def callback(self, context: SlashCommandContext):
@@ -103,11 +103,11 @@ class Volume(SlashCommand):
         await context.interaction.edit_initial_response(embed=embed)
 
 def load(bot: Bot):
-    bot.add_slash_command(Play)
-    bot.add_slash_command(Live)
-    bot.add_slash_command(Stop)
-    bot.add_slash_command(Join)
-    bot.add_slash_command(Volume)
+    bot.add_slash_command(Play, True)
+    bot.add_slash_command(Live, True)
+    bot.add_slash_command(Stop, True)
+    bot.add_slash_command(Join, True)
+    bot.add_slash_command(Volume, True)
 
 
 def unload(bot: Bot):
