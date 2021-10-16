@@ -1,0 +1,2 @@
+class EmojiNotFound(Exception):
+    pass

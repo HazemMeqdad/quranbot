@@ -1,16 +1,19 @@
+from __future__ import annotations
+import typing
+from enum import Enum
 from pymongo import MongoClient
-from bot import config
+import hikari
 from datetime import datetime
-from discord import Guild as GuildObject
-from discord import User as UserObject
 from random import choice
 
-db = MongoClient(config.mongo_url)
+mongo_url = open("./bot/config/mongo_url.txt", "r").read()
+
+db = MongoClient(mongo_url)
 db_client = db["fa-azcrone"]
 col_guilds = db_client["guilds"]
 col_blacklist_user = db_client["blacklist_users"]
 col_blacklist_guild = db_client["blacklist_guilds"]
-col_azkar = db_client["azkar"]
+col_azkar = db_client["azker"]
 col_shards = db_client["shards"]
 
 print('`connect MongoDB database`')
@@ -18,7 +21,7 @@ print('`connect MongoDB database`')
 
 def speedtest() -> int:
     start = datetime.now().timestamp()
-    test_connection = MongoClient(config.mongo_url)
+    test_connection = MongoClient(mongo_url)
     test_connection.close()
     end = datetime.now().timestamp()
     return round((end - start) * 1000)
@@ -28,31 +31,38 @@ def get_all_channels():
     return col_guilds.find()
 
 
-def get_all_channels_by_time(time: int):
+def get_all_channels_by_time(time: int) -> list[dict]:
     return [i for i in col_guilds.find({"time": time}) if i.get("channel")]
 
 
+class GuildUpdateType(Enum):
+    prefix = "prefix"
+    channel = "channel"
+    time = "time"
+    anti_spam = "anti_spam"
+    embed = "embed"
+
+
 class Guild(object):
-    def __init__(self, guild: GuildObject):
-        self._guild = guild
+    def __init__(self, guild_id: typing.Union[hikari.Snowflake]):
+        self._guild_id = int(guild_id)
 
     @property
     def info(self) -> dict:
-        return col_guilds.find_one({"_id": self._guild.id})
+        return col_guilds.find_one({"_id": self._guild_id})
 
-    def update_where(self, module, value) -> dict:
-        col_guilds.update_one({"_id": self._guild.id}, {"$set": {module: value}})
+    async def update_where(self, module: GuildUpdateType, value) -> dict:
+        col_guilds.update_one({"_id": self._guild_id}, {"$set": {module.value: value}})
         return self.info
 
-    def insert(self) -> dict:
+    async def insert(self) -> dict:
         if self.info:
             return {"msg": "This guild already exists"}
         data = {
-            "_id": self._guild.id,
-            "name": self._guild.name,
-            "prefix": config.default_prefix,
+            "_id": self._guild_id,
+            "prefix": "!",
             "channel": None,
-            "time": config.default_time,
+            "time": 3600,
             "anti_spam": False,
             "embed": False
         }
@@ -61,7 +71,7 @@ class Guild(object):
 
 
 class BlackListUser(object):
-    def __init__(self, user: UserObject):
+    def __init__(self, user: hikari.User):
         self._user = user
 
     def insert(self, mod_id: int, reason=None) -> dict:
@@ -91,7 +101,7 @@ class BlackListUser(object):
 
 
 class BlackListGuild(object):
-    def __init__(self, user: GuildObject):
+    def __init__(self, user: hikari.User):
         self._user = user
 
     def insert(self, mod_id: int, reason=None) -> dict:

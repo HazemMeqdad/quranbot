@@ -6,5 +6,6 @@ from .db import (
     get_all_channels_by_time,
     get_all_channels,
     speedtest,
-    Shards
+    Shards,
+    GuildUpdateType
 )

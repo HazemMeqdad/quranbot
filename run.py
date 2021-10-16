@@ -1,5 +1,6 @@
-import bot
+from bot import Bot
+
 
 if __name__ == "__main__":
-    client = bot.Bot()
-    client.run()
+    bot = Bot()
+    bot.run()

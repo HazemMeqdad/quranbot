@@ -1,7 +1,8 @@
-mysql-connector
-pycparser
-PyNaCl
+git+https://github.com/hikari-py/hikari#egg=hikari[speedups]
+pymongo
 requests
-lxml
-bs4
-aiohttp
+beautifulsoup4
+hikari-lightbulb
+lavasnek_rs
+hikari
+discord
