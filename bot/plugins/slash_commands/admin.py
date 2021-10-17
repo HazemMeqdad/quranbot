@@ -35,7 +35,6 @@ class Prefix(SlashCommand):
         if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
             await send_error_message(context)
             return
-        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     
         new_prefix = context.option_values._options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
@@ -43,6 +42,7 @@ class Prefix(SlashCommand):
         error = await self.bot.emojis.error
         if len(new_prefix) > 5:
             raise CommandError("%s لا يمكنك وضع بادئه اكثر من خمس حروف" % error)
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         await x.update_where(db.GuildUpdateType.prefix, new_prefix)
         embed.description = "تم تغير البادئه الى `%s`" % new_prefix
         await context.interaction.edit_initial_response(embed=embed)
