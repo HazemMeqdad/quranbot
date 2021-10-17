@@ -1,4 +1,4 @@
-from .errors import EmojiNotFound
+from .exceptions import EmojiNotFound
 from .emojis import Emojis
 from .help import CustomHelp
 from .permission import check_permission

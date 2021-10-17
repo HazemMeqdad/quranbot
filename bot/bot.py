@@ -14,7 +14,7 @@ class Bot(lightbulb.Bot):
         token = open("./bot/config/token.txt", "r").read()
         self._extensions = [
             "commands.general", "commands.errors", "commands.admin", "commands.owner", "commands.play",
-            "slash_commands.general", "slash_commands.admin", "slash_commands.play"
+            "slash_commands.general", "slash_commands.admin", "slash_commands.play", "slash_commands.errors"
         ]
         super().__init__(
             insensitive_commands=True,

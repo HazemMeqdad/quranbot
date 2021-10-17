@@ -10,14 +10,15 @@ import typing
 from bot import Bot
 from bot import db
 from bot.utils import Prayer
+from lightbulb.errors import CommandError
 
-GUILD_ID = 843865725886398554
+GUILD_ID = 872200812129054730
 
 
 class Ping(SlashCommand):
     name = "ping"
     description = "ارسال سرعة اتصال البوت"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -42,7 +43,7 @@ class Ping(SlashCommand):
 class Support(SlashCommand):
     name = "support"
     description = "طلب الدعم الفني"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -79,7 +80,7 @@ class Support(SlashCommand):
 class Info(SlashCommand):
     name = "info"
     description = "طلب معلومات الخادم"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -140,13 +141,12 @@ class Info(SlashCommand):
 class Azan(SlashCommand):
     name = "azan"
     description = "معرفة وقت الاذان في المدينة الخاصه بك"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     country: typing.Optional[str] = Option(
         description="الدولة المراد معرفه وقت الصلاة بيها", name="المدينة", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         country = context.option_values._options.get("المدينة").value
         embed = hikari.Embed(color=0xffd430)
         prayer = Prayer(country=country)
@@ -154,9 +154,8 @@ class Azan(SlashCommand):
         if x.get("msg"):
             x = prayer.city()
             if x.get("msg"):
-                embed.description = "لم استطع العثور على المدينه او الدوله"
-                await context._interaction.edit_initial_response(embed=embed)
-                return
+                raise CommandError("لم استطع العثور على المدينه او الدوله")
+        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         embed.set_author(name=x.description, url=x.url)
         embed.add_field(name="صلاة الفجْر", value=x.fjer, inline=True)
         embed.add_field(name="الشروق", value=x.sunrise, inline=True)
@@ -172,7 +171,7 @@ class Azan(SlashCommand):
 class BotInfo(SlashCommand):
     name = "bot"
     description = "جلب معلومات البوت"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -226,7 +225,7 @@ class BotInfo(SlashCommand):
 class HelpCommand(SlashCommand):
     name = "help"
     description = "جلب معلومات البوت"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         embed = hikari.Embed(
@@ -243,7 +242,7 @@ class HelpCommand(SlashCommand):
 class Invite(SlashCommand):
     name = "invite"
     description = "أضافة البوت إلى خادمك"
-    # enable_guilds = (GUILD_ID,)
+    enable_guilds = (GUILD_ID,)
     
     async def callback(self, context: SlashCommandContext):
         await context._interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, f"<https://discord.com/oauth2/authorize?client_id={context.bot.get_me().id}&permissions=8&scope=bot%20applications.commands>")

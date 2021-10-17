@@ -1,5 +1,5 @@
 import hikari
-from .errors import EmojiNotFound
+from .exceptions import EmojiNotFound
 
 
 class Emojis(object):
