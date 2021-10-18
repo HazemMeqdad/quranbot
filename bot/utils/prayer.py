@@ -1,21 +1,5 @@
 
-# BASE = "https://timesprayer.com/ajax.php"
-
-
-# """
-# do=search&
-# language=ar&
-# lat=40.7642323&
-# lng=-73.9722201&
-# long_name=New%2520York&
-# short_name=New%2520York&
-# formatted_address=5%2520E%252059th%2520St%2C%2520New%2520York%2C%2520NY%252010022%2C%2520USA&
-# country_long_name=United%2520States&
-# country_short_name=US&
-# full_result=%255B%257B%2522long_name%2522%3A%25225%2522%2C%2522short_name%2522%3A%25225%2522%2C%2522types%2522%3A%255B%2522street_number%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522East%252059th%2520Street%2522%2C%2522short_name%2522%3A%2522E%252059th%2520St%2522%2C%2522types%2522%3A%255B%2522route%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522Manhattan%2522%2C%2522short_name%2522%3A%2522Manhattan%2522%2C%2522types%2522%3A%255B%2522political%2522%2C%2522sublocality%2522%2C%2522sublocality_level_1%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522New%2520York%2522%2C%2522short_name%2522%3A%2522New%2520York%2522%2C%2522types%2522%3A%255B%2522locality%2522%2C%2522political%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522New%2520York%2520County%2522%2C%2522short_name%2522%3A%2522New%2520York%2520County%2522%2C%2522types%2522%3A%255B%2522administrative_area_level_2%2522%2C%2522political%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522New%2520York%2522%2C%2522short_name%2522%3A%2522NY%2522%2C%2522types%2522%3A%255B%2522administrative_area_level_1%2522%2C%2522political%2522%255D%257D%2C%257B%2522long_name%2522%3A%2522United%2520States%2522%2C%2522short_name%2522%3A%2522US%2522%2C%2522types%2522%3A%255B%2522country%2522%2C%2522political%2522%255D%257D%2C%257B%2522long_name%2522%3A%252210022%2522%2C%2522short_name%2522%3A%252210022%2522%2C%2522types%2522%3A%255B%2522postal_code%2522%255D%257D%255D
-# """
-
-
+from __future__ import annotations
 from requests import request
 from bs4 import BeautifulSoup
 from itertools import zip_longest
@@ -26,7 +10,6 @@ BASE = "https://timesprayer.com"
 class PrayerManger(object):
     def __init__(self, data: dict):
         self.data = data
-        super().__init__()
 
     @property
     def description(self):
@@ -67,7 +50,7 @@ class Prayer(object):
     def __repr__(self):
         return "DwcTeam"
 
-    def country(self) -> PrayerManger:
+    def country(self) -> PrayerManger | dict:
         r = ["fjer", "sunrise", "noon", "pressing", "moroccan", "isha"]
 
         re = request("GET", f"{BASE}/prayer-times-cities-{self._country}.html")
@@ -92,7 +75,7 @@ class Prayer(object):
         data.update(new)
         return PrayerManger(data)
 
-    def city(self) -> PrayerManger:
+    def city(self) -> PrayerManger | dict:
         r = ["fjer", "sunrise", "noon", "pressing", "moroccan", "isha"]
         re = request("GET", f"{BASE}/prayer-times-in-{self._country}.html")
         if re.text == "Not found":

@@ -74,6 +74,7 @@ class Bot(lightbulb.Bot):
             .set_host("127.0.0.1")
             .set_port(8888)
             .set_password("pass")
+            .set_shard_count(self.shard_count)
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client

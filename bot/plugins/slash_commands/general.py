@@ -1,3 +1,5 @@
+from hikari.interactions.base_interactions import ResponseType
+from hikari.messages import MessageFlag
 from bot.plugins.slash_commands.admin import Embed
 from sys import flags
 import hikari
@@ -21,7 +23,7 @@ class Ping(SlashCommand):
     enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         before = time.monotonic()
         embed = hikari.Embed(color=0xffd430)
         embed.set_footer(
@@ -30,14 +32,14 @@ class Ping(SlashCommand):
         )
         embed.set_thumbnail(context.bot.get_me().avatar_url)
         embed.description = "```\nping\n```"
-        await context._interaction.edit_initial_response(embed=embed)
+        await context.interaction.edit_initial_response(embed=embed)
         ping = (time.monotonic() - before) * 1000
 
         embed.description = "```python\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
             int(ping), round(context.bot.heartbeat_latency * 1000),
             db.speedtest()
         )
-        await context._interaction.edit_initial_response(embed=embed)
+        await context.interaction.edit_initial_response(embed=embed)
 
 
 class Support(SlashCommand):
@@ -46,7 +48,7 @@ class Support(SlashCommand):
     enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         embed = hikari.Embed(
             title="**شكرا على اختيارك بوت فاذكروني 🌹**",
             color=0xffd430
@@ -74,7 +76,7 @@ class Support(SlashCommand):
             .add_to_container()
         )
         embed.set_thumbnail(context.bot.get_me().avatar_url)
-        await context._interaction.edit_initial_response(embed=embed, component=buttons)
+        await context.interaction.edit_initial_response(embed=embed, component=buttons)
 
 
 class Info(SlashCommand):
@@ -83,7 +85,7 @@ class Info(SlashCommand):
     enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         data = db.Guild(context.guild_id).info
         times = {1800: "30m", 3600: "1h", 7200: "2h",
                  21600: "6h", 43200: "12h", 86400: "24h"}
@@ -135,7 +137,7 @@ class Info(SlashCommand):
         embed.set_footer(text=self.bot.footer,
                          icon=context.bot.get_me().avatar_url)
         embed.set_thumbnail(context.bot.get_me().avatar_url)
-        await context._interaction.edit_initial_response(embed=embed)
+        await context.interaction.edit_initial_response(embed=embed)
 
 
 class Azan(SlashCommand):
@@ -147,7 +149,7 @@ class Azan(SlashCommand):
         description="الدولة المراد معرفه وقت الصلاة بيها", name="المدينة", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        country = context.option_values._options.get("المدينة").value
+        country = context.options.get("المدينة").value
         embed = hikari.Embed(color=0xffd430)
         prayer = Prayer(country=country)
         x = prayer.country()
@@ -155,7 +157,6 @@ class Azan(SlashCommand):
             x = prayer.city()
             if x.get("msg"):
                 raise CommandError("لم استطع العثور على المدينه او الدوله")
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         embed.set_author(name=x.description, url=x.url)
         embed.add_field(name="صلاة الفجْر", value=x.fjer, inline=True)
         embed.add_field(name="الشروق", value=x.sunrise, inline=True)
@@ -165,7 +166,7 @@ class Azan(SlashCommand):
         embed.add_field(name="صلاة العِشاء", value=x.isha, inline=True)
         embed.set_footer(text=self.bot.footer)
         embed.set_thumbnail(context.bot.get_me().avatar_url)
-        await context._interaction.edit_initial_response(embed=embed)
+        await context.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, embed=embed)
 
 
 class BotInfo(SlashCommand):
@@ -174,7 +175,7 @@ class BotInfo(SlashCommand):
     enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         hashtag = await self.bot.emojis.hashtag
         guilds_count = len(await context.bot.rest.fetch_my_guilds())
 
@@ -219,7 +220,7 @@ class BotInfo(SlashCommand):
         embed.set_footer(text=self.bot.footer,
                          icon=context.bot.get_me().avatar_url)
         embed.set_thumbnail(context.bot.get_me().avatar_url)
-        await context._interaction.edit_initial_response(embed=embed)
+        await context.interaction.edit_initial_response(embed=embed)
 
 
 class HelpCommand(SlashCommand):
@@ -232,7 +233,7 @@ class HelpCommand(SlashCommand):
             color=0xffd430,
             description="شكرا على استخدامك اوامر الشرطه المائله الخاصه ببوت فاذكروني\nيمكننك كتابه شرطه مائلة و العثور على جميع الاوامر"
         )
-        await context._interaction.create_initial_response(
+        await context.interaction.create_initial_response(
             hikari.ResponseType.MESSAGE_CREATE,
             flags=hikari.MessageFlag.EPHEMERAL,
             embed=embed
@@ -245,7 +246,11 @@ class Invite(SlashCommand):
     enable_guilds = (GUILD_ID,)
     
     async def callback(self, context: SlashCommandContext):
-        await context._interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, f"<https://discord.com/oauth2/authorize?client_id={context.bot.get_me().id}&permissions=8&scope=bot%20applications.commands>")
+        await context.interaction.create_initial_response(
+            hikari.ResponseType.MESSAGE_CREATE, 
+            f"<https://discord.com/oauth2/authorize?client_id={context.bot.get_me().id}&permissions=8&scope=bot%20applications.commands>",
+            flags=MessageFlag.EPHEMERAL    
+        )
 
 
 def load(bot: Bot):
