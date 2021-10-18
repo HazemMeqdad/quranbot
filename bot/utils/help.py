@@ -82,10 +82,8 @@ class CustomHelp(HelpCommand):
         )
         for plugin in context.bot.plugins.values():
             _ = ""
-            print(plugin.name)
             for command in plugin.walk_commands():
                 comm = commands_map.get(command.name)
-                print(command.name)
                 if not comm or command.hidden:
                     continue
                 _ += f"`{context.clean_prefix}{command.name}` - {comm}\n"
