@@ -147,9 +147,9 @@ class General(lightbulb.Plugin):
         msg = await ctx.respond(embed=embed, reply=True, mentions_reply=False)
         prayer = Prayer(country=country)
         x = prayer.country()
-        if x.get("msg"):
+        if isinstance(x, dict):
             x = prayer.city()
-            if x.get("msg"):
+            if isinstance(x, dict):
                 embed = hikari.Embed(
                     description="لم استطع العثور على المدينه او الدوله",
                     color=0xffd430

@@ -153,9 +153,9 @@ class Azan(SlashCommand):
         embed = hikari.Embed(color=0xffd430)
         prayer = Prayer(country=country)
         x = prayer.country()
-        if x.get("msg"):
+        if isinstance(x, dict):
             x = prayer.city()
-            if x.get("msg"):
+            if isinstance(x, dict):
                 raise CommandError("لم استطع العثور على المدينه او الدوله")
         embed.set_author(name=x.description, url=x.url)
         embed.add_field(name="صلاة الفجْر", value=x.fjer, inline=True)

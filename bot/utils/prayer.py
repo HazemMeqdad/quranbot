@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 from requests import request
 from bs4 import BeautifulSoup
@@ -10,6 +9,7 @@ BASE = "https://timesprayer.com"
 class PrayerManger(object):
     def __init__(self, data: dict):
         self.data = data
+        super().__init__()
 
     @property
     def description(self):
@@ -95,5 +95,5 @@ class Prayer(object):
                 n.append(g.split(" ", 2)[2])
         new = zip_longest(r, n)
         _json.update(new)
-        return _json
+        return PrayerManger(_json)
 
