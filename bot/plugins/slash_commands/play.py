@@ -84,6 +84,7 @@ class Join(SlashCommand):
 
     async def callback(self, context: SlashCommandContext):
         channel_id = await join_voice_channel(context)
+        print(channel_id)
         embed = hikari.Embed(color=0xffd430)
         if isinstance(channel_id, hikari.Embed):
             await context.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, embed=channel_id, flags=MessageFlag.EPHEMERAL)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 import logging
+from hikari.api.voice import VoiceConnection
+from hikari.snowflakes import Snowflake
 from lightbulb import Context
 import hikari
 import lightbulb
@@ -27,7 +29,7 @@ class EventHandler:
         logging.warning("Track exception event happened on guild: %d", event.guild_id)
 
 
-async def join_voice_channel(ctx: Context) -> int | hikari.Embed:
+async def join_voice_channel(ctx: Context) -> Snowflake | hikari.Embed | int:
     states = ctx.bot.cache.get_voice_states_view_for_guild(ctx.get_guild())
     voice_state = list(
         filter(lambda i: i.user_id == ctx.author.id, states.iterator())
@@ -38,13 +40,14 @@ async def join_voice_channel(ctx: Context) -> int | hikari.Embed:
         return embed
     
     channel_id = voice_state[0].channel_id
-    try:
-        connect_info = await ctx.bot.lavalink.join(ctx.guild_id, channel_id)
-    except TimeoutError:
-        embed.description = "يبدو ان هنالك مشكله غير متوقعة سوف يتم ارسال بلاغ بشكل تلقائي الى المطورين"
-        return embed
-    await ctx.bot.lavalink.create_session(connect_info)
-    return connect_info["channel_id"]      
+    
+    await ctx.bot.voice.connect_to(
+        guild=ctx.get_guild(),
+        channel=channel_id,
+        voice_connection_type=VoiceConnection,
+        deaf=True
+    )
+    return channel_id 
 
 async def stop(ctx: Context):
     states = ctx.bot.cache.get_voice_states_view_for_guild(ctx.get_guild())
