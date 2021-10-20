@@ -50,6 +50,7 @@ class Bot(lightbulb.Bot):
 
     async def on_guild_available(self, event: hikari.GuildAvailableEvent):
         x = db.Guild(event.guild_id)
+        self.cache.get_guilds_view()
         if not x.info:
             await x.insert()
 
@@ -92,6 +93,7 @@ class Bot(lightbulb.Bot):
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.start_lavalink)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.tasks_ready)
         self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
+        # self.event_manager.subscribe(hikari., self.on_shotdown)
         super().run(
                 activity=hikari.Activity(
                     name="/help - فاذكروني الأصدار التجريبي",

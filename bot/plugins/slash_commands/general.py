@@ -177,7 +177,8 @@ class BotInfo(SlashCommand):
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         hashtag = await self.bot.emojis.hashtag
-        guilds_count = len(await context.bot.rest.fetch_my_guilds())
+
+        guilds_count = len(context.bot.cache.get_guilds_view())
 
         embed = hikari.Embed(
             color=0xffd430,

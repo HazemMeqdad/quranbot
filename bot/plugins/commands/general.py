@@ -173,7 +173,7 @@ class General(lightbulb.Plugin):
     @lightbulb.command(name="bot", aliases=["botinfo", "بوت"])
     async def botinfo_command(self, ctx: lightbulb.Context):
         hashtag = await self.bot.emojis.hashtag
-        guilds_count = len(await ctx.bot.rest.fetch_my_guilds())
+        guilds_count = len(ctx.bot.cache.get_guilds_view())
 
         embed = hikari.Embed(
             color=0xffd430,

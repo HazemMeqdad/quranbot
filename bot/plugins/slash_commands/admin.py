@@ -135,7 +135,7 @@ class SetRoom(SlashCommand):
             return 
 
         x = db.Guild(context.guild_id)
-        channel_id = context.option_values._options.get("القناة").value
+        channel_id = context.options.get("القناة")
         channel = context.get_guild().get_channel(channel_id)
         embed = hikari.Embed(color=0xffd430)
 
