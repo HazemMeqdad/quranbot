@@ -219,75 +219,75 @@ class General(lightbulb.Plugin):
         await ctx.respond(embed=embed, reply=True, mentions_reply=False)
 
 
-    @lightbulb.command(name="sunnah")
-    async def sunnah(self, ctx: lightbulb.Context, *, query: str):
-        result = Sunnah(query)
-        pages = [i for i in result.result().split("\n\n") if i != ""]
-        embed = hikari.Embed(
-            description=pages[0],
-            color=0xffd430
-        )
-        embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-        embed.set_footer(text=f"1/{len(pages)}")
-        raw = ctx.bot.rest.build_action_row()
-        left = raw.add_button(ButtonStyle.SUCCESS, "left")
-        left.set_label("يسار")
-        left.set_emoji("⬅️")
-        left.add_to_container()
+    # @lightbulb.command(name="sunnah")
+    # async def sunnah(self, ctx: lightbulb.Context, *, query: str):
+    #     result = Sunnah(query)
+    #     pages = [i for i in result.result().split("\n\n\n") if i != ""]
+    #     embed = hikari.Embed(
+    #         description=pages[0],
+    #         color=0xffd430
+    #     )
+    #     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
+    #     embed.set_footer(text=f"1/{len(pages)}")
+    #     raw = ctx.bot.rest.build_action_row()
+    #     left = raw.add_button(ButtonStyle.SUCCESS, "left")
+    #     left.set_label("يسار")
+    #     left.set_emoji("⬅️")
+    #     left.add_to_container()
 
-        stop = raw.add_button(ButtonStyle.DANGER, "stop")
-        stop.set_emoji("⏹️")
-        stop.set_label("توقف")
-        stop.add_to_container()
+    #     stop = raw.add_button(ButtonStyle.DANGER, "stop")
+    #     stop.set_emoji("⏹️")
+    #     stop.set_label("توقف")
+    #     stop.add_to_container()
 
-        right = raw.add_button(ButtonStyle.SUCCESS, "right")
-        right.set_label("يمين")
-        right.set_emoji("➡️")
-        right.add_to_container()
+    #     right = raw.add_button(ButtonStyle.SUCCESS, "right")
+    #     right.set_label("يمين")
+    #     right.set_emoji("➡️")
+    #     right.add_to_container()
 
-        more = raw.add_button(ButtonStyle.LINK, result.url)
-        more.set_emoji("ℹ️")
-        more.set_label("المزيد")
-        more.add_to_container()
+    #     more = raw.add_button(ButtonStyle.LINK, result.url)
+    #     more.set_emoji("ℹ️")
+    #     more.set_label("المزيد")
+    #     more.add_to_container()
 
-        stats = True
-        msg = await ctx.respond(embed=embed, component=raw)
+    #     stats = True
+    #     msg = await ctx.respond(embed=embed, component=raw)
         
-        page = 1
+    #     page = 1
 
-        def check(res): 
-            return res.interaction.user.id == ctx.author.id and \
-                res.interaction.channel_id == ctx.channel_id
-        while stats:
-            try:
-                event = await ctx.bot.wait_for(hikari.InteractionCreateEvent, predicate=check, timeout=30.0)
-                await event.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
-            except asyncio.TimeoutError:
-                left.set_is_disabled(True)
-                stop.set_is_disabled(True)
-                right.set_is_disabled(True)
-                await msg.edit(component=raw)
-                stats = False
-                return
-            custom_id = event.interaction.custom_id
-            if custom_id == "stop":
-                left.set_is_disabled(True)
-                stop.set_is_disabled(True)
-                right.set_is_disabled(True)
-                await msg.edit(component=raw)
-                stats = False
-            elif custom_id == "left":
-                page -= 1
-                if page < 0:
-                    page = len(pages) - 1
-            elif custom_id == "right":
-                page += 1
-                if page > len(pages) - 1:
-                    page = 0
+    #     def check(res): 
+    #         return res.interaction.user.id == ctx.author.id and \
+    #             res.interaction.channel_id == ctx.channel_id
+    #     while stats:
+    #         try:
+    #             event = await ctx.bot.wait_for(hikari.InteractionCreateEvent, predicate=check, timeout=30.0)
+    #             await event.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
+    #         except asyncio.TimeoutError:
+    #             left.set_is_disabled(True)
+    #             stop.set_is_disabled(True)
+    #             right.set_is_disabled(True)
+    #             await msg.edit(component=raw)
+    #             stats = False
+    #             return
+    #         custom_id = event.interaction.custom_id
+    #         if custom_id == "stop":
+    #             left.set_is_disabled(True)
+    #             stop.set_is_disabled(True)
+    #             right.set_is_disabled(True)
+    #             await msg.edit(component=raw)
+    #             stats = False
+    #         elif custom_id == "left":
+    #             page -= 1
+    #             if page < 0:
+    #                 page = len(pages) - 1
+    #         elif custom_id == "right":
+    #             page += 1
+    #             if page > len(pages) - 1:
+    #                 page = 0
 
-            embed.description = pages[page]
-            embed.set_footer(text=f"{page+1}/{len(pages)}")
-            await msg.edit(embed=embed)
+    #         embed.description = pages[page]
+    #         embed.set_footer(text=f"{page+1}/{len(pages)}")
+    #         await msg.edit(embed=embed)
 
 
 def load(bot: Bot):

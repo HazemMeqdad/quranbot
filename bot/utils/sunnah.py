@@ -19,19 +19,20 @@ class Sunnah(object):
     def result(self) -> str:
         mytext = ""
         for item in self.data["data"]:
-            for text in item:
+            for count, text in enumerate(item):
                 if isinstance(text, list):
                     continue
                 content = str(text).split("<span class=\"search-keys\">")
-                content = [i.replace("<span class=\"search-keys\">", "**") + "**" for i in content]
+                if count == 0:
+                    content = [i.replace("<span class=\"search-keys\">", "**") + "**" for i in content]
                 suop = BeautifulSoup(" ".join(content).encode(), "lxml")
-                mytext += suop.text + "\n"
+                mytext += suop.text + "\n\n"
             mytext += "\n"
         return mytext
 
     @property
     def url(self) -> str:
-        return f"{BASE}/?s={self.query}"
+        return f"{BASE}/?s={self.query.replace(' ', '+')}"
 
     @property
     def count(self) -> int:
