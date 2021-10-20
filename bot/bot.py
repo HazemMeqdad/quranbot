@@ -62,13 +62,6 @@ class Bot(lightbulb.Bot):
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
         self.add_check(self.check_only_guild)
-
-    async def tasks_ready(self, event: hikari.ShardReadyEvent):
-        # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
-        # t.start()
-        logging.info("tasks now ready")
-
-    async def start_lavalink(self, event: hikari.ShardReadyEvent):
         builder = (
             lavasnek_rs.LavalinkBuilder(self.get_me().id, self._token)
             .set_host("127.0.0.1")
@@ -78,6 +71,14 @@ class Bot(lightbulb.Bot):
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
+
+    async def tasks_ready(self, event: hikari.ShardReadyEvent):
+        # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
+        # t.start()
+        logging.info("tasks now ready")
+
+    async def start_lavalink(self, event: hikari.ShardReadyEvent):
+        pass
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         pass
