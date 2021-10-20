@@ -36,7 +36,7 @@ class Prefix(SlashCommand):
             await send_error_message(context)
             return
     
-        new_prefix = context.option_values._options.get("البادئة").value
+        new_prefix = context.options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
         x = db.Guild(context.guild_id)
         error = await self.bot.emojis.error
@@ -59,11 +59,10 @@ class AntiSpam(SlashCommand):
         if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
             await send_error_message(context)
             return
-        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         x = db.Guild(context.guild_id)
-        mode = context.option_values._options.get("الوضع").value
+        mode = context.options.get("الوضع").value
         msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
-
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         await x.update_where(db.GuildUpdateType.anti_spam, mode)
         embed = hikari.Embed(
             description=msg,
@@ -82,11 +81,10 @@ class Embed(SlashCommand):
         if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
             await send_error_message(context)
             return
-        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         x = db.Guild(context.guild_id)
-        mode = context.option_values._options.get("الوضع").value
+        mode = context.options.get("الوضع").value
         msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
-
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         await x.update_where(db.GuildUpdateType.embed, mode)
         embed = hikari.Embed(
             description=msg,
@@ -118,7 +116,7 @@ class Time(SlashCommand):
         embed = hikari.Embed(color=0xffd430)
         if not x.info["channel"]:
             raise CommandError("يجب عليك تثبيت روم لاستعمال هاذ الامر")
-        value = context.option_values._options.get("الوقت").value
+        value = context.options.get("الوقت").value
         await x.update_where(db.GuildUpdateType.time, times.get(value))
         embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
         await context.interaction.edit_initial_response(embed=embed)

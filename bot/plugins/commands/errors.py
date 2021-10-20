@@ -34,6 +34,11 @@ class Errors(lightbulb.Plugin):
         logging.error(event.exception)
 
 
+    @lightbulb.listener(hikari.ExceptionEvent)
+    async def on_exception_event(self, event: hikari.ExceptionEvent):
+        logging.warning(event.exc_info)
+
+
 def load(bot: Bot):
     bot.add_plugin(Errors)
 

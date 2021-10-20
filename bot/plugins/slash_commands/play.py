@@ -30,14 +30,14 @@ class Play(SlashCommand):
                          required=True, choices=list(choics.keys()))
 
     async def callback(self, context: SlashCommandContext):
-        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        value = context.option_values._options.get("القارئ").value
+        value = context.options.get("القارئ").value
         _value = al_shyke.get(choics.get(value))
         embed = hikari.Embed(color=0xffd430)
         channel = await join_voice_channel(context)
         if isinstance(channel, hikari.Embed):
             await context.interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=channel)
             return
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         information = await self.bot.lavalink.auto_search_tracks(_value)
         await self.bot.lavalink.play(context.guild_id, information.tracks[0]).requester(context.author.id).queue()
         embed.description = "تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % value
@@ -99,11 +99,12 @@ class Volume(SlashCommand):
     volume: int = Option("المستوى الجديد للصوت", name="المتسوى")
 
     async def callback(self, context: SlashCommandContext):
-        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        vol = context.option_values._options.get("المتسوى").value
+        vol = context.options.get("المتسوى").value
         embed = hikari.Embed(color=0xffd430)
         if vol > 100 or vol < 0:
             raise CommandError("الصوت المتاح من 0 - 100")
+        await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+        
         self.bot.lavalink.volume(context.guild_id, vol)
         embed.description = f"تم تغير مستوى الصوت إلى `{vol}%`"
         await context.interaction.edit_initial_response(embed=embed)
