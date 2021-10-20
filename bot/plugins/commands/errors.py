@@ -3,35 +3,34 @@ import hikari
 import lightbulb
 from lightbulb.errors import (
     CheckFailure,
+    CommandError,
     CommandIsOnCooldown, 
     CommandNotFound, 
     MissingRequiredPermission,
     NotOwner,
-    TooManyArguments,
+    SlashCommandInvocationError,
 
 )
 from bot import Bot
 
 
 class Errors(lightbulb.Plugin):
-    @lightbulb.listener(hikari.ExceptionEvent)
-    async def on_command_error(self, event: hikari.ExceptionEvent):
+    @lightbulb.listener(lightbulb.CommandErrorEvent)
+    async def on_command_error(self, event: lightbulb.CommandErrorEvent):
         embed = hikari.Embed(color=0xE50000)
         if isinstance(event.exception, CommandIsOnCooldown):
-            pass
-        elif isinstance(event.exception, MissingRequiredPermission):
-            embed.description = ""
-            await event
+            return
         elif isinstance(event.exception, CommandNotFound):
-            pass
+            return
         elif isinstance(event.exception, NotOwner):
             return
-        elif isinstance(event.exception, TooManyArguments):
-            pass
+        elif isinstance(event.exception, MissingRequiredPermission):
+            embed.description = "عذراً أنت لا تمتلك صلاحيات `%s`" % event.exception.permissions.name
+            await event.context.respond(embed=embed)
         elif isinstance(event.exception, CheckFailure):
-            await event.app.rest.trigger_typing(event.context.channel_id)
             return
-        # elif isinstance()
+        elif isinstance(event.exception, SlashCommandInvocationError):
+            return
         logging.error(event.exception)
 
 
