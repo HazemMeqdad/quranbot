@@ -149,7 +149,7 @@ class Azan(SlashCommand):
         description="الدولة المراد معرفه وقت الصلاة بيها", name="المدينة", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        country = context.options.get("المدينة").value
+        country = context._options.get("المدينة").value
         embed = hikari.Embed(color=0xffd430)
         prayer = Prayer(country=country)
         x = prayer.country()

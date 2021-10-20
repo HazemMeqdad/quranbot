@@ -36,7 +36,7 @@ class Prefix(SlashCommand):
             await send_error_message(context)
             return
     
-        new_prefix = context.options.get("البادئة").value
+        new_prefix = context._options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
         x = db.Guild(context.guild_id)
         error = await self.bot.emojis.error
@@ -60,7 +60,7 @@ class AntiSpam(SlashCommand):
             await send_error_message(context)
             return
         x = db.Guild(context.guild_id)
-        mode = context.options.get("الوضع").value
+        mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         await x.update_where(db.GuildUpdateType.anti_spam, mode)
@@ -82,7 +82,7 @@ class Embed(SlashCommand):
             await send_error_message(context)
             return
         x = db.Guild(context.guild_id)
-        mode = context.options.get("الوضع").value
+        mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         await x.update_where(db.GuildUpdateType.embed, mode)
@@ -116,7 +116,7 @@ class Time(SlashCommand):
         embed = hikari.Embed(color=0xffd430)
         if not x.info["channel"]:
             raise CommandError("يجب عليك تثبيت روم لاستعمال هاذ الامر")
-        value = context.options.get("الوقت").value
+        value = context._options.get("الوقت").value
         await x.update_where(db.GuildUpdateType.time, times.get(value))
         embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
         await context.interaction.edit_initial_response(embed=embed)
@@ -133,7 +133,7 @@ class SetRoom(SlashCommand):
             return 
 
         x = db.Guild(context.guild_id)
-        channel_id = context.options.get("القناة")
+        channel_id = context._options.get("القناة").value
         channel = context.get_guild().get_channel(channel_id)
         embed = hikari.Embed(color=0xffd430)
 

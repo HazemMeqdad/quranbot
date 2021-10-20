@@ -30,7 +30,7 @@ class Play(SlashCommand):
                          required=True, choices=list(choics.keys()))
 
     async def callback(self, context: SlashCommandContext):
-        value = context.options.get("القارئ").value
+        value = context._options.get("القارئ").value
         _value = al_shyke.get(choics.get(value))
         embed = hikari.Embed(color=0xffd430)
         channel = await join_voice_channel(context)
@@ -99,7 +99,7 @@ class Volume(SlashCommand):
     volume: int = Option("المستوى الجديد للصوت", name="المتسوى")
 
     async def callback(self, context: SlashCommandContext):
-        vol = context.options.get("المتسوى").value
+        vol = context._options.get("المتسوى").value
         embed = hikari.Embed(color=0xffd430)
         if vol > 100 or vol < 0:
             raise CommandError("الصوت المتاح من 0 - 100")
