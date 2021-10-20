@@ -255,13 +255,13 @@ class Invite(SlashCommand):
 
 
 def load(bot: Bot):
-    bot.add_slash_command(Ping, True)
-    bot.add_slash_command(Support, True)
-    bot.add_slash_command(Info, True)
+    bot.add_slash_command(Ping)
+    bot.add_slash_command(Support)
+    bot.add_slash_command(Info)
     bot.add_slash_command(Azan)
-    bot.add_slash_command(BotInfo, True)
-    bot.add_slash_command(HelpCommand, True)
-    bot.add_slash_command(Invite, True)
+    bot.add_slash_command(BotInfo)
+    bot.add_slash_command(HelpCommand)
+    bot.add_slash_command(Invite)
 
 
 def unload(bot: Bot):

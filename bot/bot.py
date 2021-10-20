@@ -93,7 +93,7 @@ class Bot(lightbulb.Bot):
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.start_lavalink)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.tasks_ready)
         self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
-        # self.event_manager.subscribe(hikari., self.on_shotdown)
+        # self.event_manager.subscribe(hikari.Guild, self.on_shotdown)
         super().run(
                 activity=hikari.Activity(
                     name="/help - فاذكروني الأصدار التجريبي",

@@ -110,11 +110,11 @@ class Volume(SlashCommand):
 
 
 def load(bot: Bot):
-    bot.add_slash_command(Play, True)
-    bot.add_slash_command(Live, True)
-    bot.add_slash_command(Stop, True)
-    bot.add_slash_command(Join, True)
-    bot.add_slash_command(Volume, True)
+    bot.add_slash_command(Play)
+    bot.add_slash_command(Live)
+    bot.add_slash_command(Stop)
+    bot.add_slash_command(Join)
+    bot.add_slash_command(Volume)
 
 
 def unload(bot: Bot):

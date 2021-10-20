@@ -204,12 +204,12 @@ class Remove(SlashCommand):
         await context.interaction.edit_initial_response(embed=embed, component=buttons)
 
 def load(bot: Bot):
-    bot.add_slash_command(Prefix, True)
-    bot.add_slash_command(AntiSpam, True)
-    bot.add_slash_command(Embed, True)
-    bot.add_slash_command(Time, True)
-    bot.add_slash_command(SetRoom, True)
-    bot.add_slash_command(Remove, True)
+    bot.add_slash_command(Prefix)
+    bot.add_slash_command(AntiSpam)
+    bot.add_slash_command(Embed)
+    bot.add_slash_command(Time)
+    bot.add_slash_command(SetRoom)
+    bot.add_slash_command(Remove)
 
 
 def unload(bot: Bot):
