@@ -21,7 +21,7 @@ class Bot(lightbulb.Bot):
             ignore_bots=False,
             owner_ids=[750376850768789534],
             token=token,
-            intents=hikari.Intents.ALL,
+            # intents=hikari.Intents.ALL,
             help_class=CustomHelp,
             banner=None
         )
