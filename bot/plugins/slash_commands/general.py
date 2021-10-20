@@ -20,7 +20,7 @@ GUILD_ID = 872200812129054730
 class Ping(SlashCommand):
     name = "ping"
     description = "ارسال سرعة اتصال البوت"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -45,7 +45,7 @@ class Ping(SlashCommand):
 class Support(SlashCommand):
     name = "support"
     description = "طلب الدعم الفني"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -82,7 +82,7 @@ class Support(SlashCommand):
 class Info(SlashCommand):
     name = "info"
     description = "طلب معلومات الخادم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -143,7 +143,7 @@ class Info(SlashCommand):
 class Azan(SlashCommand):
     name = "azan"
     description = "معرفة وقت الاذان في المدينة الخاصه بك"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     country: typing.Optional[str] = Option(
         description="الدولة المراد معرفه وقت الصلاة بيها", name="المدينة", required=True)
@@ -172,7 +172,7 @@ class Azan(SlashCommand):
 class BotInfo(SlashCommand):
     name = "bot"
     description = "جلب معلومات البوت"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -226,7 +226,7 @@ class BotInfo(SlashCommand):
 class HelpCommand(SlashCommand):
     name = "help"
     description = "جلب معلومات البوت"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         embed = hikari.Embed(
@@ -243,7 +243,7 @@ class HelpCommand(SlashCommand):
 class Invite(SlashCommand):
     name = "invite"
     description = "أضافة البوت إلى خادمك"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
     
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(

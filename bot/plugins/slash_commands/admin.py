@@ -27,7 +27,7 @@ async def send_error_message(context: SlashCommandContext, permission: str = "ma
 class Prefix(SlashCommand):
     name = "prefix"
     description = "تغير البادئة الخاصة بالخادم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     new_prefix: typing.Optional[str] = Option(description="البادئة الجديدة", name="البادئة", required=True)
 
@@ -51,7 +51,7 @@ class Prefix(SlashCommand):
 class AntiSpam(SlashCommand):
     name = "anti_spam"
     description = "عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
 
@@ -74,7 +74,7 @@ class AntiSpam(SlashCommand):
 class Embed(SlashCommand):
     name = "embed"
     description = "تغير خاصيه ارسال الاذكار الى امبد"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
 
@@ -106,7 +106,7 @@ times = {
 class Time(SlashCommand):
     name = "time"
     description = "تغير وقت ارسال الأذكار"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     choice: str = Option("أختر الوقت المناسب", name="الوقت", required=True, choices=times.keys())
     async def callback(self, context: SlashCommandContext):
@@ -126,7 +126,7 @@ class Time(SlashCommand):
 class SetRoom(SlashCommand):
     name = "setroom"
     description = "تغير خاصيه ارسال الاذكار الى امبد"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     channel: hikari.TextableChannel = Option("أختر القناة المناسبة", name="القناة", required=True)
     async def callback(self, context: SlashCommandContext):
@@ -151,7 +151,7 @@ class SetRoom(SlashCommand):
 class Remove(SlashCommand):
     name = "remove"
     description = "توقف البوت عن إرسال الأذكار"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
     
     async def callback(self, context: SlashCommandContext):
         if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:

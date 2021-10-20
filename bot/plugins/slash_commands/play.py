@@ -24,7 +24,7 @@ GUILD_ID = 872200812129054730
 class Play(SlashCommand):
     name = "play"
     description = "تشغيل القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     choice: str = Option("اختر القارئ المناسب", name="القارئ",
                          required=True, choices=list(choics.keys()))
@@ -47,7 +47,7 @@ class Play(SlashCommand):
 class Live(SlashCommand):
     name = "live"
     description = "تشغيل اذاعه القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         channel_id = await join_voice_channel(context)
@@ -65,7 +65,7 @@ class Live(SlashCommand):
 class Stop(SlashCommand):
     name = "stop"
     description = "ايقاف تشغيل القران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         data = await stop(context)
@@ -80,7 +80,7 @@ class Stop(SlashCommand):
 class Join(SlashCommand):
     name = "join"
     description = "انظمام البوت الى روم صوتي"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     async def callback(self, context: SlashCommandContext):
         channel_id = await join_voice_channel(context)
@@ -94,7 +94,7 @@ class Join(SlashCommand):
 class Volume(SlashCommand):
     name = "volume"
     description = "تغير مستوى الصوت للقران الكريم"
-    enable_guilds = (GUILD_ID,)
+    # enable_guilds = (GUILD_ID,)
 
     volume: int = Option("المستوى الجديد للصوت", name="المتسوى")
 
