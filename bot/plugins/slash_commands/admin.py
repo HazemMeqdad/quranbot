@@ -2,10 +2,9 @@ from sys import flags
 import time
 import hikari
 import asyncio
+from hikari.permissions import Permissions
 import lightbulb
-from lightbulb.context import Context
 from lightbulb.errors import CommandError
-from bot.utils import check_permission
 from lightbulb.slash_commands.context import SlashCommandContext
 from lightbulb.slash_commands import SlashCommand
 from lightbulb.slash_commands import Option
@@ -17,25 +16,19 @@ from hikari.messages import ButtonStyle
 
 GUILD_ID = 872200812129054730
 
-async def send_error_message(context: SlashCommandContext, permission: str = "manage_guild"):
-    await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE, flags=hikari.MessageFlag.EPHEMERAL)
-    error_emoji = await context.bot.emojis.error
-    embed = hikari.Embed(description=f"{error_emoji} - أنت بحاجة إلى صلاحيات `{permission}`", color=0xE50000)
-    await context.interaction.edit_initial_response(embed=embed)
-
 
 class Prefix(SlashCommand):
     name = "prefix"
     description = "تغير البادئة الخاصة بالخادم"
     # enable_guilds = (GUILD_ID,)
 
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
+
     new_prefix: typing.Optional[str] = Option(description="البادئة الجديدة", name="البادئة", required=True)
 
-    async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return
-    
+    async def callback(self, context: SlashCommandContext):  
         new_prefix = context._options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
         x = db.Guild(context.guild_id)
@@ -53,12 +46,12 @@ class AntiSpam(SlashCommand):
     description = "عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه"
     # enable_guilds = (GUILD_ID,)
 
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return
         x = db.Guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
@@ -76,11 +69,11 @@ class Embed(SlashCommand):
     # enable_guilds = (GUILD_ID,)
 
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
 
     async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return
         x = db.Guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
@@ -105,12 +98,11 @@ class Time(SlashCommand):
     name = "time"
     description = "تغير وقت ارسال الأذكار"
     # enable_guilds = (GUILD_ID,)
-
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
     choice: str = Option("أختر الوقت المناسب", name="الوقت", required=True, choices=times.keys())
     async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         x = db.Guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
@@ -125,12 +117,11 @@ class SetRoom(SlashCommand):
     name = "setroom"
     description = "تغير خاصيه ارسال الاذكار الى امبد"
     # enable_guilds = (GUILD_ID,)
-
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
     channel: hikari.TextableChannel = Option("أختر القناة المناسبة", name="القناة", required=True)
-    async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return 
+    async def callback(self, context: SlashCommandContext): 
 
         x = db.Guild(context.guild_id)
         channel_id = context._options.get("القناة").value
@@ -150,11 +141,10 @@ class Remove(SlashCommand):
     name = "remove"
     description = "توقف البوت عن إرسال الأذكار"
     # enable_guilds = (GUILD_ID,)
-    
+    checks = [
+        lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
+    ]
     async def callback(self, context: SlashCommandContext):
-        if check_permission(context, hikari.Permissions.MANAGE_GUILD) is False:
-            await send_error_message(context)
-            return
 
         x = db.Guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
