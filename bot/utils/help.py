@@ -5,7 +5,6 @@ from lightbulb.help import HelpCommand, get_command_signature
 from lightbulb import Context
 from lightbulb import Plugin
 from lightbulb.commands import Command, Group
-from bot import db
 
 
 

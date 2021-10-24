@@ -40,13 +40,9 @@ async def join_voice_channel(ctx: Context) -> Snowflake | hikari.Embed | int:
         return embed
     
     channel_id = voice_state[0].channel_id
-    
-    await ctx.bot.voice.connect_to(
-        guild=ctx.get_guild(),
-        channel=channel_id,
-        voice_connection_type=VoiceConnection,
-        deaf=True
-    )
+    await ctx.bot.update_voice_state(ctx.get_guild(), channel_id, self_deaf=True)
+    connection_info = await ctx.bot.lavalink.wait_for_full_connection_info_insert(ctx.guild_id)
+    await ctx.bot.lavalink.create_session(connection_info)
     return channel_id 
 
 async def stop(ctx: Context):
@@ -57,8 +53,8 @@ async def stop(ctx: Context):
 
     if not voice_state:
         return
-    await ctx.bot.lavalink.destroy(ctx.guild_id)
-    await ctx.bot.lavalink.leave(ctx.guild_id)
+    await ctx.bot.update_voice_state(ctx.guild_id, None)
+    await ctx.bot.lavalink.wait_for_connection_info_remove(ctx.guild_id)
     await ctx.bot.lavalink.remove_guild_node(ctx.guild_id)
     await ctx.bot.lavalink.remove_guild_from_loops(ctx.guild_id)
     return voice_state[0].channel_id

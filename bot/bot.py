@@ -1,12 +1,15 @@
 import logging
 from bot import utils
-from bot import db
+from bot import database
 import hikari
 import lightbulb
 from .utils import CustomHelp
 import lavasnek_rs
 from .utils import EventHandler
 import tasks
+import pymongo
+import time
+
 
 class Bot(lightbulb.Bot):
     def __init__(self):
@@ -23,11 +26,15 @@ class Bot(lightbulb.Bot):
             token=token,
             # intents=hikari.Intents.ALL,
             help_class=CustomHelp,
-            banner=None
+            banner=None,
+            delete_unbound_slash_commands=False
         )
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.rest)
         self.footer = "بوت فاذكروني لإحياء سنة ذكر الله"
+        mongo_url = open("./bot/config/mongo_url.txt", "r").read()
+        mongodb = pymongo.MongoClient(mongo_url)
+        self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         # self.tasks = [
         #     Task(sender_task, 1800, self.rest, 1800),    # 30 minutes
         #     Task(sender_task, 3600, self.rest, 3600),    # 1 hour
@@ -47,19 +54,23 @@ class Bot(lightbulb.Bot):
     async def check_only_guild(message: lightbulb.Context):
         return message.guild_id is not None
 
-    async def on_guild_available(self, event: hikari.GuildAvailableEvent):
-        x = db.Guild(event.guild_id)
-        self.cache.get_guilds_view()
-        if not x.info:
-            await x.insert()
+    async def on_guild_create_message(self, event: hikari.GuildMessageCreateEvent):
+        if not self.db.get_guild(event.guild_id):
+            self.db.insert(event.guild_id)
 
     async def resolve_prefix(self, bot: lightbulb.Bot, message: hikari.Message):
         if not message.guild_id:
             return "!"
-        prefix = db.Guild(message.guild_id).info.get("prefix")
-        return prefix if prefix else "!"
+        guild = self.db.get_guild(message.guild_id)
+        if not guild:
+            self.db.insert(guild)
+            return "!"
+        return guild.prefix
 
     async def on_ready(self, event: hikari.StartedEvent):
+        # print(self.cache.get_guilds_view())
+        # print((len(self.cache.get_guilds_view())))
+        # print(type(self.cache.get_guilds_view()))
         logging.info(self.get_me().username)
         self.add_check(self.check_only_guild)
         builder = (
@@ -71,6 +82,7 @@ class Bot(lightbulb.Bot):
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
+        
 
     async def tasks_ready(self, event: hikari.ShardReadyEvent):
         # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
@@ -102,7 +114,7 @@ class Bot(lightbulb.Bot):
         )
     
     async def on_guild_leave(self, event: hikari.GuildLeaveEvent):
-        owner = await event.get_guild().fetch_owner()
+        owner = await self.rest.fetch_user(event.get_guild().owner_id)
         embed = hikari.Embed(
             title="ازالة جديده",
             color=0xFF0000
@@ -119,15 +131,30 @@ class Bot(lightbulb.Bot):
             embed=embed
         )
 
+    async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
+        await self.lavalink.raw_handle_event_voice_state_update(
+            event.state.guild_id,
+            event.state.user_id,
+            event.state.session_id,
+            event.state.channel_id,
+        )
+
+    async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
+        await self.lavalink.raw_handle_event_voice_server_update(
+            event.guild_id, event.endpoint, event.token
+        )
+
     def run(self):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
-        self.event_manager.subscribe(hikari.GuildAvailableEvent, self.on_guild_available)
+        self.event_manager.subscribe(hikari.GuildMessageCreateEvent, self.on_guild_create_message)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.start_lavalink)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.tasks_ready)
         self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
         self.event_manager.subscribe(hikari.GuildJoinEvent, self.on_guild_join)
         self.event_manager.subscribe(hikari.GuildLeaveEvent, self.on_guild_leave)
+        self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
+        self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
         super().run(
                 activity=hikari.Activity(
                     name="/help - fdrbot.xyz",

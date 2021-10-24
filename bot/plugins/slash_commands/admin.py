@@ -10,7 +10,7 @@ from lightbulb.slash_commands import SlashCommand
 from lightbulb.slash_commands import Option
 import typing
 from bot import Bot
-from bot import db
+from bot.database import DB, GuildUpdateType
 from hikari.messages import ButtonStyle
 
 
@@ -31,12 +31,12 @@ class Prefix(SlashCommand):
     async def callback(self, context: SlashCommandContext):  
         new_prefix = context._options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         error = await self.bot.emojis.error
         if len(new_prefix) > 5:
             raise CommandError("%s لا يمكنك وضع بادئه اكثر من خمس حروف" % error)
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        await x.update_where(db.GuildUpdateType.prefix, new_prefix)
+        context.bot.db.update_guild(guild, GuildUpdateType.prefix, new_prefix)
         embed.description = "تم تغير البادئه الى `%s`" % new_prefix
         await context.interaction.edit_initial_response(embed=embed)
 
@@ -52,11 +52,11 @@ class AntiSpam(SlashCommand):
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        await x.update_where(db.GuildUpdateType.anti_spam, mode)
+        context.bot.db.update_guild(guild, GuildUpdateType.anti_spam, mode)
         embed = hikari.Embed(
             description=msg,
             color=0xffd430
@@ -74,11 +74,11 @@ class Embed(SlashCommand):
     ]
 
     async def callback(self, context: SlashCommandContext):
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        await x.update_where(db.GuildUpdateType.embed, mode)
+        context.bot.db.update_guild(guild, GuildUpdateType.embed, mode)
         embed = hikari.Embed(
             description=msg,
             color=0xffd430
@@ -104,12 +104,12 @@ class Time(SlashCommand):
     choice: str = Option("أختر الوقت المناسب", name="الوقت", required=True, choices=times.keys())
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
-        if not x.info["channel"]:
+        if not guild.channel_id:
             raise CommandError("يجب عليك تثبيت روم لاستعمال هاذ الامر")
         value = context._options.get("الوقت").value
-        await x.update_where(db.GuildUpdateType.time, times.get(value))
+        context.bot.db.update_guild(guild, GuildUpdateType.time, times.get(value))
         embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
         await context.interaction.edit_initial_response(embed=embed)
 
@@ -123,17 +123,17 @@ class SetRoom(SlashCommand):
     channel: hikari.TextableChannel = Option("أختر القناة المناسبة", name="القناة", required=True)
     async def callback(self, context: SlashCommandContext): 
 
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         channel_id = context._options.get("القناة").value
         channel = context.get_guild().get_channel(channel_id)
         embed = hikari.Embed(color=0xffd430)
 
         if channel.type != hikari.ChannelType.GUILD_TEXT:
             raise CommandError("يجب التأكد من نوع القناة المحدده من انها كتابية")
-        if int(channel_id) == x.info["channel"]:
+        if int(channel_id) == guild.channel_id:
             raise CommandError("لقد قمت بتحديد هاذه الروم من قبل")
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        await x.update_where(db.GuildUpdateType.channel, channel.id)
+        context.bot.db.update_guild(guild, GuildUpdateType.channel, channel.id)
         embed.description = "! الله يكتب اجرك راح ارسل الاذكار للروم %s" % channel.mention
         await context.interaction.edit_initial_response(embed=embed)
 
@@ -146,9 +146,9 @@ class Remove(SlashCommand):
     ]
     async def callback(self, context: SlashCommandContext):
 
-        x = db.Guild(context.guild_id)
+        guild = context.bot.db.get_guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
-        channel = x.info["channel"]
+        channel = guild.channel_id
         if not channel:
             raise CommandError("انت لم تقم بتثبيت الروم من قبل")
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -184,7 +184,7 @@ class Remove(SlashCommand):
             await context.interaction.edit_initial_response(embed=embed, component=buttons)
             return
         if event.interaction.custom_id == "true":
-            await x.update_where(db.GuildUpdateType.channel, None)
+            context.bot.db.update_guild(guild, GuildUpdateType.channel, None)
             embed.description = "تم الغاء ارسال الاذكار بنجاح"
             await context.interaction.edit_initial_response(embed=embed, component=buttons)
             return

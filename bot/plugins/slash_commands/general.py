@@ -10,7 +10,7 @@ from lightbulb.slash_commands import SlashCommand
 from lightbulb.slash_commands import Option
 import typing
 from bot import Bot
-from bot import db
+from bot.database import DB
 from bot.utils import Prayer
 from lightbulb.errors import CommandError
 
@@ -37,7 +37,7 @@ class Ping(SlashCommand):
 
         embed.description = "```python\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
             int(ping), round(context.bot.heartbeat_latency * 1000),
-            db.speedtest()
+            context.bot.db.speed_test()
         )
         await context.interaction.edit_initial_response(embed=embed)
 
@@ -86,7 +86,7 @@ class Info(SlashCommand):
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        data = db.Guild(context.guild_id).info
+        data = context.bot.db.get_guild(context.guild_id)
         times = {1800: "30m", 3600: "1h", 7200: "2h",
                  21600: "6h", 43200: "12h", 86400: "24h"}
         hashtag = await self.bot.emojis.hashtag
@@ -100,28 +100,27 @@ class Info(SlashCommand):
         )
         embed.add_field(
             name="%s - البادئه:" % hashtag,
-            value=data.get("prefix"),
+            value=data.prefix,
             inline=True
         )
         embed.add_field(
             name="%s - روم الاذكار:" % hashtag,
-            value=context.bot.cache.get_guild_channel(data.get("channel")).mention if data.get(
-                "channel") is not None else "لا يوجد",
+            value=context.bot.cache.get_guild_channel(data.channel_id).mention if data.channel_id is not None else "لا يوجد",
             inline=True
         )
         embed.add_field(
             name="%s - وقت ارسال الاذكار:" % hashtag,
-            value=times.get(data.get("time")),
+            value=times.get(data.time),
             inline=True
         )
         embed.add_field(
             name="%s - وضع تكرار الرسائل:" % hashtag,
-            value=on if data["anti_spam"] else off,
+            value=on if data.anti_spam else off,
             inline=True
         )
         embed.add_field(
             name="%s - وضع الامبد:" % hashtag,
-            value=on if data["embed"] else off,
+            value=on if data.embed else off,
             inline=True
         )
         embed.add_field(
@@ -197,7 +196,7 @@ class BotInfo(SlashCommand):
         )
         embed.add_field(
             name="%s - سرعة استجابة قواعد البيانات" % hashtag,
-            value="%sms" % db.speedtest(),
+            value="%sms" % context.bot.db.speed_test(),
             inline=True
         )
         embed.add_field(

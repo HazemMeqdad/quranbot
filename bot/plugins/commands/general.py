@@ -4,7 +4,7 @@ from hikari.messages import ButtonStyle
 import lightbulb
 from bot import Bot
 import time
-from bot import db
+from bot.database import DB
 from bot.utils import Prayer, Sunnah
 
 
@@ -12,6 +12,7 @@ from bot.utils import Prayer, Sunnah
 class General(lightbulb.Plugin):
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.db: DB = bot.db
         super().__init__()
 
     @lightbulb.command(name="ping")
@@ -32,7 +33,7 @@ class General(lightbulb.Plugin):
         # New message #
         embed = hikari.Embed(
             description="```py\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
-                int(ping), round(ctx.bot.heartbeat_latency * 1000), db.speedtest()),
+                int(ping), round(ctx.bot.heartbeat_latency * 1000), self.db.speed_test()),
             color=0xFF0000
         )
         embed.set_footer(
@@ -72,7 +73,7 @@ class General(lightbulb.Plugin):
 
     @lightbulb.command(name="info", aliases=['معلومات'])
     async def info_command(self, ctx: lightbulb.Context):
-        data = db.Guild(ctx.guild_id).info
+        data = self.db.get_guild(ctx.guild_id)
         times = {1800: "30m", 3600: "1h", 7200: "2h",
                  21600: "6h", 43200: "12h", 86400: "24h"}
         hashtag = await self.bot.emojis.hashtag
@@ -86,28 +87,27 @@ class General(lightbulb.Plugin):
         )
         embed.add_field(
             name="%s - البادئه:" % hashtag,
-            value=data.get("prefix"),
+            value=data.prefix,
             inline=True
         )
         embed.add_field(
             name="%s - روم الاذكار:" % hashtag,
-            value=ctx.bot.cache.get_guild_channel(data.get("channel")).mention if data.get(
-                "channel") is not None else "لا يوجد",
+            value=ctx.bot.cache.get_guild_channel(data.channel_id).mention if data.channel_id is not None else "لا يوجد",
             inline=True
         )
         embed.add_field(
             name="%s - وقت ارسال الاذكار:" % hashtag,
-            value=times.get(data.get("time")),
+            value=times.get(data.time),
             inline=True
         )
         embed.add_field(
             name="%s - وضع تكرار الرسائل:" % hashtag,
-            value=on if data["anti_spam"] else off,
+            value=on if data.anti_spam else off,
             inline=True
         )
         embed.add_field(
             name="%s - وضع الامبد:" % hashtag,
-            value=on if data["embed"] else off,
+            value=on if data.embed else off,
             inline=True
         )
         embed.add_field(
@@ -127,10 +127,10 @@ class General(lightbulb.Plugin):
 
     @lightbulb.command(name="zker", aliases=["ذكر", "اذكار", "أذكار"])
     async def zker_command(self, ctx: lightbulb.Context):
-        x = db.Azkar().random
+        x = self.db.get_random_zker()
         embed = hikari.Embed(
-            title=str(x.get("_id")),
-            description=x.get("msg"),
+            title=str(x.id),
+            description=x.content,
             color=0xffd430
         )
         embed.set_footer(text=self.bot.footer,
@@ -192,7 +192,7 @@ class General(lightbulb.Plugin):
         )
         embed.add_field(
             name="%s - سرعة استجابة قواعد البيانات" % hashtag,
-            value="%sms" % db.speedtest(),
+            value="%sms" % self.db.speed_test(),
             inline=True
         )
         embed.add_field(

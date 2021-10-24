@@ -3,7 +3,7 @@ from typing import Any
 from discord.ext import tasks
 import hikari
 from hikari.api.rest import RESTClient
-from bot.db.db import get_all_channels_by_time, Azkar
+# from bot.db.db import get_all_channels_by_time, Azkar
 
 
 async def sender_task(rest: RESTClient, time: int | float):
