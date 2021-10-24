@@ -8,7 +8,6 @@ import lavasnek_rs
 from .utils import EventHandler
 import tasks
 import pymongo
-import time
 
 
 class Bot(lightbulb.Bot):
@@ -59,9 +58,6 @@ class Bot(lightbulb.Bot):
         return guild.prefix
 
     async def on_ready(self, event: hikari.StartedEvent):
-        # print(self.cache.get_guilds_view())
-        # print((len(self.cache.get_guilds_view())))
-        # print(type(self.cache.get_guilds_view()))
         logging.info(self.get_me().username)
         self.add_check(self.check_only_guild)
         builder = (
@@ -70,20 +66,13 @@ class Bot(lightbulb.Bot):
             .set_port(8888)
             .set_password("pass")
             .set_start_gateway(False)
+            .set_shard_count(self.shard_count)
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
         logging.info("lavalink is ready WOW")
-
-
-    async def tasks_ready(self, event: hikari.ShardReadyEvent):
-        # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)
-        # t.start()
+        
         logging.info("tasks now ready")
-
-    async def start_lavalink(self, event: hikari.ShardReadyEvent):
-        pass
-
     async def on_shotdown(self, event: hikari.StoppedEvent):
         pass
 
@@ -140,8 +129,6 @@ class Bot(lightbulb.Bot):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
         self.event_manager.subscribe(hikari.GuildMessageCreateEvent, self.on_guild_create_message)
-        self.event_manager.subscribe(hikari.ShardReadyEvent, self.start_lavalink)
-        self.event_manager.subscribe(hikari.ShardReadyEvent, self.tasks_ready)
         self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
         self.event_manager.subscribe(hikari.GuildJoinEvent, self.on_guild_join)
         self.event_manager.subscribe(hikari.GuildLeaveEvent, self.on_guild_leave)

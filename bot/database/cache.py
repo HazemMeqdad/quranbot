@@ -1,11 +1,9 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from typing import Any
-import time
 from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
-import timeit
+from bot import Bot
 
 
 class DB:
@@ -21,7 +19,6 @@ class DB:
         return self.client.command("ping").get("ok")
 
     def _create_cache(self):
-        start = time.monotonic()
         self._guilds: dict = {}
         self._azkar: dict = {}
         for guild in self.guilds:
@@ -43,8 +40,12 @@ class DB:
     def get_guilds(self) -> list[Guild]:
         return self._guilds
     
-    def get_all_channels(self, guilds_cache: any) -> list[int]:
+    def get_all_channels(self) -> list[int]:
         return [guild.id for guild in self.guilds]
+
+    def get_all_channels_by_time(self, bot: Bot, time: int) -> list[Guild]:
+        guilds_ids = [i.id for i in bot.cache.get_guilds_view()]
+        return [i for i in self.get_guilds() if i.id not in guilds_ids and i.time == time]
 
     def fetch_guild(self, guild_id: int) -> Guild | None:
         result = self.col_guilds.find_one({"_id": guild_id})
