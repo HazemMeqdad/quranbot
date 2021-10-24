@@ -24,7 +24,6 @@ class Bot(lightbulb.Bot):
             ignore_bots=False,
             owner_ids=[750376850768789534],
             token=token,
-            # intents=hikari.Intents.ALL,
             help_class=CustomHelp,
             banner=None,
             delete_unbound_slash_commands=False
@@ -35,14 +34,6 @@ class Bot(lightbulb.Bot):
         mongo_url = open("./bot/config/mongo_url.txt", "r").read()
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
-        # self.tasks = [
-        #     Task(sender_task, 1800, self.rest, 1800),    # 30 minutes
-        #     Task(sender_task, 3600, self.rest, 3600),    # 1 hour
-        #     Task(sender_task, 7200, self.rest, 7200),    # 2 hours
-        #     Task(sender_task, 21600, self.rest, 21600),  # 6 hours
-        #     Task(sender_task, 43200, self.rest, 43200),  # 12 hours
-        #     Task(sender_task, 86400, self.rest, 86400),  # 24 hours
-        # ]
         
     def setup(self):
         print("\n")
@@ -82,7 +73,8 @@ class Bot(lightbulb.Bot):
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
-        
+        logging.info("lavalink is ready WOW")
+
 
     async def tasks_ready(self, event: hikari.ShardReadyEvent):
         # t = tasks.Loop(await tasks.sender_task(self.rest, 1800), seconds=1800)

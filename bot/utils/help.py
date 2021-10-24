@@ -75,6 +75,7 @@ class CustomHelp(HelpCommand):
         await context.respond(embed=embed, reply=True, mentions_reply=False)
 
     async def send_help_overview(self, context: Context) -> None:
+        clean_prefix = context.clean_prefix if len(context.clean_prefix) < 6 else context.bot.db.get_guild(context.guild_id).prefix
         embed = hikari.Embed(
             title="قائمة المساعدة",
             color=0xffd430
@@ -85,7 +86,7 @@ class CustomHelp(HelpCommand):
                 comm = commands_map.get(command.name)
                 if not comm or command.hidden:
                     continue
-                _ += f"`{context.clean_prefix}{command.name}` - {comm}\n"
+                _ += f"`{clean_prefix}{command.name}` - {comm}\n"
             if len(_) == 0:
                 continue
             embed.add_field(name=plugin.name.lower(), value=_)
