@@ -9,7 +9,7 @@ from lightbulb.slash_commands.context import SlashCommandContext
 from lightbulb.slash_commands import SlashCommand
 from lightbulb.slash_commands import Option
 import typing
-from bot import Bot
+from bot.bot import Bot
 from bot.database import DB, GuildUpdateType
 from hikari.messages import ButtonStyle
 

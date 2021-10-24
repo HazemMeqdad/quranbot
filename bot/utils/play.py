@@ -4,7 +4,7 @@ from hikari.api.voice import VoiceConnection
 from hikari.snowflakes import Snowflake
 from lightbulb import Context
 import hikari
-import lightbulb
+
 
 al_shyke = {
     "1": "https://youtu.be/wwMyn8a_puQ",  # ماهر المعيقلي

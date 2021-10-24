@@ -3,10 +3,8 @@ from bot import utils
 from bot import database
 import hikari
 import lightbulb
-from .utils import CustomHelp
 import lavasnek_rs
-from .utils import EventHandler
-import tasks
+from .utils import EventHandler, CustomHelp, create_tasks, stop
 import pymongo
 
 
@@ -71,7 +69,7 @@ class Bot(lightbulb.Bot):
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
         logging.info("lavalink is ready WOW")
-        
+        self.task = create_tasks(self)
         logging.info("tasks now ready")
     async def on_shotdown(self, event: hikari.StoppedEvent):
         pass

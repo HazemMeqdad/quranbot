@@ -3,7 +3,7 @@ from typing import Any
 from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
-from bot import Bot
+from lightbulb import Bot
 
 
 class DB:

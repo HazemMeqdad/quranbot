@@ -3,7 +3,7 @@ import hikari
 import lavasnek_rs
 import lightbulb
 from lightbulb.context import Context
-from bot import Bot
+from bot.bot import Bot
 from asyncio import TimeoutError
 from bot.utils import al_shyke, stop, join_voice_channel
 

@@ -4,7 +4,7 @@ from hikari.messages import MessageFlag
 from lightbulb.slash_commands.context import SlashCommandContext
 from lightbulb.slash_commands import SlashCommand
 from lightbulb.slash_commands import Option
-from bot import Bot
+from bot.bot import Bot
 from bot.utils import join_voice_channel, stop, al_shyke
 from lightbulb.errors import CommandError
 
@@ -84,7 +84,6 @@ class Join(SlashCommand):
 
     async def callback(self, context: SlashCommandContext):
         channel_id = await join_voice_channel(context)
-        print(channel_id)
         embed = hikari.Embed(color=0xffd430)
         if isinstance(channel_id, hikari.Embed):
             await context.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, embed=channel_id, flags=MessageFlag.EPHEMERAL)

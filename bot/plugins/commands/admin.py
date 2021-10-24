@@ -1,7 +1,7 @@
 import hikari
 import lightbulb
 from lightbulb.context import Context
-from bot import Bot
+from bot.bot import Bot
 from bot.database import DB, GuildUpdateType
 from hikari.messages import ButtonStyle
 import asyncio

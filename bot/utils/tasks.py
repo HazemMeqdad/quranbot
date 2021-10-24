@@ -2,12 +2,14 @@ from __future__ import annotations
 import threading
 import time
 import hikari
-from schedule import every, repeat, run_pending
-from bot import Bot
+from schedule import run_pending
+import schedule
 from hikari import ForbiddenError
+import asyncio
+from lightbulb import Bot
 
 
-async def sender_task(bot: Bot, time: int):
+async def _sender_task(bot: Bot, time: int):
     guilds = bot.db.get_all_channels_by_time(bot, time)
     cache = bot.cache
 
@@ -43,7 +45,7 @@ async def sender_task(bot: Bot, time: int):
         await webhook.execute(content=content, username=bot.username, avatar_url=bot.avatar_url)
 
 
-def run_continuously(interval=1):
+def _run_continuously(interval=1):
     """Continuously run, while executing pending jobs at each
     elapsed time interval.
     @return cease_continuous_run: threading. Event which can
@@ -67,14 +69,15 @@ def run_continuously(interval=1):
     continuous_thread.start()
     return cease_continuous_run
 
-@repeat(every(1).seconds, "hello")
-def lol(text):
-    print(text)
 
+def create_tasks(bot: Bot):
+    schedule.every(1800).seconds.do(asyncio.create_task, _sender_task(bot, 1800))
+    schedule.every(3600).seconds.do(asyncio.create_task, _sender_task(bot, 3600))
+    schedule.every(7200).seconds.do(asyncio.create_task, _sender_task(bot, 7200))
+    schedule.every(21600).seconds.do(asyncio.create_task, _sender_task(bot, 21600))
+    schedule.every(43200).seconds.do(asyncio.create_task, _sender_task(bot, 43200))
+    schedule.every(86400).seconds.do(asyncio.create_task, _sender_task(bot, 86400))
+    return _run_continuously(10)
 
-@repeat(every(3).seconds)
-def hi():
-    print("lololol")
-
-
-x = run_continuously()
+def stop_tasks(task):
+    task.set()

@@ -1,7 +1,7 @@
 import logging
 import hikari
 import lightbulb
-from bot import Bot
+from bot.bot import Bot
 
 
 class Owner(lightbulb.Plugin):

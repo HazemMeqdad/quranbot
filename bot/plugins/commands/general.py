@@ -2,7 +2,7 @@ import asyncio
 import hikari
 from hikari.messages import ButtonStyle
 import lightbulb
-from bot import Bot
+from bot.bot import Bot
 import time
 from bot.database import DB
 from bot.utils import Prayer, Sunnah

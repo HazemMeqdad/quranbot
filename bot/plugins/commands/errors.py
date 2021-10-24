@@ -11,7 +11,7 @@ from lightbulb.errors import (
     SlashCommandInvocationError,
 
 )
-from bot import Bot
+from bot.bot import Bot
 
 
 class Errors(lightbulb.Plugin):
