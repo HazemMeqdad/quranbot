@@ -125,7 +125,7 @@ class SetRoom(SlashCommand):
 
         guild = context.bot.db.fetch_guild(context.guild_id)
         channel_id = context._options.get("القناة").value
-        channel = context.fetch_guild().get_channel(channel_id)
+        channel = context.bot.cache.get_guild_channel(channel_id)
         embed = hikari.Embed(color=0xffd430)
 
         if channel.type != hikari.ChannelType.GUILD_TEXT:
