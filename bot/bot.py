@@ -31,6 +31,7 @@ class Bot(lightbulb.Bot):
         mongo_url = open("./bot/config/mongo_url.txt", "r").read()
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
+        self.lavalink_is_ready: bool = False
         
     def setup(self):
         print("\n")
@@ -115,17 +116,19 @@ class Bot(lightbulb.Bot):
         )
 
     async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
-        await self.lavalink.raw_handle_event_voice_state_update(
-            event.state.guild_id,
-            event.state.user_id,
-            event.state.session_id,
-            event.state.channel_id,
-        )
+        if self.lavalink_is_ready:
+            await self.lavalink.raw_handle_event_voice_state_update(
+                event.state.guild_id,
+                event.state.user_id,
+                event.state.session_id,
+                event.state.channel_id,
+            )
 
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
-        await self.lavalink.raw_handle_event_voice_server_update(
-            event.guild_id, event.endpoint, event.token
-        )
+        if self.lavalink_is_ready:
+            await self.lavalink.raw_handle_event_voice_server_update(
+                event.guild_id, event.endpoint, event.token
+            )
 
     def run(self):
         self.setup()
