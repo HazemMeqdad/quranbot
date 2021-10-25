@@ -73,7 +73,7 @@ class General(lightbulb.Plugin):
 
     @lightbulb.command(name="info", aliases=['معلومات'])
     async def info_command(self, ctx: lightbulb.Context):
-        data = self.db.get_guild(ctx.guild_id)
+        data = self.db.fetch_guild(ctx.guild_id)
         times = {1800: "30m", 3600: "1h", 7200: "2h",
                  21600: "6h", 43200: "12h", 86400: "24h"}
         hashtag = await self.bot.emojis.hashtag
