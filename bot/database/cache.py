@@ -57,7 +57,7 @@ class DB:
         self._guilds[guild.id] = self.fetch_guild(guild.id)
     
     def insert(self, guild_id: int):
-        if not self.get_guild(guild_id):
+        if not self.get_guild(guild_id) and not self.fetch_guild(guild_id):
             data = {
                 "_id": guild_id,
                 "prefix": "!",
