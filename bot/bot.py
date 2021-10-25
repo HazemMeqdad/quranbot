@@ -4,7 +4,7 @@ from bot import database
 import hikari
 import lightbulb
 import lavasnek_rs
-from .utils import EventHandler, CustomHelp, create_tasks, stop
+from .utils import EventHandler, CustomHelp, create_tasks, stop_tasks
 import pymongo
 
 
@@ -69,10 +69,14 @@ class Bot(lightbulb.Bot):
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
         logging.info("lavalink is ready WOW")
-        self.task = create_tasks(self)
+        await create_tasks(self)
         logging.info("tasks now ready")
+
     async def on_shotdown(self, event: hikari.StoppedEvent):
-        pass
+        logging.info("shotdown event start")
+        stop_tasks()
+        logging.info("shotdown event end")
+
 
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):
         owner = await event.get_guild().fetch_owner()

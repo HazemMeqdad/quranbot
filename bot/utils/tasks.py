@@ -1,9 +1,7 @@
 from __future__ import annotations
-import threading
-import time
+import logging
 import hikari
-from schedule import run_pending
-import schedule
+import threading
 from hikari import ForbiddenError
 import asyncio
 from lightbulb import Bot
@@ -12,72 +10,65 @@ from lightbulb import Bot
 async def _sender_task(bot: Bot, time: int):
     guilds = bot.db.get_all_channels_by_time(bot, time)
     cache = bot.cache
+    global stop_threads
+    while stop_threads:
+        await asyncio.sleep(time)
+        send_count = 0
+        for _guild in guilds:
+            guild = cache.get_guild(_guild.id)
+            if not guild:
+                continue
+            channel = guild.get_channel(_guild.channel_id)
+            if not channel:
+                continue
+            try:
+                webhooks = await bot.rest.fetch_channel_webhooks(_guild.channel_id)
+            except ForbiddenError:
+                continue
+            webhooks = [i for i in webhooks if i.name == bot.get_me().username]
+            webhook = webhooks[0] if webhooks else None
+            if not webhook:
+                webhook = await bot.rest.create_webhook(
+                    channel=channel.id, 
+                    name=bot.get_me().username, 
+                    avatar=bot.get_me().avatar_url
+                )
+            channel_history = await bot.rest.fetch_messages(channel.id)
+            if _guild.anti_spam and channel_history[-1].webhook_id == webhook.id:
+                continue
+            random_zker = bot.db.get_random_zker()
+            content = f"> {random_zker.content}"
+            data = {
+                "username": bot.get_me().username,
+                "avatar_url": bot.get_me().avatar_url.url
+            }
+            if _guild.embed:
+                embed = hikari.Embed(
+                    description=random_zker.content,
+                    color=0xffd430
+                )
+                embed.set_footer(text="بوت فاذكروني لإحياء سنة ذكر الله", icon=bot.get_me().avatar_url)
+                embed.set_thumbnail(bot.get_me().avatar_url)
+                await webhook.execute(embed=embed, **data)
+                send_count += 1
+                continue
+            await webhook.execute(content=content, **data)
+            send_count += 1
+        logging.info(f"Task {time} finished, send in {send_count} guilds")
 
-    for _guild in guilds:
-        guild = cache.get_guild(_guild)
-        if not guild:
-            continue
-        channel = guild.get_channel(_guild.channel_id)
-        if not channel:
-            continue
-        try:
-            webhooks = await bot.rest.fetch_channel_webhooks(_guild.channel_id)
-        except ForbiddenError:
-            continue
-        webhooks = [i for i in webhooks if i.name == bot.get_me().username and i.avatar_url == bot.get_me().avatar_url]
-        webhook = webhooks[0] if webhooks else None
-        if not webhook:
-            webhook = await bot.rest.create_webhook(channel.id, bot.username, avatar=bot.avatar_url)
-        channel_history = await bot.rest.fetch_messages(channel.id)
-        if _guild.anti_spam and channel_history[-1].webhook_id == webhook.id:
-            return
-        random_zker = bot.db.get_random_zker()
-        content = f"> {random_zker.content}"
-        if _guild.embed:
-            embed = hikari.Embed(
-                description=random_zker.content,
-                color=0xffd430
-            )
-            embed.set_footer(text="بوت فاذكروني لإحياء سنة ذكر الله", icon=bot.avatar_url)
-            embed.set_thumbnail(bot.avatar_url)
-            await webhook.execute(embed=embed, username=bot.username, avatar_url=bot.avatar_url)
-            continue
-        await webhook.execute(content=content, username=bot.username, avatar_url=bot.avatar_url)
-
-
-def _run_continuously(interval=1):
-    """Continuously run, while executing pending jobs at each
-    elapsed time interval.
-    @return cease_continuous_run: threading. Event which can
-    be set to cease continuous run. Please note that it is
-    *intended behavior that run_continuously() does not run
-    missed jobs*. For example, if you've registered a job that
-    should run every minute and you set a continuous run
-    interval of one hour then your job won't be run 60 times
-    at each interval but only once.
-    """
-    cease_continuous_run = threading.Event()
-
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                run_pending()
-                time.sleep(interval)
-
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-    return cease_continuous_run
+_tasks: list[threading.Thread] = []
 
 
-def create_tasks(bot: Bot):
-    schedule.every(1800).seconds.do(asyncio.create_task, _sender_task(bot, 1800))
-    schedule.every(3600).seconds.do(asyncio.create_task, _sender_task(bot, 3600))
-    schedule.every(7200).seconds.do(asyncio.create_task, _sender_task(bot, 7200))
-    schedule.every(21600).seconds.do(asyncio.create_task, _sender_task(bot, 21600))
-    schedule.every(43200).seconds.do(asyncio.create_task, _sender_task(bot, 43200))
-    schedule.every(86400).seconds.do(asyncio.create_task, _sender_task(bot, 86400))
-    return _run_continuously(10)
+async def create_tasks(bot: Bot):
+    times = [1800, 3600, 7200, 21600, 43200, 86400]    
+    for time in times:        
+        x = threading.Thread(target=asyncio.run, args=(_sender_task(bot, time),))
+        x.start()
+        _tasks.append(x)
 
-def stop_tasks(task):
-    task.set()
+stop_threads = False
+
+def stop_tasks():
+    stop_threads = True
+    for task in _tasks:
+        task.join()
