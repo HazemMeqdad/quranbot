@@ -86,7 +86,7 @@ class Info(SlashCommand):
 
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        data = context.bot.db.get_guild(context.guild_id)
+        data = context.bot.db.fetch_guild(context.guild_id)
         times = {1800: "30m", 3600: "1h", 7200: "2h",
                  21600: "6h", 43200: "12h", 86400: "24h"}
         hashtag = await self.bot.emojis.hashtag

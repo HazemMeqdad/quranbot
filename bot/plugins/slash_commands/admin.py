@@ -31,7 +31,7 @@ class Prefix(SlashCommand):
     async def callback(self, context: SlashCommandContext):  
         new_prefix = context._options.get("البادئة").value
         embed = hikari.Embed(color=0xffd430)
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         error = await self.bot.emojis.error
         if len(new_prefix) > 5:
             raise CommandError("%s لا يمكنك وضع بادئه اكثر من خمس حروف" % error)
@@ -52,7 +52,7 @@ class AntiSpam(SlashCommand):
     mode: bool = Option("تحديد الوضع", name="الوضع", required=True)
 
     async def callback(self, context: SlashCommandContext):
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -74,7 +74,7 @@ class Embed(SlashCommand):
     ]
 
     async def callback(self, context: SlashCommandContext):
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         mode = context._options.get("الوضع").value
         msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -104,7 +104,7 @@ class Time(SlashCommand):
     choice: str = Option("أختر الوقت المناسب", name="الوقت", required=True, choices=times.keys())
     async def callback(self, context: SlashCommandContext):
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
         if not guild.channel_id:
             raise CommandError("يجب عليك تثبيت روم لاستعمال هاذ الامر")
@@ -123,9 +123,9 @@ class SetRoom(SlashCommand):
     channel: hikari.TextableChannel = Option("أختر القناة المناسبة", name="القناة", required=True)
     async def callback(self, context: SlashCommandContext): 
 
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         channel_id = context._options.get("القناة").value
-        channel = context.get_guild().get_channel(channel_id)
+        channel = context.fetch_guild().get_channel(channel_id)
         embed = hikari.Embed(color=0xffd430)
 
         if channel.type != hikari.ChannelType.GUILD_TEXT:
@@ -146,7 +146,7 @@ class Remove(SlashCommand):
     ]
     async def callback(self, context: SlashCommandContext):
 
-        guild = context.bot.db.get_guild(context.guild_id)
+        guild = context.bot.db.fetch_guild(context.guild_id)
         embed = hikari.Embed(color=0xffd430)
         channel = guild.channel_id
         if not channel:

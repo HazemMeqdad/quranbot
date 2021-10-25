@@ -18,7 +18,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name="prefix", aliases=["setprefix", "set_prefix", "set-prefix"])
     async def prefix_command(self, ctx: lightbulb.Context, new_prefix: str):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         error = await self.bot.emojis.error
         embed = hikari.Embed(color=0xffd430)
         if len(new_prefix) > 5:
@@ -32,7 +32,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name='spam', aliases=['anti-spam', "anti_spam"])
     async def anti_spam(self, ctx: Context):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
         if guild.anti_spam:
             self.db.update_guild(guild, GuildUpdateType.anti_spam, False)
@@ -46,7 +46,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name='embed')
     async def embed(self, ctx: Context):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
         if guild.embed:
             self.db.update_guild(guild, GuildUpdateType.embed, False)
@@ -60,7 +60,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name="time", aliases=["set_time", "settime"], help='تغير وقت ارسال الاذكار')
     async def set_timer(self, ctx: Context):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430) 
         if not guild.channel_id:
             embed.description = "يجب عليك تثبيت روم لاستعمال هاذ الامر"
@@ -116,7 +116,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name="setroom", aliases=["channel", "setchannel", "set_room", "set_channel"])
     async def set_channel_command(self, ctx: Context, channel: lightbulb.text_channel_converter):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
         if channel.id == guild.channel_id:
             embed.description = "لقد قمت بتحديد هاذه الروم من قبل"
@@ -130,7 +130,7 @@ class Admin(lightbulb.Plugin):
     @lightbulb.checks.has_guild_permissions(hikari.Permissions.MANAGE_GUILD)
     @lightbulb.command(name="remove", aliases=["removeroom"])
     async def remove_command(self, ctx: Context):
-        guild = self.db.get_guild(ctx.guild_id)
+        guild = self.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
         channel = guild.channel_id
         yes = await ctx.bot.emojis.yes
