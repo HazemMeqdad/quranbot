@@ -140,3 +140,5 @@ cython_debug/
 logs
 bot/config
 .fuse_hidden0000005900000003
+.idea/
+test.py

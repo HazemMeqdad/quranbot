@@ -19,7 +19,7 @@ class Bot(lightbulb.Bot):
             insensitive_commands=True,
             prefix=lightbulb.when_mentioned_or(self.resolve_prefix),
             ignore_bots=False,
-            owner_ids=[750376850768789534],
+            owner_ids=[750376850768789534, 716783245387235410, 277669327602188288, 385701197069418496, 532696546462924820],
             token=token,
             help_class=CustomHelp,
             banner=None,
@@ -80,40 +80,29 @@ class Bot(lightbulb.Bot):
 
 
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):
-        owner = await event.get_guild().fetch_owner()
+        self.db.insert(event.get_guild().id)
+        owner_id = event.get_guild().owner_id
+        owner = await self.rest.fetch_user(owner_id)
         embed = hikari.Embed(
             title="أضافة جديده",
             color=0x46FF00
         )
         embed.add_field("اسم الخادم:", f"{event.get_guild().name} (`{event.get_guild().id}`)")
-        embed.add_field("عدد أعضاء الخادم:", event.get_guild().member_count)
+        embed.add_field("عدد أعضاء الخادم:", str(event.get_guild().member_count))
         embed.add_field("مالك الخادم:", f"{owner.username}#{owner.discriminator} (`{owner.id}`)")
         embed.add_field("خوادم فاذكروني", str(len(self.cache.get_guilds_view())))
         embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
         embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
         await self.rest.execute_webhook(
             853316492631605268, 
-            "En1BiIqnADnVRY7RGFGwMGxYNWwHBcSO_8SMvdEbMWMvD5ZgCAxMYhN3pKy1ON",
+            "Pfrbp-En1BiIqnADnVRY7RGFGwMGxYNWwHBcSO_8SMvdEbMWMvD5ZgCAxMYhN3pKy1ON",
             embed=embed
         )
     
     async def on_guild_leave(self, event: hikari.GuildLeaveEvent):
-        owner = await self.rest.fetch_user(event.get_guild().owner_id)
-        embed = hikari.Embed(
-            title="ازالة جديده",
-            color=0xFF0000
-        )
-        embed.add_field("اسم الخادم:", f"{event.get_guild().name} (`{event.get_guild().id}`)")
-        embed.add_field("عدد أعضاء الخادم:", event.get_guild().member_count)
-        embed.add_field("مالك الخادم:", f"{owner.username}#{owner.discriminator} (`{owner.id}`)")
-        embed.add_field("خوادم فاذكروني", str(len(self.cache.get_guilds_view())))
-        embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
-        embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
-        await self.rest.execute_webhook(
-            853316492631605268, 
-            "En1BiIqnADnVRY7RGFGwMGxYNWwHBcSO_8SMvdEbMWMvD5ZgCAxMYhN3pKy1ON",
-            embed=embed
-        )
+        """
+        removed because of not get_guild(...) work 😭
+        """
 
     async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
         if self.lavalink_is_ready:
