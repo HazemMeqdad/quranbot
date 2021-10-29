@@ -253,6 +253,25 @@ class Invite(SlashCommand):
         )
 
 
+class Zker(SlashCommand):
+    name = "zker"
+    description = "ارسال ذكر عشوائي"
+    enabled_guilds = (900474669323415613,)
+
+    async def callback(self, context: SlashCommandContext) -> None:
+        random_zker = context.bot.db.get_random_zker()
+        embed = hikari.Embed(
+            title=str(random_zker.id),
+            description=random_zker.content,
+            color=0xffd430
+        )
+        embed.set_footer(context.bot.footer, icon=context.bot.get_me().avatar_url)
+        await context.interaction.create_initial_response(
+            ResponseType.MESSAGE_CREATE,
+            embed=embed
+        )
+
+
 def load(bot: Bot):
     bot.add_slash_command(Ping)
     bot.add_slash_command(Support)
@@ -261,6 +280,7 @@ def load(bot: Bot):
     bot.add_slash_command(BotInfo)
     bot.add_slash_command(HelpCommand)
     bot.add_slash_command(Invite)
+    bot.add_slash_command(Zker)
 
 
 def unload(bot: Bot):
@@ -271,3 +291,4 @@ def unload(bot: Bot):
     bot.remove_slash_command("bot")
     bot.remove_slash_command("help")
     bot.remove_slash_command("invite")
+    bot.remove_slash_command("zker")
