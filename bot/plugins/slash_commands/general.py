@@ -256,7 +256,6 @@ class Invite(SlashCommand):
 class Zker(SlashCommand):
     name = "zker"
     description = "ارسال ذكر عشوائي"
-    enabled_guilds = (900474669323415613,)
 
     async def callback(self, context: SlashCommandContext) -> None:
         random_zker = context.bot.db.get_random_zker()
