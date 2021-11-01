@@ -115,7 +115,7 @@ class Time(SlashCommand):
 
 class SetRoom(SlashCommand):
     name = "setroom"
-    description = "تغير خاصيه ارسال الاذكار الى امبد"
+    description = "أختيار قناة الأذكار"
     # enable_guilds = (GUILD_ID,)
     checks = [
         lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD)
@@ -131,7 +131,7 @@ class SetRoom(SlashCommand):
         if channel.type != hikari.ChannelType.GUILD_TEXT:
             raise CommandError("يجب التأكد من نوع القناة المحدده من انها كتابية")
         if int(channel_id) == guild.channel_id:
-            raise CommandError("لقد قمت بتحديد هاذه الروم من قبل")
+            raise CommandError("لقد قمت بتحديد هذا الروم مسبقًا")
         await context.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
         context.bot.db.update_guild(guild, GuildUpdateType.channel, channel.id)
         embed.description = "! الله يكتب اجرك راح ارسل الاذكار للروم %s" % channel.mention
