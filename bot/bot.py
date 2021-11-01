@@ -23,7 +23,7 @@ class Bot(lightbulb.Bot):
             token=token,
             help_class=CustomHelp,
             banner=None,
-            delete_unbound_slash_commands=False
+            delete_unbound_slash_commands=False,
         )
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.rest)
@@ -71,7 +71,7 @@ class Bot(lightbulb.Bot):
         self.lavalink = lavalink_client
         self.lavalink_is_ready = True
         logging.info("lavalink is ready WOW")
-        await create_tasks(self)
+        create_tasks(self)
         logging.info("tasks now ready")
 
     async def on_shotdown(self, event: hikari.StoppedEvent):

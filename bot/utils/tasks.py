@@ -1,18 +1,20 @@
 from __future__ import annotations
 import logging
 import hikari
-import threading
-from hikari import ForbiddenError
+from hikari import ForbiddenError, RateLimitedError
 import asyncio
 from lightbulb import Bot
+import time as ti
+import nest_asyncio
+nest_asyncio.apply()
 
 
 async def _sender_task(bot: Bot, time: int):
-    guilds = bot.db.get_all_channels_by_time(bot, time)
-    cache = bot.cache
-    global stop_threads
-    while stop_threads:
-        await asyncio.sleep(time)
+    global is_runing
+    while is_runing:
+        start = ti.monotonic()
+        guilds = bot.db.get_all_channels_by_time(bot, time)
+        cache = bot.cache
         send_count = 0
         for _guild in guilds:
             guild = cache.get_guild(_guild.id)
@@ -25,6 +27,8 @@ async def _sender_task(bot: Bot, time: int):
                 webhooks = await bot.rest.fetch_channel_webhooks(_guild.channel_id)
             except ForbiddenError:
                 continue
+            except RateLimitedError as rate_limit:
+                asyncio.sleep(float(rate_limit.retry_after))
             webhooks = [i for i in webhooks if i.name == bot.get_me().username]
             webhook = webhooks[0] if webhooks else None
             if not webhook:
@@ -34,8 +38,9 @@ async def _sender_task(bot: Bot, time: int):
                     avatar=bot.get_me().avatar_url
                 )
             channel_history = await bot.rest.fetch_messages(channel.id)
-            if _guild.anti_spam and channel_history[-1].webhook_id == webhook.id:
-                continue
+            if channel_history:
+                if _guild.anti_spam and channel_history[0].webhook_id == webhook.id:
+                    continue
             random_zker = bot.db.get_random_zker()
             content = f"> {random_zker.content}"
             data = {
@@ -54,21 +59,24 @@ async def _sender_task(bot: Bot, time: int):
                 continue
             await webhook.execute(content=content, **data)
             send_count += 1
-        logging.info(f"Task {time} finished, send in {send_count} guilds")
+        logging.info(f"Task {time} finished, send in {send_count} guilds timeit {ti.monotonic() - start}")
+        await asyncio.sleep(float(time))
 
-_tasks: list[threading.Thread] = []
+
+_tasks = []
 
 
-async def create_tasks(bot: Bot):
-    times = [1800, 3600, 7200, 21600, 43200, 86400]    
-    for time in times:        
-        x = threading.Thread(target=asyncio.run, args=(_sender_task(bot, time),))
-        x.start()
-        _tasks.append(x)
+def create_tasks(bot: Bot):
+    times = [1800, 3600, 7200, 21600, 43200, 86400]      
+    loop = asyncio.get_event_loop()  
+    for time in times:
+        task = asyncio.ensure_future(_sender_task(bot, time), loop=loop)
+        _tasks.append(task)
 
-stop_threads = False
+is_runing = True
 
 def stop_tasks():
-    stop_threads = True
+    global is_runing
+    is_runing = False
     for task in _tasks:
-        task.join()
+        task.cancel()
