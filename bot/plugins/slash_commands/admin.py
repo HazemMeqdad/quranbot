@@ -41,9 +41,9 @@ class Prefix(SlashCommand):
         await context.interaction.edit_initial_response(embed=embed)
 
 
-class AntiSpam(SlashCommand):
-    name = "anti_spam"
-    description = "عدم تكرار الرسائل, ينصح باستخدامه في الشاتات المفتوحه"
+class Repeat(SlashCommand):
+    name = "repeat"
+    description = "خاصية تمنع تكرر ارسال الاذكار في حالة عدم تفاعل الشات"
     # enable_guilds = (GUILD_ID,)
 
     checks = [
@@ -193,7 +193,7 @@ class Remove(SlashCommand):
 
 def load(bot: Bot):
     bot.add_slash_command(Prefix)
-    bot.add_slash_command(AntiSpam)
+    bot.add_slash_command(Repeat)
     bot.add_slash_command(Embed)
     bot.add_slash_command(Time)
     bot.add_slash_command(SetRoom)

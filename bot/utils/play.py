@@ -12,7 +12,8 @@ al_shyke = {
     "3": "https://youtu.be/IrwPiwHWhXo",  # عبدالرحمن السديس
     "4": "https://youtu.be/V9UIIsai5E8",  # عبدالباسط عبدالصمد
     "5": "https://youtu.be/sPHuARcC6kE",  # اسلام صبحي
-    "6": "https://youtu.be/MGEWrAtHFwU"   # مشاري بن راشد العفاسي
+    "6": "https://youtu.be/MGEWrAtHFwU",  # مشاري بن راشد العفاسي
+    "7": "https://youtu.be/-55QeK_VbnQ",  # حسن صالح
 }
 
 
