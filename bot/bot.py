@@ -62,7 +62,7 @@ class Bot(lightbulb.Bot):
         builder = (
             lavasnek_rs.LavalinkBuilder(self.get_me().id, self._token)
             .set_host("127.0.0.1")
-            .set_port(8888)
+            .set_port(4569)
             .set_password("pass")
             .set_start_gateway(False)
             .set_shard_count(self.shard_count)
