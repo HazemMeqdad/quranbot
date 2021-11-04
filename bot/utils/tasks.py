@@ -5,8 +5,7 @@ from hikari import ForbiddenError, RateLimitedError
 import asyncio
 from lightbulb import Bot
 import time as ti
-import nest_asyncio
-nest_asyncio.apply()
+import tasks
 
 
 async def _sender_task(bot: Bot, time: int):
@@ -17,7 +16,7 @@ async def _sender_task(bot: Bot, time: int):
         cache = bot.cache
         send_count = 0
         for _guild in guilds:
-            guild = cache.get_guild(_guild.id)
+            guild = cache.get_available_guild(_guild.id)
             if not guild:
                 continue
             channel = guild.get_channel(_guild.channel_id)
@@ -63,14 +62,13 @@ async def _sender_task(bot: Bot, time: int):
         await asyncio.sleep(float(time))
 
 
-_tasks = []
+_tasks: list[tasks.Task] = []
 
 
 def create_tasks(bot: Bot):
     times = [1800, 3600, 7200, 21600, 43200, 86400]      
-    loop = asyncio.get_event_loop()  
     for time in times:
-        task = asyncio.ensure_future(_sender_task(bot, time), loop=loop)
+        task = tasks.Task(_sender_task, intervel=time)
         _tasks.append(task)
 
 is_runing = True

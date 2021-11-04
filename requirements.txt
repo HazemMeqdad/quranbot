@@ -1,7 +1,7 @@
-pymongo
-requests
+pymongo[srv]
+hikari
+lavasnek_rs
+nest_asyncio
 beautifulsoup4
 hikari-lightbulb
-lavasnek_rs
-hikari
-discord
+git+https://github.com/DwcTeam/tasks.git
