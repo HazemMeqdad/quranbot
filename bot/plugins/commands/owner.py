@@ -38,7 +38,7 @@ class Owner(lightbulb.Plugin):
 
     @lightbulb.check(lightbulb.owner_only)
     @lightbulb.command(name="eval", hidden=True)
-    async def eval_command(self, ctx: lightbulb.Context, expression: str = ""):
+    async def eval_command(self, ctx: lightbulb.Context, *, expression: str = ""):
         to_eval = expression.replace("await ", "")
         try:
             result = eval(to_eval)
