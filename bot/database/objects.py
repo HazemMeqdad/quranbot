@@ -29,6 +29,10 @@ class Guild:
     @property
     def embed(self) -> bool:
         return self._data.get("embed")
+    
+    @property
+    def role_id(self) -> int | None:
+        return self._data.get("role_id")
 
 class Azkar:
     def __init__(self, data: dict) -> None:
@@ -51,3 +55,4 @@ class GuildUpdateType(Enum):
     time = "time"
     anti_spam = "anti_spam"
     embed = "embed"
+    role_id = "role_id"

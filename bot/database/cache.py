@@ -63,7 +63,8 @@ class DB:
                 "channel": None,
                 "time": 1800,
                 "anti_spam": False,
-                "embed": False
+                "embed": False,
+                "role_id": None
             }
 
             self.col_guilds.insert_one(data)

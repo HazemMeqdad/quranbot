@@ -3,8 +3,10 @@ from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import MessageFlag
 from lightbulb import Plugin, commands 
 import lightbulb
+from lightbulb.checks import has_guild_permissions
 from lightbulb.context import SlashContext
 from bot.utils import voice, command_error
+from bot.database import GuildUpdateType
 
 
 quran_plugin = Plugin("quran")
@@ -105,6 +107,39 @@ async def quran_volume(ctx: SlashContext):
     ctx.bot.lavalink.volume(ctx.guild_id, vol)
     embed.description = f"تم تغير مستوى الصوت إلى `{vol}%`"
     await ctx.interaction.edit_initial_response(embed=embed)
+
+@quran.child()
+@lightbulb.add_checks(has_guild_permissions(hikari.Permissions.MANAGE_GUILD))
+@lightbulb.option(
+    name="الرتبة",
+    description="أختر الرتبة",
+    type=hikari.Role
+)
+@lightbulb.command("role", " تقيد صلاحيات التحكم بالقرآن الكريم")
+@lightbulb.implements(commands.SlashSubCommand, commands.SlashGroupMixin)
+async def quran_role(ctx: SlashContext):
+    role = ctx.raw_options.get("الرتبة")
+    guild = ctx.bot.db.fetch_guild(ctx.guild_id)
+    ctx.bot.db.update_guild(guild, GuildUpdateType.role_id, role.id)
+    embed = hikari.Embed(
+        description="لقد تم تعين رتبة <@&{}> للتحكم بالقرآن الكريم".format(role.id),
+        color=0xffd430
+    )
+    await ctx.respond(embed=embed)
+
+
+@quran.child()
+@lightbulb.command("role_remove", "إلغاء تقيد صلاحيات التحكم بالقرآن الكريم")
+@lightbulb.implements(commands.SlashSubCommand)
+async def quran_role_delete(ctx: SlashContext):
+    guild = ctx.bot.db.fetch_guild(ctx.guild_id)
+    ctx.bot.db.update_guild(guild, GuildUpdateType.role_id, None)
+    embed = hikari.Embed(
+        description="لقد تم الغاء تقيد صلاحيات التحكم بالقرآن الكريم من رتبة <@&{}>".format(guild.role_id),
+        color=0xffd430
+    )
+    await ctx.respond(embed=embed)
+
 
 def load(bot):
     bot.add_plugin(quran_plugin)

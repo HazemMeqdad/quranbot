@@ -3,12 +3,10 @@ from hikari.messages import MessageFlag
 import hikari
 from hikari import ButtonStyle
 import time
-import typing
 from lightbulb import Plugin, commands
 import lightbulb
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
-from bot.database import DB
 from bot.utils import Prayer
 from bot.utils import command_error
 
@@ -115,10 +113,15 @@ async def info(ctx: SlashContext):
         inline=True
     )
     embed.add_field(
+        name="%s - رتبة القرآن الكريم" % hashtag,
+        value=ctx.get_guild().get_role(data.role_id).mention if data.role_id is not None else "لا يوجد",
+        inline=True
+    )
+    embed.add_field(
         name="%s - ايدي الشارد:" % hashtag,
         value=str(ctx.get_guild().shard_id),
-        inline=True)
-
+        inline=True
+    )
     embed.add_field(
         name="%s - سرعه الشارد:" % hashtag,
         value=f"{round(ctx.bot.shards.get(ctx.get_guild().shard_id) .heartbeat_latency * 1000)}ms {ping}",
@@ -129,7 +132,11 @@ async def info(ctx: SlashContext):
     await ctx.interaction.edit_initial_response(embed=embed)
 
 @general_plugin.command()
-@lightbulb.option(description="الدولة المراد معرفه وقت الصلاة بيها", name="المدينة", required=True)
+@lightbulb.option(
+    name="المدينة",
+    description="الدولة المراد معرفه وقت الصلاة بيها", 
+    required=True
+)
 @lightbulb.command("azan", "معرفة وقت الأذان في المدينة الخاصه بك")
 @lightbulb.implements(commands.SlashCommand)
 async def azan(ctx: SlashContext):
@@ -183,7 +190,7 @@ async def bot(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - أصدار النسخة" % hashtag,
-        value="V3.0.0",
+        value="V3.0.1",
         inline=True
     )
     embed.add_field(
