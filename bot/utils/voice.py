@@ -2,19 +2,11 @@ from __future__ import annotations
 import logging
 from hikari.api.voice import VoiceConnection
 from hikari.snowflakes import Snowflake
-from lightbulb import Context
+from lightbulb.context import Context
 import hikari
 
 
-al_shyke = {
-    "1": "https://youtu.be/wwMyn8a_puQ",  # ماهر المعيقلي
-    "2": "https://youtu.be/fLkdQeeRtYs",  # ياسر الدوسري
-    "3": "https://youtu.be/IrwPiwHWhXo",  # عبدالرحمن السديس
-    "4": "https://youtu.be/V9UIIsai5E8",  # عبدالباسط عبدالصمد
-    "5": "https://youtu.be/sPHuARcC6kE",  # اسلام صبحي
-    "6": "https://youtu.be/MGEWrAtHFwU",  # مشاري بن راشد العفاسي
-    "7": "https://youtu.be/-55QeK_VbnQ",  # حسن صالح
-}
+
 
 
 class EventHandler:
@@ -46,7 +38,7 @@ async def join_voice_channel(ctx: Context) -> Snowflake | hikari.Embed | int:
     await ctx.bot.lavalink.create_session(connection_info)
     return channel_id 
 
-async def stop(ctx: Context):
+async def leave_and_stop(ctx: Context):
     states = ctx.bot.cache.get_voice_states_view_for_guild(ctx.get_guild())
     voice_state = list(
         filter(lambda i: i.user_id == ctx.bot.get_me().id, states.iterator())

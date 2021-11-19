@@ -1,7 +1,18 @@
-from .exceptions import EmojiNotFound
 from .emojis import Emojis
-from .help import CustomHelp
 from .prayer import Prayer
-from .play import (al_shyke, EventHandler, join_voice_channel, stop)
-from .sunnah import Sunnah
+from .voice import EventHandler, join_voice_channel, leave_and_stop
 from .tasks import stop_tasks, create_tasks
+import hikari
+
+__all__ = [Emojis, Prayer, EventHandler, join_voice_channel, leave_and_stop, stop_tasks, create_tasks]
+
+async def command_error(ctx, message: str):
+    embed = hikari.Embed(
+        description=message,
+        color=0xffd430
+    )
+    await ctx.interaction.create_initial_response(
+        hikari.ResponseType.MESSAGE_CREATE, 
+        flags=hikari.MessageFlag.EPHEMERAL,
+        embed=embed
+    )

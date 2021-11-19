@@ -1,6 +1,8 @@
 import hikari
-from .exceptions import EmojiNotFound
 
+
+class EmojiNotFound(Exception):
+    ...
 
 class Emojis(object):
     def __init__(self, rest: hikari.impl.rest.RESTClientImpl):

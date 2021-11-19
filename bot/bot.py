@@ -4,26 +4,27 @@ from bot import database
 import hikari
 import lightbulb
 import lavasnek_rs
-from .utils import EventHandler, CustomHelp, create_tasks, stop_tasks
+from .utils import EventHandler, create_tasks, stop_tasks
 import pymongo
 
 
-class Bot(lightbulb.Bot):
+class Bot(lightbulb.BotApp):
     def __init__(self):
         token = open("./bot/config/token.txt", "r").read()
         self._extensions = [
-            "commands.general", "commands.errors", "commands.admin", "commands.owner", "commands.play",
-            "slash_commands.general", "slash_commands.admin", "slash_commands.play", "slash_commands.errors"
+            # "commands.general", "commands.errors", "commands.admin", "commands.owner", "commands.play",
+            # "general", "admin", "quran", "errors", "old_commands"
+            "quran", "general", "admin", "owner", "old_commands", "errors"
         ]
         super().__init__(
-            insensitive_commands=True,
             prefix=lightbulb.when_mentioned_or(self.resolve_prefix),
             ignore_bots=False,
             owner_ids=[750376850768789534, 716783245387235410, 277669327602188288, 385701197069418496, 532696546462924820],
             token=token,
-            help_class=CustomHelp,
             banner=None,
-            delete_unbound_slash_commands=False,
+            delete_unbound_commands=True,
+            # default_enabled_guilds=872200812129054730,
+            case_insensitive_prefix_commands=True
         )
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.rest)
@@ -32,22 +33,19 @@ class Bot(lightbulb.Bot):
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink_is_ready: bool = False
+        self.lavalink = None
         
     def setup(self):
         print("\n")
         for extension in self._extensions:
-            self.load_extension(f"bot.plugins.{extension}")
+            self.load_extensions(f"bot.plugins.{extension}")
             logging.info(f"Loaded: {extension}")
-
-    @staticmethod
-    async def check_only_guild(message: lightbulb.Context):
-        return message.guild_id is not None
 
     async def on_guild_create_message(self, event: hikari.GuildMessageCreateEvent):
         if not self.db.get_guild(event.guild_id):
             self.db.insert(event.guild_id)
 
-    async def resolve_prefix(self, bot: lightbulb.Bot, message: hikari.Message):
+    async def resolve_prefix(self, bot: lightbulb.BotApp, message: hikari.Message):
         if not message.guild_id:
             return "!"
         guild = self.db.get_guild(message.guild_id)
@@ -58,7 +56,15 @@ class Bot(lightbulb.Bot):
 
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
-        self.add_check(self.check_only_guild)
+        await self.create_lavalink_connection()
+        create_tasks(self)
+        logging.info("tasks now ready")
+
+    async def on_shotdown(self, event: hikari.StoppedEvent):
+        stop_tasks()
+        logging.info("shotdown event tasks")
+
+    async def create_lavalink_connection(self):
         builder = (
             lavasnek_rs.LavalinkBuilder(self.get_me().id, self._token)
             .set_host("127.0.0.1")
@@ -71,12 +77,6 @@ class Bot(lightbulb.Bot):
         self.lavalink = lavalink_client
         self.lavalink_is_ready = True
         logging.info("lavalink is ready WOW")
-        create_tasks(self)
-        logging.info("tasks now ready")
-
-    async def on_shotdown(self, event: hikari.StoppedEvent):
-        stop_tasks()
-        logging.info("shotdown event tasks")
 
 
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):

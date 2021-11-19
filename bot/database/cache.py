@@ -5,7 +5,6 @@ import hikari
 from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
-from lightbulb import Bot
 
 
 class DB:
@@ -45,7 +44,7 @@ class DB:
     def get_all_channels(self) -> list[object]:
         return [guild for guild in self.get_guilds()]
 
-    def get_all_channels_by_time(self, bot: Bot, time: int) -> list[Guild]:
+    def get_all_channels_by_time(self, bot, time: int) -> list[Guild]:
         return [Guild(i) for i in self.col_guilds.find({"time": time}) if i.get("channel")]
 
     def fetch_guild(self, guild_id: int) -> Guild | None:
