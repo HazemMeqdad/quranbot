@@ -11,6 +11,28 @@ from bot.database import GuildUpdateType
 
 quran_plugin = Plugin("quran")
 
+
+def check_permission(context: SlashContext, permission: hikari.Permissions, /):
+    perms = [
+        role.permissions.any(permission) for role in context.member.get_roles() if role.permissions.any(permission, hikari.Permissions.ADMINISTRATOR)]
+    if len(perms) > 0 or context.get_guild().owner_id == context.author.id:
+        return True
+    return False
+
+async def only_role(ctx: SlashContext):
+    print(1)
+    _guild = ctx.get_guild()
+    guild = ctx.bot.db.fetch_guild(_guild.id)
+    print(guild)
+    role = _guild.get_role(guild.role_id) if guild.role_id else None
+    print(2)
+    if not role or guild.role_id in [i.id for i in ctx.member.get_roles()] or check_permission(ctx, hikari.Permissions.MANAGE_GUILD):
+        print(3)
+        return True
+    print(3)
+    await command_error(ctx, "أنت لا تمتلك صلاحيات للتحكم بهاذ الأمر")
+    return False
+
 @quran_plugin.command()
 @lightbulb.command("quran", "quran group commands")
 @lightbulb.implements(commands.SlashCommandGroup)
@@ -47,6 +69,9 @@ reciter = {
 @lightbulb.command("play", "تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand)
 async def quran_play(ctx: SlashContext):
+    check = await only_role(ctx)
+    if check == False:
+        return
     value = ctx.raw_options.get("القارئ")
     choice = reciter.get(quran_options.get(value))
     embed = hikari.Embed(color=0xffd430)
@@ -65,6 +90,9 @@ async def quran_play(ctx: SlashContext):
 @lightbulb.command("radio", "تشغيل اذاعه القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand)
 async def quran_radio(ctx: SlashContext):
+    check = await only_role(ctx)
+    if check == False:
+        return
     channel_id = await voice.join_voice_channel(ctx)
     if isinstance(channel_id, hikari.Embed):
         await ctx.interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=channel_id)
@@ -81,6 +109,9 @@ async def quran_radio(ctx: SlashContext):
 @lightbulb.command("stop", "إيقاف تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand)
 async def quran_stop(ctx: SlashContext):
+    check = await only_role(ctx)
+    if check == False:
+        return
     data = await voice.leave_and_stop(ctx)
     embed = hikari.Embed(color=0xffd430)
     if not data:
@@ -99,6 +130,9 @@ async def quran_stop(ctx: SlashContext):
 @lightbulb.command("volume", "تغير مستوى الصوت للقرآن الكريم")
 @lightbulb.implements(commands.SlashSubCommand)
 async def quran_volume(ctx: SlashContext):
+    check = await only_role(ctx)
+    if check == False:
+        return
     vol = ctx.raw_options.get("المتسوى")
     embed = hikari.Embed(color=0xffd430)
     if vol > 100 or vol < 0:
