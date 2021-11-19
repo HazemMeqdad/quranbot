@@ -20,16 +20,11 @@ def check_permission(context: SlashContext, permission: hikari.Permissions, /):
     return False
 
 async def only_role(ctx: SlashContext):
-    print(1)
     _guild = ctx.get_guild()
     guild = ctx.bot.db.fetch_guild(_guild.id)
-    print(guild)
     role = _guild.get_role(guild.role_id) if guild.role_id else None
-    print(2)
     if not role or guild.role_id in [i.id for i in ctx.member.get_roles()] or check_permission(ctx, hikari.Permissions.MANAGE_GUILD):
-        print(3)
         return True
-    print(3)
     await command_error(ctx, "أنت لا تمتلك صلاحيات للتحكم بهاذ الأمر")
     return False
 

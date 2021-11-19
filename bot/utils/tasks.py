@@ -5,7 +5,45 @@ from hikari import ForbiddenError, RateLimitedError
 import asyncio
 import time as ti
 import tasks
+from requests import request
 
+BASE = "https://discord.com/api/v9"
+
+
+def fetch_channel_webhooks(token, channel_id):
+    re = request(
+        "GET", 
+        f"{BASE}/channels/{channel_id}/webhooks",
+        headers={
+            "Authorization": token, "Content-Type": "application/json"
+        }
+    )
+    return re.json()
+
+
+def fetch_messages(token, channel_id):
+    re = request(
+        "GET",
+        url=f"{BASE}/channels/{channel_id}/messages",
+        headers={
+            "Authorization": token, "Content-Type": "application/json"
+        }
+    )
+    return re.json()
+
+
+def create_webhook(token, channel_id, name):
+    re = request(
+        "POST",
+        url=f"{BASE}/channels/{channel_id}/webhooks",
+        json={
+            "name": name,
+        },
+        headers={
+            "Authorization": token, "Content-Type": "application/json"
+        }
+    )
+    return re
 
 async def send_for_guild(bot, guild):
     cache = bot.cache
@@ -15,23 +53,19 @@ async def send_for_guild(bot, guild):
     channel = _guild.get_channel(guild.channel_id)
     if not channel or not _guild:
         return
-    try:
-        webhooks = await bot.rest.fetch_channel_webhooks(guild.channel_id)
-    except ForbiddenError:
-        return
-    except RateLimitedError as rate_limit:
-        asyncio.sleep(float(rate_limit.retry_after))
-    webhooks = [i for i in webhooks if i.name == bot.get_me().username]
+    webhooks = fetch_channel_webhooks(bot.token, channel.id)
+
+    webhooks = [i for i in webhooks if i.get("name") == bot.get_me().username]
     webhook = webhooks[0] if webhooks else None
     if not webhook:
-        webhook = await bot.rest.create_webhook(
+        webhook = create_webhook(
+            bot.token,
             channel=channel.id,
             name=bot.get_me().username,
-            avatar=bot.get_me().avatar_url
         )
-    channel_history = await bot.rest.fetch_messages(channel.id)
+    channel_history = fetch_messages(bot.token, channel.id)
     if channel_history:
-        if guild.anti_spam and channel_history[0].webhook_id == webhook.id:
+        if guild.anti_spam and channel_history[0].get("webhook_id") == webhook.get("id"):
             return
     random_zker = bot.db.get_random_zker()
     content = f"> {random_zker.content}"
@@ -40,16 +74,31 @@ async def send_for_guild(bot, guild):
         "avatar_url": bot.get_me().avatar_url.url
     }
     if guild.embed:
-        embed = hikari.Embed(
-            description=random_zker.content,
-            color=0xffd430
+        data["embeds"] = [
+            {
+                "description": random_zker.content,
+                "color": 0xffd430,
+                "footer": {
+                    "text": "بوت فاذكروني لإحياء سنة ذكر الله",
+                    "icon_url": bot.get_me().avatar_url
+                },
+                "thumbnail": {
+                    "url": bot.get_me().avatar_url
+                }
+            }
+        ]
+        request(
+            "POST",
+            f"{BASE}/webhooks/{webhook.get('id')}/{webhook.get('token')}",
+            json=data
         )
-        embed.set_footer(
-            text="بوت فاذكروني لإحياء سنة ذكر الله", icon=bot.get_me().avatar_url)
-        embed.set_thumbnail(bot.get_me().avatar_url)
-        await webhook.execute(embed=embed, **data)
         return 1
-    await webhook.execute(content=content, **data)
+    data["content"] = content
+    request(
+        "POST",
+        f"{BASE}/webhooks/{webhook.get('id')}/{webhook.get('token')}",
+        json=data
+    )
     return 1
 
 async def create_task_send(bot, time: int):

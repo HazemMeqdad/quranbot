@@ -10,7 +10,7 @@ import pymongo
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
-        token = open("./bot/config/token.txt", "r").read()
+        self.token = open("./bot/config/token.txt", "r").read()
         self._extensions = [
             # "commands.general", "commands.errors", "commands.admin", "commands.owner", "commands.play",
             # "general", "admin", "quran", "errors", "old_commands"
@@ -20,7 +20,7 @@ class Bot(lightbulb.BotApp):
             prefix=lightbulb.when_mentioned_or(self.resolve_prefix),
             ignore_bots=False,
             owner_ids=[750376850768789534, 716783245387235410, 277669327602188288, 385701197069418496, 532696546462924820],
-            token=token,
+            token=self.token,
             banner=None,
             delete_unbound_commands=True,
             # default_enabled_guilds=872200812129054730,
@@ -57,8 +57,8 @@ class Bot(lightbulb.BotApp):
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
         await self.create_lavalink_connection()
-        create_tasks(self)
-        logging.info("tasks now ready")
+        # create_tasks(self)
+        # logging.info("tasks now ready")
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         stop_tasks()
