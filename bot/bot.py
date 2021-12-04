@@ -11,10 +11,8 @@ import pymongo
 class Bot(lightbulb.BotApp):
     def __init__(self):
         self.token = open("./bot/config/token.txt", "r").read()
-        self._extensions = [
-            # "commands.general", "commands.errors", "commands.admin", "commands.owner", "commands.play",
-            # "general", "admin", "quran", "errors", "old_commands"
-            "quran", "general", "admin", "owner", "old_commands", "errors"
+        self._extensions = [  # plugins
+            "quran", "general", "admin", "owner", "old_commands",
         ]
         super().__init__(
             prefix=lightbulb.when_mentioned_or(self.resolve_prefix),
@@ -23,7 +21,7 @@ class Bot(lightbulb.BotApp):
             token=self.token,
             banner=None,
             delete_unbound_commands=True,
-            # default_enabled_guilds=872200812129054730,
+            default_enabled_guilds=872200812129054730,
             case_insensitive_prefix_commands=True
         )
         self.print_banner("bot.banner", True, True)
@@ -38,7 +36,7 @@ class Bot(lightbulb.BotApp):
     def setup(self):
         print("\n")
         for extension in self._extensions:
-            self.load_extensions(f"bot.plugins.{extension}")
+            self.load_extensions(f"bot.extensions.{extension}")
             logging.info(f"Loaded: {extension}")
 
     async def on_guild_create_message(self, event: hikari.GuildMessageCreateEvent):

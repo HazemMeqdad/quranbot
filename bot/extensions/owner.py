@@ -45,7 +45,7 @@ async def _eval(ctx: SlashContext):
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
     try:
-        ctx.bot.load_extensions(f"bot.plugins.{extension}")
+        ctx.bot.load_extensions(f"bot.extensions.{extension}")
         logging.info(f"extension '{extension}' loaded")
         await ctx.respond(f"loaded {extension} extension")
     except Exception as error:
@@ -64,7 +64,7 @@ async def load_extension(ctx: SlashContext):
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
     try:
-        ctx.bot.unload_extensions(f"bot.plugins.{extension}")
+        ctx.bot.unload_extensions(f"bot.extensions.{extension}")
         logging.info(f"extension '{extension}' unloaded")
         await ctx.respond(f"unloaded {extension} extension")
     except Exception as error:
@@ -83,7 +83,7 @@ async def load_extension(ctx: SlashContext):
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
     try:
-        ctx.bot.reload_extensions(f"bot.plugins.{extension}")
+        ctx.bot.reload_extensions(f"bot.extensions.{extension}")
         logging.info(f"extension '{extension}' reloaded")
         await ctx.respond(f"reloaded {extension} extension")
     except Exception as error:
