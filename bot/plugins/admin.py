@@ -29,9 +29,9 @@ async def prefix(ctx: SlashContext):
     new_prefix = ctx.raw_options.get("new_prefix")
     embed = hikari.Embed(color=0xffd430)
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
-    error = await ctx.bot.emojis.error
+
     if len(new_prefix) > 5:
-        return await command_error(ctx, "%s لا يمكنك وضع بادئه اكثر من خمس حروف" % error)
+        return await command_error(ctx, "%s لا يمكنك وضع بادئه اكثر من خمس حروف" % ctx.bot.emojis.error)
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     ctx.bot.db.update_guild(guild, GuildUpdateType.prefix, new_prefix)
     embed.description = "تم تغير البادئه الى `%s`" % new_prefix
@@ -133,19 +133,18 @@ async def set_room(ctx: SlashContext):
         if not channel:
             return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
         await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-        yes = await ctx.bot.emojis.yes
-        no = await ctx.bot.emojis.no
+
         embed.description = "هل انت موافق على ايقاف ارسال الاذكار في روم <#%s>" % channel
         buttons = ctx.bot.rest.build_action_row()
 
         true = buttons.add_button(ButtonStyle.SUCCESS, "true")
         true.set_label("موافق")
-        true.set_emoji(yes)
+        true.set_emoji(ctx.bot.emojis.like)
         true.add_to_container()
 
         false = buttons.add_button(ButtonStyle.DANGER, "false")
         false.set_label("غير موافق")
-        false.set_emoji(no)
+        false.set_emoji(ctx.bot.emojis.no)
         false.add_to_container()
 
         await ctx.interaction.edit_initial_response(embed=embed, component=buttons)

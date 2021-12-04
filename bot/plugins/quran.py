@@ -4,10 +4,8 @@ from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import MessageFlag
 from lightbulb import Plugin, commands 
 import lightbulb
-from lightbulb.checks import has_guild_permissions
 from lightbulb.context import SlashContext
 from bot.utils import voice, command_error
-from bot.database import GuildUpdateType
 
 
 quran_plugin = Plugin("quran")
@@ -73,7 +71,7 @@ quran_reader = [
     name="quran_reader",
     description="أختر القارئ المناسب", 
     required=True, 
-    choices=quran_reader,
+    choices=[CommandChoice(name=i["name"], value=i["value"]) for i in quran_reader],
 )
 @lightbulb.command("play", "تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand)
@@ -82,7 +80,7 @@ async def quran_play(ctx: SlashContext):
     if check == False:
         return
 
-    stream_url = ctx.raw_options.quran_reader
+    stream_url = ctx.options.quran_reader
     name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
 
     embed = hikari.Embed(color=0xffd430)
@@ -90,7 +88,7 @@ async def quran_play(ctx: SlashContext):
     if isinstance(channel, hikari.Embed):
         await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=channel)
         return
-        
+
     await ctx.interaction.create_initial_response(ResponseType.DEFERRED_MESSAGE_CREATE)
 
     information = await ctx.bot.lavalink.auto_search_tracks(stream_url)

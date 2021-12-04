@@ -77,54 +77,50 @@ async def info(ctx: SlashContext):
     data = ctx.bot.db.fetch_guild(ctx.guild_id)
     times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
-    hashtag = await ctx.bot.emojis.hashtag
-    ping = await ctx.bot.emojis.ping
-    off = await ctx.bot.emojis.off
-    on = await ctx.bot.emojis.on
 
     embed = hikari.Embed(
         description="إعدادات خادم: %s" % ctx.get_guild().name,
         color=0xffd430
     )
     embed.add_field(
-        name="%s - البادئه:" % hashtag,
+        name="%s - البادئه:" % ctx.bot.emojis.hashtag,
         value=data.prefix,
         inline=True
     )
     embed.add_field(
-        name="%s - روم الاذكار:" % hashtag,
+        name="%s - روم الاذكار:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.cache.get_guild_channel(
             data.channel_id).mention if data.channel_id is not None else "لا يوجد",
         inline=True
     )
     embed.add_field(
-        name="%s - وقت ارسال الاذكار:" % hashtag,
+        name="%s - وقت ارسال الاذكار:" % ctx.bot.emojis.hashtag,
         value=times.get(data.time),
         inline=True
     )
     embed.add_field(
-        name="%s - وضع تكرار الرسائل:" % hashtag,
-        value=on if data.anti_spam else off,
+        name="%s - وضع تكرار الرسائل:" % ctx.bot.emojis.hashtag,
+        value=ctx.bot.emojis.on if data.anti_spam else ctx.bot.emojis.off,
         inline=True
     )
     embed.add_field(
-        name="%s - وضع الامبد:" % hashtag,
-        value=on if data.embed else off,
+        name="%s - وضع الامبد:" % ctx.bot.emojis.hashtag,
+        value=ctx.bot.emojis.on if data.embed else ctx.bot.emojis.off,
         inline=True
     )
     embed.add_field(
-        name="%s - رتبة القرآن الكريم" % hashtag,
+        name="%s - رتبة القرآن الكريم" % ctx.bot.emojis.hashtag,
         value=ctx.get_guild().get_role(data.role_id).mention if data.role_id is not None else "لا يوجد",
         inline=True
     )
     embed.add_field(
-        name="%s - ايدي الشارد:" % hashtag,
+        name="%s - ايدي الشارد:" % ctx.bot.emojis.hashtag,
         value=str(ctx.get_guild().shard_id),
         inline=True
     )
     embed.add_field(
-        name="%s - سرعه الشارد:" % hashtag,
-        value=f"{round(ctx.bot.shards.get(ctx.get_guild().shard_id) .heartbeat_latency * 1000)}ms {ping}",
+        name="%s - سرعه الشارد:" % ctx.bot.emojis.hashtag,
+        value=f"{round(ctx.bot.shards.get(ctx.get_guild().shard_id) .heartbeat_latency * 1000)}ms",
         inline=True
     )
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
@@ -133,14 +129,14 @@ async def info(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.option(
-    name="المدينة",
+    name="city_or_country",
     description="الدولة المراد معرفه وقت الصلاة بيها", 
     required=True
 )
 @lightbulb.command("azan", "معرفة وقت الأذان في المدينة الخاصه بك")
 @lightbulb.implements(commands.SlashCommand)
 async def azan(ctx: SlashContext):
-    country = ctx.raw_options.get("المدينة")
+    country = ctx.options.city_or_country
     embed = hikari.Embed(color=0xffd430)
     prayer = Prayer(country=country)
     x = prayer.country()
@@ -164,7 +160,7 @@ async def azan(ctx: SlashContext):
 @lightbulb.implements(commands.SlashCommand)
 async def bot(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-    hashtag = await ctx.bot.emojis.hashtag
+    hashtag = ctx.bot.emojis.hashtag
 
     guilds_count = len(ctx.bot.cache.get_guilds_view())
 
