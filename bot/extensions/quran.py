@@ -6,9 +6,17 @@ from lightbulb import Plugin, commands
 import lightbulb
 from lightbulb.context import SlashContext
 from bot.utils import voice, command_error
+import json
+import os
+
+quran_plugin = Plugin("القرآن الكريم")
 
 
-quran_plugin = Plugin("quran")
+# JSON Files quran_surahs
+quran_reader = json.load(open("bot/json/quran_reader.json", "r"))
+surah_optins = json.load(open("bot/json/surah_optins.json", "r"))
+quran_stream_readers = json.load(open("bot/json/quran_stream_readers.json", "r"))
+quran_surahs = json.load(open("bot/json/quran_surahs.json", "r"))
 
 
 def check_permission(context: SlashContext, permission: hikari.Permissions, /):
@@ -29,41 +37,9 @@ async def only_role(ctx: SlashContext):
 
 @quran_plugin.command()
 @lightbulb.command("quran", "quran group commands")
-@lightbulb.implements(commands.SlashCommandGroup)
+@lightbulb.implements(commands.SlashCommandGroup, commands.PrefixSubGroup)
 async def quran(ctx: SlashContext):
     ...
-
-
-quran_reader = [
-    {
-        "name": "ماهر المعيقلي",
-        "value": "https://youtu.be/wwMyn8a_puQ"
-    },
-    {
-        "name": "ياسر الدوسري",
-        "value": "https://youtu.be/fLkdQeeRtYs"
-    },
-    {
-        "name": "عبدالرحمن السديس",
-        "value": "https://youtu.be/IrwPiwHWhXo"
-    },
-    {
-        "name": "عبدالباسط عبدالصمد",
-        "value": "https://youtu.be/V9UIIsai5E8"
-    },
-    {
-        "name": "اسلام صبحي",
-        "value": "https://youtu.be/sPHuARcC6kE"
-    },
-    {
-        "name": "مشاري بن راشد العفاسي",
-        "value": "https://youtu.be/MGEWrAtHFwU"
-    },
-    {
-        "name": "حسن صالح",
-        "value": "https://youtu.be/-55QeK_VbnQ"
-    }
-]
 
 
 @quran.child()
@@ -73,59 +49,77 @@ quran_reader = [
     required=True, 
     choices=[CommandChoice(name=i["name"], value=i["value"]) for i in quran_reader],
 )
+@lightbulb.option(
+    name="surah_number",
+    description="أكتب رقم السوره",
+    type=int,
+    required=False,
+)
 @lightbulb.command("play", "تشغيل القران الكريم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_play(ctx: SlashContext):
     check = await only_role(ctx)
     if check == False:
         return
 
+    embed = hikari.Embed(color=0xffd430)
     stream_url = ctx.options.quran_reader
     name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
 
-    embed = hikari.Embed(color=0xffd430)
+    surah_number = ctx.options.surah_number
+    surah_number = str(surah_number) if surah_number else None
+
     channel = await voice.join_voice_channel(ctx)
     if isinstance(channel, hikari.Embed):
         await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=channel)
         return
 
+    await ctx.bot.lavalink.skip(ctx.guild_id)
+    node = await ctx.bot.lavalink.get_guild_node(ctx.guild_id)
+    if not node.queue and not node.now_playing:
+        await ctx.bot.lavalink.stop(ctx.guild_id)
+
+    if surah_number:
+        if name == "حسن صالح" or name == "اسلام صبحي":
+            embed.description = "للأسف هاذ القارئ غير متاح في الوقت الحالي"
+            await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=embed)
+            return
+        
+        if int(surah_number) > 114 or int(surah_number) < 1:
+            embed.description = "خطأ في أدخال رقم السورة يجرا العلم بان عدد سور القرآن الكريم 114 سوره"
+            await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=embed)
+            return
+
+        surah = quran_surahs.get(str(surah_number))
+        stream_url = [i["value"] for i in surah_optins if i["name"] == name][0]
+
+        stream_url = stream_url+surah_number if len(surah_number) == 3 \
+                                            else stream_url+"0"+surah_number \
+                                            if len(surah_number) == 2 \
+                                            else stream_url+"00"+surah_number
+
+        # if len(surah_number) == 3:
+        #     stream_url = stream_url+surah_number
+        # elif len(surah_number) == 2:
+        #     stream_url = stream_url+"0"+surah_number
+        # else :
+        #     stream_url = stream_url+"00"+surah_number
+
+        await ctx.interaction.create_initial_response(ResponseType.DEFERRED_MESSAGE_CREATE)
+
+        information = await ctx.bot.lavalink.get_tracks(stream_url+".mp3")
+        await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
+        embed.description = "تم تشغيل سوره %s بصوت الشيخ: **%s**" % (surah, name)
+        await ctx.interaction.edit_initial_response(embed=embed)
+        return
+
     await ctx.interaction.create_initial_response(ResponseType.DEFERRED_MESSAGE_CREATE)
 
-    information = await ctx.bot.lavalink.auto_search_tracks(stream_url)
+    information = await ctx.bot.lavalink.get_tracks(stream_url)
     await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
     embed.description = "تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % name
     await ctx.interaction.edit_initial_response(embed=embed)
 
-quran_stream_readers = [
-    {
-        "name": "عبدالباسط عبدالصمد",
-        "value": "http://live.mp3quran.net:9980/"
-    },    
-    {
-        "name": "ياسر الدوسري",
-        "value": "http://live.mp3quran.net:9984/"
-    },
-    {
-        "name": "ماهر المعيقلي",
-        "value": "http://live.mp3quran.net:8002/"
-    },
-    {
-        "name": "عبدالرحمن السديس",
-        "value": "http://live.mp3quran.net:9988/"
-    },
-    {
-        "name": "مشاري بن راشد العفاسي",
-        "value": "http://live.mp3quran.net:8010/"
-    },
-    {
-        "name": "ابو بكر الشاطري",
-        "value": "http://live.mp3quran.net:9966"
-    },
-    {
-        "name": "فارس عباد",
-        "value": "http://live.mp3quran.net:9972"
-    },
-]
 
 @quran.child()
 @lightbulb.option(
@@ -135,18 +129,21 @@ quran_stream_readers = [
     choices=[CommandChoice(name=i["name"], value=i["value"]) for i in quran_stream_readers]
 )
 @lightbulb.command("radio", "تشغيل اذاعه القران الكريم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_radio(ctx: SlashContext):
     check = await only_role(ctx)
     if check == False:
         return
     channel_id = await voice.join_voice_channel(ctx)
+
     if isinstance(channel_id, hikari.Embed):
         await ctx.interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=channel_id)
         return
+
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     embed = hikari.Embed(color=0xffd430)
     stream_url = ctx.options.quran_reader
+
     if stream_url:
         name = [i["name"] for i in quran_stream_readers if i["value"] == stream_url][0]
         information = await ctx.bot.lavalink.get_tracks(stream_url)
@@ -164,7 +161,7 @@ async def quran_radio(ctx: SlashContext):
 
 @quran.child()
 @lightbulb.command("stop", "إيقاف تشغيل القران الكريم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_stop(ctx: SlashContext):
     check = await only_role(ctx)
     if check == False:
@@ -185,7 +182,7 @@ async def quran_stop(ctx: SlashContext):
     required=True,
 )
 @lightbulb.command("volume", "تغير مستوى الصوت للقرآن الكريم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_volume(ctx: SlashContext):
     check = await only_role(ctx)
     if check == False:

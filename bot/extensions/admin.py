@@ -8,11 +8,11 @@ from hikari import ButtonStyle, Permissions
 import asyncio
 
 
-admin_plugin = Plugin("admin")
+admin_plugin = Plugin("الأداره")
 
 @admin_plugin.command()
 @lightbulb.command("set", "set command group")
-@lightbulb.implements(commands.SlashCommandGroup)
+@lightbulb.implements(commands.SlashCommandGroup, commands.PrefixCommandGroup)
 async def _set(ctx: SlashContext):
     ...
 
@@ -24,7 +24,7 @@ async def _set(ctx: SlashContext):
     required=True
 )
 @lightbulb.command("prefix", "تغير البادئة الخاصة بالخادم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def prefix(ctx: SlashContext):
     new_prefix = ctx.raw_options.get("new_prefix")
     embed = hikari.Embed(color=0xffd430)
@@ -46,7 +46,7 @@ async def prefix(ctx: SlashContext):
     required=True
 )
 @lightbulb.command("spam", "خاصية تمنع تكرر ارسال الاذكار في حالة عدم تفاعل الشات")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def set_spam(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     mode = ctx.raw_options.get("mode")
@@ -68,7 +68,7 @@ async def set_spam(ctx: SlashContext):
     type=bool
 )
 @lightbulb.command("embed", "تغير خاصيه ارسال الاذكار الى امبد")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def set_embed(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     mode = ctx.raw_options.get("mode")
@@ -99,7 +99,7 @@ times = {
     choices=list(times.keys())
 )
 @lightbulb.command("time", "تغير وقت ارسال الأذكار")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def set_time(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     embed = hikari.Embed(color=0xffd430)
@@ -121,7 +121,7 @@ async def set_time(ctx: SlashContext):
     required=False,
 )
 @lightbulb.command("room", "أختيار قناة الأذكار")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def set_room(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     channel_id = ctx.raw_options.get("channel")
@@ -193,7 +193,7 @@ async def set_room(ctx: SlashContext):
     required=False
 )
 @lightbulb.command("role", "تقيد صلاحيات التحكم بالقرآن الكريم")
-@lightbulb.implements(commands.SlashSubCommand)
+@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def set_role(ctx: SlashContext):
     role = ctx.raw_options.get("role")
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)

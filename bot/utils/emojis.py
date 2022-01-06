@@ -1,11 +1,15 @@
+from dataclasses import dataclass
+import typing
 
-class Emojis(object):
-    def __init__(self):
-        self.hashtag = "<:hashtag:845022052482023495>"
-        self.on = "<:on~1:843739804973531176>"
-        self.off = "<:off:843739805309468674>"
-        self.ping = "<:ping~2:916803631955714120>"
-        self.error = "<:errors:843739803870035979>"
-        self.like = "<:dislike:845022058345398272>"
-        self.dislike = "<:like:845022054699892757>"
+
+@dataclass(init=True)
+class Emojis:
+    def __init__(self, emoji_config: typing.Dict[str, str]):
+        self.hashtag = emoji_config["hashtag"]
+        self.on = emoji_config["_on"]
+        self.off = emoji_config["_off"]
+        self.ping = emoji_config["ping"]
+        self.error = emoji_config["error"]
+        self.like = emoji_config["like"]
+        self.dislike = emoji_config["dislike"]
 

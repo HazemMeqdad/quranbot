@@ -4,9 +4,10 @@ from lightbulb import Plugin, commands
 from lightbulb.context import SlashContext
 import inspect
 import logging
+import yaml
 
 owner_plugin = Plugin("owner")
-guild_id = [843710915861545000]
+guild_id = int(yaml.load(open("configuration.yml", "r"), Loader=yaml.FullLoader)["bot"]["prived_guilds"])
 
 @owner_plugin.command()
 @lightbulb.add_checks(lightbulb.owner_only)

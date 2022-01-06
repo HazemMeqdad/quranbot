@@ -1,7 +1,5 @@
 from __future__ import annotations
 from typing import Any
-
-import hikari
 from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database

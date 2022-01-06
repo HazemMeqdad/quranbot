@@ -6,9 +6,6 @@ from lightbulb.context import Context
 import hikari
 
 
-
-
-
 class EventHandler:
     """Events from the Lavalink server"""
 
@@ -48,6 +45,7 @@ async def leave_and_stop(ctx: Context):
         return
     await ctx.bot.update_voice_state(ctx.guild_id, None)
     await ctx.bot.lavalink.wait_for_connection_info_remove(ctx.guild_id)
+    await ctx.bot.lavalink.skip(ctx.guild_id)
     await ctx.bot.lavalink.remove_guild_node(ctx.guild_id)
     await ctx.bot.lavalink.remove_guild_from_loops(ctx.guild_id)
     return voice_state[0].channel_id

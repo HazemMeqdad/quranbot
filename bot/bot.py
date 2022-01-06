@@ -6,75 +6,79 @@ import lightbulb
 import lavasnek_rs
 from .utils import EventHandler, create_tasks, stop_tasks
 import pymongo
-
+import yaml
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
-        self.token = open("./bot/config/token.txt", "r").read()
+        self.config = yaml.load(open("configuration.yml", "r"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin", "owner", "old_commands",
+            "quran", "general", "admin",  "moshaf",
         ]
         super().__init__(
-            prefix=lightbulb.when_mentioned_or(self.resolve_prefix),
+            prefix="/",
             ignore_bots=False,
-            owner_ids=[750376850768789534, 716783245387235410, 277669327602188288, 385701197069418496, 532696546462924820],
-            token=self.token,
+            owner_ids=self.config["bot"]["owner_ids"],
+            token=self.config["bot"]["token"],
             banner=None,
             delete_unbound_commands=True,
-            default_enabled_guilds=872200812129054730,
-            case_insensitive_prefix_commands=True
+            default_enabled_guilds=self.config["bot"]["default_enabled_guilds"],
+            case_insensitive_prefix_commands=True,
+            help_class=None,
+            
         )
         self.print_banner("bot.banner", True, True)
-        self.emojis = utils.Emojis(self.rest)
-        self.footer = "بوت فاذكروني لإحياء سنة ذكر الله"
-        mongo_url = open("./bot/config/mongo_url.txt", "r").read()
-        mongodb = pymongo.MongoClient(mongo_url)
+        self.emojis = utils.Emojis(self.config["emojis"])
+        self.footer = self.config["bot"]["footer"]
+        mongodb = pymongo.MongoClient(self.config["bot"]["mongo_url"])
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink_is_ready: bool = False
         self.lavalink = None
         
     def setup(self):
-        print("\n")
-        for extension in self._extensions:
-            self.load_extensions(f"bot.extensions.{extension}")
-            logging.info(f"Loaded: {extension}")
+        self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
 
     async def on_guild_create_message(self, event: hikari.GuildMessageCreateEvent):
         if not self.db.get_guild(event.guild_id):
             self.db.insert(event.guild_id)
 
+    # not used because the prefix for all guilds is `/`
     async def resolve_prefix(self, bot: lightbulb.BotApp, message: hikari.Message):
         if not message.guild_id:
-            return "!"
+            return ["!", "/"]
         guild = self.db.get_guild(message.guild_id)
         if not guild:
             self.db.insert(guild)
-            return "!"
-        return guild.prefix
+            return ["!", "/"]
+        return [guild.prefix, "/"]
 
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
-        await self.create_lavalink_connection()
-        # create_tasks(self)
-        # logging.info("tasks now ready")
+        
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         stop_tasks()
         logging.info("shotdown event tasks")
 
+    async def on_shard_ready(self, event: hikari.ShardReadyEvent):
+        if event.shard.id == self.shard_count-1:
+            await self.create_lavalink_connection()
+            # await create_tasks(self)
+            # logging.info("tasks now ready")
+
+
     async def create_lavalink_connection(self):
         builder = (
             lavasnek_rs.LavalinkBuilder(self.get_me().id, self._token)
-            .set_host("127.0.0.1")
-            .set_port(4569)
-            .set_password("pass")
+            .set_host(self.config["lavalink"]["host"])
+            .set_port(self.config["lavalink"]["port"])
+            .set_password(self.config["lavalink"]["password"])
             .set_start_gateway(False)
             .set_shard_count(self.shard_count)
         )
         lavalink_client = await builder.build(EventHandler())
         self.lavalink = lavalink_client
         self.lavalink_is_ready = True
-        logging.info("lavalink is ready WOW")
+        logging.info("new lavalink connection")
 
 
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):
@@ -92,8 +96,8 @@ class Bot(lightbulb.BotApp):
         embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
         embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
         await self.rest.execute_webhook(
-            853316492631605268, 
-            "Pfrbp-En1BiIqnADnVRY7RGFGwMGxYNWwHBcSO_8SMvdEbMWMvD5ZgCAxMYhN3pKy1ON",
+            self.config["webhook"]["id"], 
+            self.config["webhook"]["token"],
             embed=embed
         )
     
@@ -126,6 +130,8 @@ class Bot(lightbulb.BotApp):
         self.event_manager.subscribe(hikari.GuildLeaveEvent, self.on_guild_leave)
         self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
+        self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
+
         super().run(
                 activity=hikari.Activity(
                     name="/help - fdrbot.xyz",

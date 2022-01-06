@@ -1,21 +1,23 @@
+import typing
+from hikari.embeds import EmbedField
 from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import MessageFlag
 import hikari
 from hikari import ButtonStyle
 import time
-from lightbulb import Plugin, commands
+from lightbulb import Plugin, commands, filter_commands
 import lightbulb
+from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
 from bot.utils import Prayer
 from bot.utils import command_error
 
-
 general_plugin = Plugin("general")
 
 @general_plugin.command()
 @lightbulb.command("ping", "سرعة اتصال البوت")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def ping(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     before = time.monotonic()
@@ -37,7 +39,7 @@ async def ping(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.command("support", "طلب الدعم الفني")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def support(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     embed = hikari.Embed(
@@ -71,7 +73,7 @@ async def support(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.command("info", "طلب معلومات الخادم")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def info(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     data = ctx.bot.db.fetch_guild(ctx.guild_id)
@@ -134,7 +136,7 @@ async def info(ctx: SlashContext):
     required=True
 )
 @lightbulb.command("azan", "معرفة وقت الأذان في المدينة الخاصه بك")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def azan(ctx: SlashContext):
     country = ctx.options.city_or_country
     embed = hikari.Embed(color=0xffd430)
@@ -157,7 +159,7 @@ async def azan(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.command("bot", "جلب معلومات البوت")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def bot(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     hashtag = ctx.bot.emojis.hashtag
@@ -208,7 +210,7 @@ async def bot(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.command("invite", "أضافة البوت إلى خادمك")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def invite(ctx: SlashContext):
     await ctx.interaction.create_initial_response(
         hikari.ResponseType.MESSAGE_CREATE,
@@ -218,7 +220,7 @@ async def invite(ctx: SlashContext):
 
 @general_plugin.command()
 @lightbulb.command("zker", "ارسال ذكر عشوائي")
-@lightbulb.implements(commands.SlashCommand)
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def zker(ctx: SlashContext):
     random_zker = ctx.bot.db.get_random_zker()
     embed = hikari.Embed(
@@ -231,6 +233,28 @@ async def zker(ctx: SlashContext):
         ResponseType.MESSAGE_CREATE,
         embed=embed
     )
+
+@general_plugin.command()
+@lightbulb.command("help", "أرسل هذا الرسالة للحصول على مساعدة")
+@lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
+async def help_command(ctx: SlashContext):
+    embed = hikari.Embed(color=0xffd430)
+    commands = ctx.bot._slash_commands
+    description = ""
+    fields: typing.List[EmbedField] = []
+    for name, command in commands.items():
+        if isinstance(command, SlashCommandGroup):
+            value = ""
+            for com_name, com in command.subcommands.items():
+                value += f"`/{name} {com_name}` - {com.description}\n"
+            fields.append(EmbedField(name=name, value=value, inline=True))
+            continue
+        description += f"`/{name}` - {command.description}\n"
+    embed.description = description
+    embed._fields = fields
+    embed.set_footer(ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+    await ctx.respond(embed=embed)
+
 
 def load(bot: Bot):
     bot.add_plugin(general_plugin)
