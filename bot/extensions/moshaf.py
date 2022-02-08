@@ -12,7 +12,7 @@ moshaf_plugin = lightbulb.Plugin("المصحف الشريف")
 BASE = "http://quran.ksu.edu.sa"
 
 pages = [f"{BASE}/ayat/safahat1/{i}.png" for i in range(604)]
-quran_surahs = json.load(open("bot/json/quran_surahs.json", "r"))
+quran_surahs = json.load(open("bot/json/quran_surahs.json", "r", encoding="utf-8"))
 
 
 @moshaf_plugin.command()

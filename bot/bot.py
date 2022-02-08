@@ -7,10 +7,11 @@ import lavasnek_rs
 from .utils import EventHandler, create_tasks, stop_tasks
 import pymongo
 import yaml
+from bot.api import Api
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
-        self.config = yaml.load(open("configuration.yml", "r"), Loader=yaml.FullLoader)
+        self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
             "quran", "general", "admin",  "moshaf",
         ]
@@ -132,6 +133,8 @@ class Bot(lightbulb.BotApp):
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
 
+        self.api = Api(self)
+        self.api.run_as_thread()
         super().run(
                 activity=hikari.Activity(
                     name="/help - fdrbot.xyz",

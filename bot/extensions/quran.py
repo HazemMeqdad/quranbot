@@ -13,10 +13,10 @@ quran_plugin = Plugin("القرآن الكريم")
 
 
 # JSON Files quran_surahs
-quran_reader = json.load(open("bot/json/quran_reader.json", "r"))
-surah_optins = json.load(open("bot/json/surah_optins.json", "r"))
-quran_stream_readers = json.load(open("bot/json/quran_stream_readers.json", "r"))
-quran_surahs = json.load(open("bot/json/quran_surahs.json", "r"))
+quran_reader = json.load(open("bot/json/quran_reader.json", "r", encoding="utf-8"))
+surah_optins = json.load(open("bot/json/surah_optins.json", "r", encoding="utf-8"))
+quran_stream_readers = json.load(open("bot/json/quran_stream_readers.json", "r", encoding="utf-8"))
+quran_surahs = json.load(open("bot/json/quran_surahs.json", "r", encoding="utf-8"))
 
 
 def check_permission(context: SlashContext, permission: hikari.Permissions, /):
