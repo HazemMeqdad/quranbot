@@ -6,3 +6,5 @@ beautifulsoup4
 git+https://github.com/tandemdude/hikari-lightbulb.git
 git+https://github.com/DwcTeam/tasks.git
 lxml
+waitress
+flask

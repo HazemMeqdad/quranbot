@@ -67,3 +67,4 @@ class DB:
 
             self.col_guilds.insert_one(data)
             self._guilds[guild_id] = Guild(data)
+            return data
