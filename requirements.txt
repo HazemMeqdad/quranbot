@@ -8,3 +8,4 @@ git+https://github.com/DwcTeam/tasks.git
 lxml
 waitress
 flask
+pyyaml
