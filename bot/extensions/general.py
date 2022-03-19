@@ -249,6 +249,8 @@ async def help_command(ctx: SlashContext):
                 value += f"`/{name} {com_name}` - {com.description}\n"
             fields.append(EmbedField(name=name, value=value, inline=True))
             continue
+        if command.hidden:
+            continue
         description += f"`/{name}` - {command.description}\n"
     embed.description = description
     embed._fields = fields

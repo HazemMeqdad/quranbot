@@ -13,7 +13,7 @@ class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf",
+            "quran", "general", "admin",  "moshaf", "owner"
         ]
         super().__init__(
             prefix="/",
@@ -22,7 +22,7 @@ class Bot(lightbulb.BotApp):
             token=self.config["bot"]["token"],
             banner=None,
             delete_unbound_commands=True,
-            default_enabled_guilds=self.config["bot"]["default_enabled_guilds"],
+            # default_enabled_guilds=self.config["bot"]["default_enabled_guilds"],
             case_insensitive_prefix_commands=True,
             help_class=None,
             

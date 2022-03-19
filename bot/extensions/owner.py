@@ -7,7 +7,7 @@ import logging
 import yaml
 
 owner_plugin = Plugin("owner")
-guild_id = int(yaml.load(open("configuration.yml", "r"), Loader=yaml.FullLoader)["bot"]["prived_guilds"])
+guild_id = 843710915861545000
 
 @owner_plugin.command()
 @lightbulb.add_checks(lightbulb.owner_only)
@@ -16,17 +16,18 @@ guild_id = int(yaml.load(open("configuration.yml", "r"), Loader=yaml.FullLoader)
     description="أدخل الكود المراد تشغيله",
     required=True
 )
-@lightbulb.command("eval", "eval command", guilds=guild_id)
+@lightbulb.command("eval", "eval command", guilds=guild_id, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def _eval(ctx: SlashContext):
     code = ctx.options.code
+    guilds = [x.member_count for x in ctx.bot.cache.get_available_guilds_view().values() if x.member_count > 100 if [i for i in owner_plugin.bot.db.get_guilds() if i.id == x.id]]
     to_eval = code.replace("await ", "")
     try:
         result = eval(to_eval)
         if inspect.isawaitable(result):
             result = await result
     except Exception as e:
-        result = "%s: %s" % (type(e).__name__, str(e))
+        result = "%s: %s" % (type(e).__name__, str(e)) 
     result = str(result)
     embed = hikari.Embed(description="Eval Result")
     embed.add_field(name="Input 📥", value=f"```py\n{code}```", inline=False)
@@ -41,7 +42,7 @@ async def _eval(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("load", "load command", guilds=guild_id)
+@lightbulb.command("load", "load command", guilds=guild_id, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
@@ -60,7 +61,7 @@ async def load_extension(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("unload", "unload command", guilds=guild_id)
+@lightbulb.command("unload", "unload command", guilds=guild_id, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
@@ -79,7 +80,7 @@ async def load_extension(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("reload", "reload command", guilds=guild_id)
+@lightbulb.command("reload", "reload command", guilds=guild_id, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
