@@ -32,6 +32,12 @@ class Api:
         guild = self.bot.cache.get_guild(guild_id)
         return jsonify({"check": True if guild else False})
 
+    def guilds_check(self):
+        data = request.json
+        cache_guilds = [i.id for i in self.bot.cache.get_available_guilds_view().values()]
+        guilds = [i for i in data["guilds"] if i in cache_guilds]
+        return jsonify({"guilds": guilds})
+
     def get_guild(self, guild_id: int):
         channels = self.bot.cache.get_guild_channels_view_for_guild(guild_id)
         roles = self.bot.cache.get_roles_view_for_guild(guild_id)
@@ -61,6 +67,7 @@ class Api:
 
         self.app.add_url_rule("/guild/<int:guild_id>", "get_guild", self.get_guild)
         self.app.add_url_rule("/guild/<int:guild_id>/check", "check", self.check)
+        self.app.add_url_rule("/guilds/check", "guilds_check", self.guilds_check)
         self.app.add_url_rule("/commands", "commands", self.commands)
 
         run = lambda : serve(self.app, host="127.0.0.1", port=8080)
