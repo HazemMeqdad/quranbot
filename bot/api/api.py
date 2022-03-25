@@ -6,6 +6,7 @@ from waitress import serve
 import typing
 from flask_cors import CORS
 from bot.database.objects import GuildUpdateType
+import asyncio 
 
 
 logger = logging.getLogger("bot.api")
@@ -46,6 +47,29 @@ class Api:
             "roles": [{"id": role.id, "name": role.name} for role in roles.values()]
         })
 
+    def get_guild_info(self, guild_id: int):
+        guild = self.bot.cache.get_guild(guild_id)
+        # if guild:
+        #     owner = await guild.fetch_owner()
+        return jsonify({
+            "status": True if guild else False,
+            "guild": {
+                "id": guild.id,
+                "name": guild.name,
+                "icon": guild.icon_url.url if guild.icon_url else f"https://via.placeholder.com/1024/2c2f33/ffffff?text={guild.name[0]}",
+                "owner_id": guild.owner_id,
+                # "owner": owner.username + "#" + owner.discriminator,
+                # "owner_id": owner.id,
+                "joined_at": guild.joined_at.timestamp(),
+                "member_count": guild.member_count,
+                "channels": len(guild.get_channels()),
+                "emojis": len(guild.get_emojis()),
+                "features": guild.features,
+                "banner": guild.banner_url.url if guild.banner_url else None,
+                "description": guild.description,
+            } if guild else None
+        })
+
     def commands(self):
         commands = self.bot._slash_commands
         fields: typing.List[typing.Dict] = []
@@ -69,7 +93,7 @@ class Api:
         self.app.add_url_rule("/guild/<int:guild_id>/check", "check", self.check)
         self.app.add_url_rule("/guilds/check", "guilds_check", self.guilds_check)
         self.app.add_url_rule("/commands", "commands", self.commands)
-
+        self.app.add_url_rule("/guild/<int:guild_id>/info", "get_guild_info", self.get_guild_info)
         run = lambda : serve(self.app, host="127.0.0.1", port=8080)
         keep_alive = lambda : Thread(target=run).start()
         keep_alive()
