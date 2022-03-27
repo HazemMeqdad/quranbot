@@ -4,10 +4,11 @@ from lightbulb import Plugin, commands
 from lightbulb.context import SlashContext
 import inspect
 import logging
-import yaml
+import typing as t
+
 
 owner_plugin = Plugin("owner")
-guild_id = 843710915861545000
+guild_id = [843710915861545000]
 
 @owner_plugin.command()
 @lightbulb.add_checks(lightbulb.owner_only)

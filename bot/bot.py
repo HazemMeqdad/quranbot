@@ -3,8 +3,8 @@ from bot import utils
 from bot import database
 import hikari
 import lightbulb
-import lavasnek_rs
-from .utils import EventHandler, create_tasks, stop_tasks
+import lavaplayer
+from .utils import stop_tasks
 import pymongo
 import yaml
 from bot.api import Api
@@ -21,8 +21,7 @@ class Bot(lightbulb.BotApp):
             owner_ids=self.config["bot"]["owner_ids"],
             token=self.config["bot"]["token"],
             banner=None,
-            delete_unbound_commands=True,
-            # default_enabled_guilds=self.config["bot"]["default_enabled_guilds"],
+            default_enabled_guilds=[843865725886398554],
             case_insensitive_prefix_commands=True,
             help_class=None,
             
@@ -32,8 +31,7 @@ class Bot(lightbulb.BotApp):
         self.footer = self.config["bot"]["footer"]
         mongodb = pymongo.MongoClient(self.config["bot"]["mongo_url"])
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
-        self.lavalink_is_ready: bool = False
-        self.lavalink = None
+        self.lavalink: lavaplayer.LavalinkClient = None
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
@@ -68,19 +66,14 @@ class Bot(lightbulb.BotApp):
 
 
     async def create_lavalink_connection(self):
-        builder = (
-            lavasnek_rs.LavalinkBuilder(self.get_me().id, self._token)
-            .set_host(self.config["lavalink"]["host"])
-            .set_port(self.config["lavalink"]["port"])
-            .set_password(self.config["lavalink"]["password"])
-            .set_start_gateway(False)
-            .set_shard_count(self.shard_count)
+        self.lavalink = lavaplayer.LavalinkClient(
+            host=self.config["lavalink"]["host"],
+            password=self.config["lavalink"]["password"],
+            port=self.config["lavalink"]["port"],
+            user_id=self.get_me().id,
+            num_shards=self.shard_count,
         )
-        lavalink_client = await builder.build(EventHandler())
-        self.lavalink = lavalink_client
-        self.lavalink_is_ready = True
-        logging.info("new lavalink connection")
-
+        self.lavalink.connect()
 
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):
         self.db.insert(event.get_guild().id)
@@ -108,8 +101,8 @@ class Bot(lightbulb.BotApp):
         """
 
     async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
-        if self.lavalink_is_ready:
-            await self.lavalink.raw_handle_event_voice_state_update(
+        if self.lavalink.is_connect:
+            await self.lavalink.raw_voice_state_update(
                 event.state.guild_id,
                 event.state.user_id,
                 event.state.session_id,
@@ -117,8 +110,8 @@ class Bot(lightbulb.BotApp):
             )
 
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
-        if self.lavalink_is_ready:
-            await self.lavalink.raw_handle_event_voice_server_update(
+        if self.lavalink.is_connect:
+            await self.lavalink.raw_voice_server_update(
                 event.guild_id, event.endpoint, event.token
             )
 

@@ -7,10 +7,9 @@ import lightbulb
 from lightbulb.context import SlashContext
 from bot.utils import voice, command_error
 import json
-import os
+import lavaplayer
 
 quran_plugin = Plugin("القرآن الكريم")
-
 
 # JSON Files quran_surahs
 quran_reader = json.load(open("bot/json/quran_reader.json", "r", encoding="utf-8"))
@@ -26,6 +25,7 @@ def check_permission(context: SlashContext, permission: hikari.Permissions, /):
         return True
     return False
 
+@lightbulb.Check
 async def only_role(ctx: SlashContext):
     _guild = ctx.get_guild()
     guild = ctx.bot.db.fetch_guild(_guild.id)
@@ -43,6 +43,7 @@ async def quran(ctx: SlashContext):
 
 
 @quran.child()
+@lightbulb.add_checks(only_role)
 @lightbulb.option(
     name="quran_reader",
     description="أختر القارئ المناسب", 
@@ -58,10 +59,6 @@ async def quran(ctx: SlashContext):
 @lightbulb.command("play", "تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_play(ctx: SlashContext):
-    check = await only_role(ctx)
-    if check == False:
-        return
-
     embed = hikari.Embed(color=0xffd430)
     stream_url = ctx.options.quran_reader
     name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
@@ -75,9 +72,6 @@ async def quran_play(ctx: SlashContext):
         return
 
     await ctx.bot.lavalink.skip(ctx.guild_id)
-    node = await ctx.bot.lavalink.get_guild_node(ctx.guild_id)
-    if not node.queue and not node.now_playing:
-        await ctx.bot.lavalink.stop(ctx.guild_id)
 
     if surah_number:
         if name == "حسن صالح" or name == "اسلام صبحي":
@@ -107,19 +101,18 @@ async def quran_play(ctx: SlashContext):
 
         await ctx.interaction.create_initial_response(ResponseType.DEFERRED_MESSAGE_CREATE)
 
-        information = await ctx.bot.lavalink.get_tracks(stream_url+".mp3")
-        await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
+        tracks = await ctx.bot.lavalink.get_tracks(stream_url+".mp3")
+        await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
         embed.description = "تم تشغيل سوره %s بصوت الشيخ: **%s**" % (surah, name)
         await ctx.interaction.edit_initial_response(embed=embed)
         return
 
     await ctx.interaction.create_initial_response(ResponseType.DEFERRED_MESSAGE_CREATE)
 
-    information = await ctx.bot.lavalink.get_tracks(stream_url)
-    await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
+    tracks = await ctx.bot.lavalink.get_tracks(stream_url)
+    await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
     embed.description = "تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % name
     await ctx.interaction.edit_initial_response(embed=embed)
-
 
 @quran.child()
 @lightbulb.option(
@@ -143,18 +136,17 @@ async def quran_radio(ctx: SlashContext):
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     embed = hikari.Embed(color=0xffd430)
     stream_url = ctx.options.quran_reader
-
     if stream_url:
         name = [i["name"] for i in quran_stream_readers if i["value"] == stream_url][0]
-        information = await ctx.bot.lavalink.get_tracks(stream_url)
-        await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
+        tracks = await ctx.bot.lavalink.get_tracks(stream_url)
+        await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
         embed.description = "تم تشغيل أذاعة القران الكريم الخاص بالقارئ %s في روم <#%s>" % (
             name, channel_id)
         await ctx.interaction.edit_initial_response(embed=embed)
         return
 
-    information = await ctx.bot.lavalink.get_tracks("http://live.mp3quran.net:9702/")
-    await ctx.bot.lavalink.play(ctx.guild_id, information.tracks[0]).requester(ctx.author.id).queue()
+    tracks = await ctx.bot.lavalink.get_tracks("http://live.mp3quran.net:9702/")
+    await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
     embed.description = "تم تشغيل أذاعة القران الكريم المتنوعه في روم <#%s>" % channel_id
     await ctx.interaction.edit_initial_response(embed=embed)
 
@@ -192,7 +184,7 @@ async def quran_volume(ctx: SlashContext):
     if vol > 100 or vol < 0:
         return await command_error(ctx, "الصوت المتاح من 0 - 100")
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-    ctx.bot.lavalink.volume(ctx.guild_id, vol)
+    await ctx.bot.lavalink.volume(ctx.guild_id, vol)
     embed.description = f"تم تغير مستوى الصوت إلى `{vol}%`"
     await ctx.interaction.edit_initial_response(embed=embed)
 

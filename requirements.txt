@@ -1,6 +1,6 @@
 pymongo[srv]
 hikari
-lavasnek_rs
+lavaplayer
 nest_asyncio
 beautifulsoup4
 hikari-lightbulb
