@@ -4,7 +4,7 @@ from bot import database
 import hikari
 import lightbulb
 import lavaplayer
-from .utils import stop_tasks
+from .utils import Tasks
 import pymongo
 import yaml
 from bot.api import Api
@@ -51,11 +51,12 @@ class Bot(lightbulb.BotApp):
         return [guild.prefix, "/"]
 
     async def on_ready(self, event: hikari.StartedEvent):
+        self.tasks = Tasks(self)
         logging.info(self.get_me().username)
         
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
-        stop_tasks()
+        # stop_tasks()
         logging.info("shotdown event tasks")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
@@ -108,6 +109,10 @@ class Bot(lightbulb.BotApp):
                 event.state.session_id,
                 event.state.channel_id,
             )
+
+    # def test_tasks(self): 
+    #     self.tasks = Tasks(self)
+    #     print(self.tasks.thirty_minutes())
 
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
         if self.lavalink.is_connect:
