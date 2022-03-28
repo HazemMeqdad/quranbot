@@ -21,7 +21,6 @@ guild_id = [843710915861545000]
 @lightbulb.implements(commands.SlashCommand)
 async def _eval(ctx: SlashContext):
     code = ctx.options.code
-    guilds = [x.member_count for x in ctx.bot.cache.get_available_guilds_view().values() if x.member_count > 100 if [i for i in owner_plugin.bot.db.get_guilds() if i.id == x.id]]
     to_eval = code.replace("await ", "")
     try:
         result = eval(to_eval)
