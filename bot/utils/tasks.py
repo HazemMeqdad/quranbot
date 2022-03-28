@@ -24,7 +24,7 @@ class Tasks:
         return self.guilds[self.index]
 
     async def get_webhook_or_fetch(self, guild: hikari.Guild, channel: hikari.GuildChannel) -> hikari.IncomingWebhook:
-        cahce_webhooks.get(guild.id, None)
+        webhook = cahce_webhooks.get(guild.id, None)
         if not webhook:
             webhooks = await self.bot.rest.fetch_channel_webhooks(channel)
             webhook = [i for i in webhooks if i.name == "فاذكروني"]
