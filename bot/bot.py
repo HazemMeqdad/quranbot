@@ -22,7 +22,7 @@ class Bot(lightbulb.BotApp):
             owner_ids=self.config["bot"]["owner_ids"],
             token=self.config["bot"]["token"],
             banner=None,
-            default_enabled_guilds=[843865725886398554],
+            # default_enabled_guilds=[843865725886398554],
             case_insensitive_prefix_commands=True,
             help_class=None,
             
@@ -52,11 +52,9 @@ class Bot(lightbulb.BotApp):
         return [guild.prefix, "/"]
 
     async def on_ready(self, event: hikari.StartedEvent):
-        self.tasks = Tasks(self)
         logging.info(self.get_me().username)
-        self.azkar_task.start()
     
-    @tasks.task(m=1)
+    @tasks.task(s=20)
     async def azkar_task(self):
         guilds = self.tasks.get_guilds
         await self.tasks.thirty_minutes(guilds)
@@ -68,6 +66,8 @@ class Bot(lightbulb.BotApp):
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
             await self.create_lavalink_connection()
+            self.tasks = Tasks(self)
+            self.azkar_task.start()
             # await create_tasks(self)
             # logging.info("tasks now ready")
 
@@ -115,10 +115,6 @@ class Bot(lightbulb.BotApp):
                 event.state.session_id,
                 event.state.channel_id,
             )
-
-    # def test_tasks(self): 
-    #     self.tasks = Tasks(self)
-    #     print(self.tasks.thirty_minutes())
 
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
         if self.lavalink.is_connect:

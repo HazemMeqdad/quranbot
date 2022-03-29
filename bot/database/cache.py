@@ -1,8 +1,8 @@
-from __future__ import annotations
 from typing import Any
 from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
+import typing as t
 
 
 class DB:
@@ -21,7 +21,7 @@ class DB:
         self._guilds: dict = {}
         self._azkar: list[Azkar] = []
         for guild in self.guilds:
-            self._guilds[guild.get("_id")] = Guild(guild)
+            self._guilds[guild.get("_id")] = Guild(**guild)
         for zker in self.azkar:
             self._azkar.append(Azkar(zker))
     
@@ -33,21 +33,18 @@ class DB:
         self._azkar.clear()
         self._create_cache()
 
-    def get_guild(self, guild_id: int) -> Guild | None:
+    def get_guild(self, guild_id: int) -> t.Optional[Guild]:
         return self._guilds.get(guild_id)
 
     def get_guilds(self) -> list[Guild]:
-        return [Guild(i) for i in self._guilds.items()]
+        return [Guild(**i) for i in self._guilds.items()]
     
-    def get_all_channels(self) -> list[object]:
+    def get_all_channels(self) -> t.List[object]:
         return [guild for guild in self.get_guilds()]
 
-    def get_all_channels_by_time(self, bot, time: int) -> list[Guild]:
-        return [Guild(i) for i in self.col_guilds.find({"time": time}) if i.get("channel")]
-
-    def fetch_guild(self, guild_id: int) -> Guild | None:
+    def fetch_guild(self, guild_id: int) -> t.Optional[Guild]:
         result = self.col_guilds.find_one({"_id": guild_id})
-        return Guild(result) if result else None
+        return Guild(**result) if result else None
 
     def update_guild(self, guild: Guild, update_type: GuildUpdateType, new_value: Any):
         self.col_guilds.update_one({"_id": guild.id}, {"$set": {update_type.value: new_value}})
@@ -66,5 +63,5 @@ class DB:
             }
 
             self.col_guilds.insert_one(data)
-            self._guilds[guild_id] = Guild(data)
-            return data
+            self._guilds[guild_id] = Guild(**data)
+            return self._guilds[guild_id]

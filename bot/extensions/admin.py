@@ -103,7 +103,7 @@ times = {
 async def set_time(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     embed = hikari.Embed(color=0xffd430)
-    if not guild.channel_id:
+    if not guild.channel:
         return await command_error(ctx, "يجب عليك تثبيت روم لاستعمال هاذ الامر")
     value = ctx.raw_options.get("time")
     ctx.bot.db.update_guild(
@@ -129,7 +129,7 @@ async def set_room(ctx: SlashContext):
     if not channel_id:
         guild = ctx.bot.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
-        channel = guild.channel_id
+        channel = guild.channel
         if not channel:
             return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
         await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
@@ -177,7 +177,7 @@ async def set_room(ctx: SlashContext):
 
     if channel.type != hikari.ChannelType.GUILD_TEXT:
         return await command_error(ctx, "يجب التأكد من نوع القناة المحدده من انها كتابية")
-    if int(channel_id) == guild.channel_id:
+    if int(channel_id) == guild.channel:
         return await command_error(ctx, "لقد قمت بتحديد هذا الروم مسبقًا")
     await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     ctx.bot.db.update_guild(guild, GuildUpdateType.channel, channel.id)

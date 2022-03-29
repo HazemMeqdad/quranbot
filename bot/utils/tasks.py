@@ -21,7 +21,9 @@ class Tasks:
 
     @property
     def get_guilds(self) -> t.List[hikari.Guild]:
+        print(self.guilds)
         if self.index >= len(self.guilds):
+            print("loloo")
             self.guilds = self.partition([i for i in self.bot.cache.get_available_guilds_view().values() if i.member_count >= 10], 4)
             self.index = 0 
         return self.guilds[self.index]
@@ -46,11 +48,12 @@ class Tasks:
             print(guild.name)
             try:
                 data: Guild = self.bot.db.fetch_guild(guild.id)
-                print(data)
-                if not data.channel_id: continue
-                channel = guild.get_channel(data.channel_id)
-                if not channel: continue
-                if guild.anti_spam:
+                if not data:
+                    data: Guild = self.bot.db.insert(guild.id)
+                assert data.channel
+                channel = guild.get_channel(data.channel)
+                assert channel
+                if data.anti_spam:
                     channel_history = await self.bot.rest.fetch_messages(channel.id)
                     if channel_history[0].webhook_id == webhook.id: continue
                 zker = self.bot.db.get_random_zker().content
