@@ -8,6 +8,7 @@ from .utils import Tasks
 import pymongo
 import yaml
 from bot.api import Api
+from lightbulb.ext import tasks
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
@@ -53,7 +54,12 @@ class Bot(lightbulb.BotApp):
     async def on_ready(self, event: hikari.StartedEvent):
         self.tasks = Tasks(self)
         logging.info(self.get_me().username)
-        
+        self.azkar_task.start()
+    
+    @tasks.task(m=1)
+    async def azkar_task(self):
+        guilds = self.tasks.get_guilds
+        await self.tasks.thirty_minutes(guilds)
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         # stop_tasks()

@@ -21,6 +21,9 @@ class Tasks:
 
     @property
     def get_guilds(self) -> t.List[hikari.Guild]:
+        if self.index >= len(self.guilds):
+            self.guilds = self.partition([i for i in self.bot.cache.get_available_guilds_view().values() if i.member_count >= 10], 4)
+            self.index = 0 
         return self.guilds[self.index]
 
     async def get_webhook_or_fetch(self, guild: hikari.Guild, channel: hikari.GuildChannel) -> hikari.IncomingWebhook:
@@ -40,30 +43,32 @@ class Tasks:
 
     async def thirty_minutes(self, guilds: t.List[hikari.Guild]):
         for guild in guilds:
-            data: Guild = self.bot.db.fetch_guild(guild.id)
-            assert data.channel_id != None
-            channel = guild.get_channel(data.channel_id)
-            if not channel:
-                continue
-            if guild.anti_spam:
-                channel_history = await self.bot.rest.fetch_messages(channel.id)
-                if channel_history[0].webhook_id == webhook.id:
-                    continue
-            zker = self.bot.db.get_random_zker().content
-            webhook = await self.get_webhook_or_fetch(guild, channel)
-            if data.embed:
-                embed = (
-                    hikari.Embed(
-                        description=zker,
-                        color=0xffd430
+            print(guild.name)
+            try:
+                data: Guild = self.bot.db.fetch_guild(guild.id)
+                print(data)
+                if not data.channel_id: continue
+                channel = guild.get_channel(data.channel_id)
+                if not channel: continue
+                if guild.anti_spam:
+                    channel_history = await self.bot.rest.fetch_messages(channel.id)
+                    if channel_history[0].webhook_id == webhook.id: continue
+                zker = self.bot.db.get_random_zker().content
+                webhook = await self.get_webhook_or_fetch(guild, channel)
+                if data.embed:
+                    embed = (
+                        hikari.Embed(
+                            description=zker,
+                            color=0xffd430
+                        )
+                        .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.get_me().avatar_url.url)
+                        .set_thumbnail(self.bot.get_me().avatar_url.url)
                     )
-                    .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.get_me().avatar_url.url)
-                    .set_thumbnail(self.bot.get_me().avatar_url.url)
+                await self.bot.rest.execute_webhook(
+                    webhook=webhook, 
+                    token=webhook.token,
+                    username="فاذكروني",
+                    avatar_url=self.bot.get_me().avatar_url.url,
+                    **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
                 )
-            await self.bot.rest.execute_webhook(
-                webhook=webhook, 
-                token=webhook.token,
-                username="فاذكروني",
-                avatar_url=self.bot.get_me().avatar_url.url,
-                **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
-            )
+            except AssertionError: ...
