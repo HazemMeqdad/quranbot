@@ -10,6 +10,7 @@ import yaml
 from bot.api import Api
 from lightbulb.ext import tasks
 
+
 class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
@@ -33,6 +34,7 @@ class Bot(lightbulb.BotApp):
         mongodb = pymongo.MongoClient(self.config["bot"]["mongo_url"])
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink: lavaplayer.LavalinkClient = None
+        logging.getLogger().setLevel(logging.DEBUG)
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
@@ -53,11 +55,20 @@ class Bot(lightbulb.BotApp):
 
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
-    
-    @tasks.task(s=20)
+        tasks.load(self)
+        self.azkar_task.start()
+
+    @tasks.task(m=1)
     async def azkar_task(self):
-        guilds = self.tasks.get_guilds
-        await self.tasks.thirty_minutes(guilds)
+        print("start azkar task")
+        self.tasks = Tasks(
+            guilds=self.cache.get_guilds_view   (), 
+            rest=self.rest, 
+            bot=self.get_me(), 
+            db=self.db
+        )
+        await self.tasks.start()
+        print("end azkar task")
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         # stop_tasks()
@@ -66,8 +77,6 @@ class Bot(lightbulb.BotApp):
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
             await self.create_lavalink_connection()
-            self.tasks = Tasks(self)
-            self.azkar_task.start()
             # await create_tasks(self)
             # logging.info("tasks now ready")
 
