@@ -36,7 +36,7 @@ class DB:
     def get_guild(self, guild_id: int) -> t.Optional[Guild]:
         return self._guilds.get(guild_id)
 
-    def get_guilds(self) -> list[Guild]:
+    def get_guilds(self) -> t.List[Guild]:
         return [Guild(**i) for i in self._guilds.items()]
     
     def get_all_channels(self) -> t.List[object]:
