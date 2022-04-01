@@ -12,7 +12,7 @@ class Guild:
     time: int
     anti_spam: bool
     embed: bool
-    role_id: t.Optional[int]
+    role_id: t.Optional[int] = None
 
     @property
     def id(self) -> int:
