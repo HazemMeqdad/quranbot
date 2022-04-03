@@ -115,7 +115,7 @@ class Bot(lightbulb.BotApp):
         """
 
     async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
-        if self.lavalink.is_connect:
+        if self.lavalink and self.lavalink.is_connect:
             await self.lavalink.raw_voice_state_update(
                 event.state.guild_id,
                 event.state.user_id,
@@ -124,10 +124,13 @@ class Bot(lightbulb.BotApp):
             )
 
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
-        if self.lavalink.is_connect:
+        if self.lavalink and self.lavalink.is_connect:
             await self.lavalink.raw_voice_server_update(
                 event.guild_id, event.endpoint, event.token
             )
+
+    async def on_error(self, event: lightbulb.CommandErrorEvent):
+        logging.error(event.exception)
 
     def run(self):
         self.setup()
@@ -139,6 +142,7 @@ class Bot(lightbulb.BotApp):
         self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
+        self.event_manager.subscribe(lightbulb.CommandErrorEvent, self.on_error)
 
         self.api = Api(self)
         self.api.run_as_thread()
