@@ -94,6 +94,6 @@ class Api:
         self.app.add_url_rule("/guilds/check", "guilds_check", self.guilds_check)
         self.app.add_url_rule("/commands", "commands", self.commands)
         self.app.add_url_rule("/guild/<int:guild_id>/info", "get_guild_info", self.get_guild_info)
-        run = lambda : serve(self.app, host="127.0.0.1", port=8080)
+        run = lambda : serve(self.app, host="0.0.0.0", port=8080)
         keep_alive = lambda : Thread(target=run).start()
         keep_alive()

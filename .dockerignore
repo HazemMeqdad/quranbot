@@ -1,0 +1,7 @@
+.git
+logs
+Lavalink.jar
+application.yml
+# configuration.yml
+test*.py
+

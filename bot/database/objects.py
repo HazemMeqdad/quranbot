@@ -12,6 +12,9 @@ class Guild:
     time: int
     anti_spam: bool
     embed: bool
+    color: str = None
+    voice_channel: t.Optional[int] = None
+    seal_channel: t.Optional[str] = None
     role_id: t.Optional[int] = None
 
     @property

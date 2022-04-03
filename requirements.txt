@@ -4,8 +4,10 @@ lavaplayer
 nest_asyncio
 beautifulsoup4
 hikari-lightbulb
-git+https://github.com/DwcTeam/tasks.git
 lxml
 waitress
 flask
 pyyaml
+requests
+flask_cors
+uvloop; sys_platform == "linux"

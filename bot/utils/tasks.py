@@ -1,15 +1,17 @@
 import asyncio
+import logging
 import typing as t
 import hikari
 from bot.database import DB
 
 cahce_webhooks: t.Dict[int, hikari.PartialWebhook] = {}
 
+logger = logging.getLogger(__name__)
+
 class Tasks:
     def __init__(self, guilds: t.List[hikari.GatewayGuild], rest: hikari.api.RESTClient, bot: t.Optional[hikari.OwnUser], db: DB) -> None:
         self.index = 0
         self.rest = rest
-        print(list(guilds))
         self.guilds = self.partition([i for i in guilds if i.member_count >= 10], 4)
         self.bot = bot
         self.db = db
@@ -49,7 +51,6 @@ class Tasks:
 
     async def thirty_minutes(self, guilds: t.List[hikari.Guild]):
         for guild in guilds:
-            print(guild.name)
             try:
                 data = self.db.fetch_guild(guild.id)
                 if not data:
@@ -81,7 +82,8 @@ class Tasks:
             except AssertionError: ...
 
     async def start(self) -> None:
-        print("[Tasks] Started")
+        logger.info("[Tasks] Started")
         while self.index >= self.guilds.__len__():
             await self.thirty_minutes(self.get_guilds)
             await asyncio.sleep(60)
+        logger.info("[Tasks] Dened, indexs: %s", self.index)

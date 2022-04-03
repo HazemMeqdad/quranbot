@@ -34,7 +34,7 @@ class Bot(lightbulb.BotApp):
         mongodb = pymongo.MongoClient(self.config["bot"]["mongo_url"])
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink: lavaplayer.LavalinkClient = None
-        logging.getLogger().setLevel(logging.DEBUG)
+        # logging.getLogger().setLevel(logging.DEBUG)
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
@@ -58,17 +58,15 @@ class Bot(lightbulb.BotApp):
         tasks.load(self)
         self.azkar_task.start()
 
-    @tasks.task(m=1)
+    @tasks.task(h=4)
     async def azkar_task(self):
-        print("start azkar task")
         self.tasks = Tasks(
-            guilds=self.cache.get_guilds_view   (), 
+            guilds=self.cache.get_available_guilds_view(), 
             rest=self.rest, 
             bot=self.get_me(), 
             db=self.db
         )
         await self.tasks.start()
-        print("end azkar task")
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         # stop_tasks()
