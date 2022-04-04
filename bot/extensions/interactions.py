@@ -5,9 +5,9 @@ interactions = lightbulb.Plugin("interactions")
 
 async def interaction_create_event(event: hikari.InteractionCreateEvent):
     if event.interaction.type == hikari.InteractionType.MESSAGE_COMPONENT and event.interaction.custom_id == "add_role":
-        user = interactions.bot.cache.get_member(event.interaction.member.guild_id, event.interaction.member.user)
-        if not user:
-            user = await event.app.rest.fetch_member(event.interaction.member.guild_id, event.interaction.member.user)
+        # user = interactions.bot.cache.get_member(event.interaction.member.guild_id, event.interaction.member.user)
+        # if not user:
+        user = await event.app.rest.fetch_member(event.interaction.member.guild_id, event.interaction.member.user)
         role_ids = user.role_ids
         if 960519125082464287 in role_ids:
             await event.app.rest.remove_role_from_member(event.interaction.member.guild_id, user, 960519125082464287)
