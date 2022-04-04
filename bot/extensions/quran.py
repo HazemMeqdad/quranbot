@@ -61,7 +61,11 @@ async def quran(ctx: SlashContext):
 async def quran_play(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
     stream_url = ctx.options.quran_reader
-    name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
+    try:
+        name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
+    except IndexError:
+        name = "اسلام صبحي"
+        stream_url = "https://youtu.be/QJbp6uJ-Wjo"
 
     surah_number = ctx.options.surah_number
     surah_number = str(surah_number) if surah_number else None
