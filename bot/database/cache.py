@@ -3,7 +3,7 @@ from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
 import typing as t
-
+import threading
 
 class DB:
     def __init__(self, db_client: Database) -> None:
@@ -12,7 +12,7 @@ class DB:
         self.col_azkar = db_client.get_collection("azkar")
         self.guilds: list[dict] = self.col_guilds.find({})
         self.azkar: list[dict] = self.col_azkar.find({})
-        self._create_cache()
+        threading.Thread(target=self._create_cache).start()
 
     def speed_test(self):
         return self.client.command("ping").get("ok")
