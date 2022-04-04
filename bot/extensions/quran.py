@@ -80,7 +80,7 @@ async def quran_play(ctx: SlashContext):
             return
         
         if int(surah_number) > 114 or int(surah_number) < 1:
-            embed.description = "خطأ في أدخال رقم السورة يجرا العلم بان عدد سور القرآن الكريم 114 سوره"
+            embed.description = "خطأ في أدخال رقم السورة يرجا العلم بان عدد سور القرآن الكريم 114 سوره"
             await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, flags=MessageFlag.EPHEMERAL, embed=embed)
             return
 
