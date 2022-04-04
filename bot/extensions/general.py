@@ -155,7 +155,11 @@ async def azan(ctx: SlashContext):
     embed.add_field(name="صلاة العِشاء", value=x.isha, inline=True)
     embed.set_footer(text=ctx.bot.footer)
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-    await ctx.interaction.create_initial_response(ResponseType.MESSAGE_CREATE, embed=embed)
+    try:
+        await ctx.respond(embed=embed)
+    except lightbulb.errors.CommandInvocationError:
+        embed.set_author(name=x.description)
+        await ctx.respond(embed=embed)
 
 @general_plugin.command()
 @lightbulb.command("bot", "جلب معلومات البوت")
