@@ -9,7 +9,7 @@ import json
 
 moshaf_plugin = lightbulb.Plugin("المصحف الشريف")
 
-BASE = "https://quran.ksu.edu.sa/ayat/safahat1"
+BASE = "http://quran.ksu.edu.sa/ayat/safahat1"
 
 pages = [f"{BASE}/{i}.png" for i in range(604)]
 quran_surahs = json.load(open("bot/json/quran_surahs.json", "r", encoding="utf-8"))
