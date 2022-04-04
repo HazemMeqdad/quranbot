@@ -157,7 +157,7 @@ async def azan(ctx: SlashContext):
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
     try:
         await ctx.respond(embed=embed)
-    except lightbulb.errors.CommandInvocationError:
+    except hikari.BadRequestError:
         embed.set_author(name=x.description)
         await ctx.respond(embed=embed)
 
