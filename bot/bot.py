@@ -26,7 +26,7 @@ class Bot(lightbulb.BotApp):
             # default_enabled_guilds=[843865725886398554],
             case_insensitive_prefix_commands=True,
             help_class=None,
-            
+
         )
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.config["emojis"])
@@ -89,31 +89,6 @@ class Bot(lightbulb.BotApp):
         )
         self.lavalink.connect()
 
-    async def interaction_create_event(self, event: hikari.InteractionCreateEvent):
-        if event.interaction.type == hikari.InteractionType.MESSAGE_COMPONENT and event.interaction.custom_id == "add_role":
-            user = self.cache.get_member(event.interaction.member.guild_id, event.interaction.member.user)
-            if not user:
-                user = await event.app.rest.fetch_member(event.interaction.member.guild_id, event.interaction.member.user)
-            role_ids = user.role_ids
-            if 960519125082464287 in role_ids:
-                await event.app.rest.remove_role_from_member(event.interaction.member.guild_id, user, 960519125082464287)
-                await event.app.rest.create_interaction_response(
-                    interaction=event.interaction,
-                    token=event.interaction.token,
-                    response_type=hikari.ResponseType.MESSAGE_CREATE,
-                    content="تم الغاء أشتراك بالرتبه بنجاح",
-                    flags=hikari.MessageFlag.EPHEMERAL
-                )
-            else:
-                await event.app.rest.add_role_to_member(event.interaction.member.guild_id, user, 960519125082464287)
-                await event.app.rest.create_interaction_response(
-                    interaction=event.interaction,
-                    token=event.interaction.token,
-                    response_type=hikari.ResponseType.MESSAGE_CREATE,
-                    content="تم أشتراكك بالرتبه بنجاح",
-                    flags=hikari.MessageFlag.EPHEMERAL
-                )
-
     async def on_guild_join(self, event: hikari.GuildAvailableEvent):
         self.db.insert(event.get_guild().id)
         owner_id = event.get_guild().owner_id
@@ -155,7 +130,8 @@ class Bot(lightbulb.BotApp):
             )
 
     async def on_error(self, event: lightbulb.CommandErrorEvent):
-        logging.error(event.exception)
+        ...
+        # logging.error(event.exception)
 
     def run(self):
         self.setup()
@@ -167,9 +143,8 @@ class Bot(lightbulb.BotApp):
         self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
-        self.event_manager.subscribe(lightbulb.CommandErrorEvent, self.on_error)
-        self.event_manager.subscribe(hikari.InteractionCreateEvent, self.interaction_create_event)
-
+        self.event_manager.unsubscribe(lightbulb.CommandErrorEvent, self.on_error)
+        
         self.api = Api(self)
         self.api.run_as_thread()
         super().run(
