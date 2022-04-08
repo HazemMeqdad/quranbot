@@ -15,7 +15,7 @@ class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner", "interactions"
+            "quran", "general", "admin",  "moshaf", "owner", "interactions", "errors"
         ]
         super().__init__(
             prefix="/",
@@ -128,10 +128,6 @@ class Bot(lightbulb.BotApp):
             await self.lavalink.raw_voice_server_update(
                 event.guild_id, event.endpoint, event.token
             )
-
-    async def on_error(self, event: lightbulb.CommandErrorEvent):
-        ...
-        # logging.error(event.exception)
 
     def run(self):
         self.setup()
