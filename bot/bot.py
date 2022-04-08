@@ -61,7 +61,7 @@ class Bot(lightbulb.BotApp):
     @tasks.task(h=4)
     async def azkar_task(self):
         self.tasks = Tasks(
-            guilds=self.cache.get_available_guilds_view(), 
+            guilds=[i for i in self.cache.get_guilds_view() if isinstance(i, hikari.GatewayGuild)], 
             rest=self.rest, 
             bot=self.get_me(), 
             db=self.db
@@ -139,7 +139,6 @@ class Bot(lightbulb.BotApp):
         self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
-        self.event_manager.unsubscribe(lightbulb.CommandErrorEvent, self.on_error)
         
         self.api = Api(self)
         self.api.run_as_thread()
