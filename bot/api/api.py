@@ -26,7 +26,6 @@ class Api:
             "shards": self.bot.shard_count,
             "guilds": len(self.bot.cache.get_available_guilds_view().values()),
             "channels": len(self.bot.cache.get_guild_channels_view().values()),
-            "users": len(self.bot.cache.get_users_view().values())
         })
 
     def check(self, guild_id: int):
@@ -43,8 +42,8 @@ class Api:
         channels = self.bot.cache.get_guild_channels_view_for_guild(guild_id)
         roles = self.bot.cache.get_roles_view_for_guild(guild_id)
         return jsonify({
-            "channels": [{"id": channel.id, "name": channel.name, "type": channel.type.value} for channel in channels.values()],
-            "roles": [{"id": role.id, "name": role.name} for role in roles.values()]
+            "channels": [{"id": channel.id.__str__(), "name": channel.name, "type": channel.type.value} for channel in channels.values()],
+            "roles": [{"id": role.id.__str__(), "name": role.name} for role in roles.values()]
         })
 
     def get_guild_info(self, guild_id: int):
