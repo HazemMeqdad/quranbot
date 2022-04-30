@@ -1,0 +1,28 @@
+bot:
+  token: ""
+  mongo_url: ""
+  footer: "بوت فاذكروني لإحياء سنة ذكر الله"
+  owner_ids: [123, 123, ...]
+  default_enabled_guilds: [123] # Just for test
+  prived_guilds: 123
+  support_guild: 123
+  securekey: "example for securekey"  # to encrypt webhook data on database keep private
+
+lavalink:
+  host: 127.0.0.1
+  port: 4569
+  password: "pass"
+
+# webhook for log
+webhook:
+  id: 123
+  token: "webhook_token"
+
+emojis:
+  hashtag: "<:hashtag:123>"
+  _on: "<:on_emoji:123>"
+  _off: "<:off:123>"
+  ping: "<:ping_emoji:123>"
+  error: "<:errors:123>"
+  like: "<:dislike:123>"
+  dislike: "<:like:123>"
