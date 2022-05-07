@@ -143,3 +143,4 @@ bot/config
 .idea/
 test*.py
 configuration.yml
+errors.json

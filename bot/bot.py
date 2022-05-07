@@ -15,7 +15,7 @@ class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner", "interactions", "errors"
+            "quran", "general", "admin",  "moshaf", "owner", "errors"
         ]
         super().__init__(
             prefix="/",
@@ -55,7 +55,7 @@ class Bot(lightbulb.BotApp):
 
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
-        self.create_task(self.make_tasks())
+        # self.create_task(self.make_tasks())
 
     async def make_tasks(self):
         await asyncio.sleep(20)

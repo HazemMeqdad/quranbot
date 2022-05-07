@@ -1,4 +1,4 @@
-from time import time
+import time 
 from typing import Any
 from .objects import Guild, Azkar, GuildUpdateType
 import random
@@ -16,10 +16,10 @@ class DB:
         threading.Thread(target=self._create_cache).start()
 
     def speed_test(self):
-        time_start = time()
+        time_start = time.monotonic()
         self.col_guilds.find({})
-        time_end = time()
-        return round((time_end - time_start) / 1000)
+        time_end = time.monotonic()
+        return round((time_end - time_start) * 1000)
 
     def _create_cache(self):
         self._guilds: dict = {}

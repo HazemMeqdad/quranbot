@@ -19,8 +19,6 @@ general_plugin = Plugin("general")
 @lightbulb.command("ping", "سرعة اتصال البوت")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def ping(ctx: SlashContext):
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-    before = time.monotonic()
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(
         text="بوت فاذكروني لإحياء سنة ذكر الله",
@@ -28,20 +26,20 @@ async def ping(ctx: SlashContext):
     )
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
     embed.description = "```\nping\n```"
-    await ctx.interaction.edit_initial_response(embed=embed)
+    before = time.monotonic()
+    await ctx.respond(embed=embed)
     ping = (time.monotonic() - before) * 1000
 
     embed.description = "```python\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
         int(ping), round(ctx.bot.heartbeat_latency * 1000),
         ctx.bot.db.speed_test()
     )
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.edit_last_response(embed=embed)
 
 @general_plugin.command()
 @lightbulb.command("support", "طلب الدعم الفني")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def support(ctx: SlashContext):
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     embed = hikari.Embed(
         title="**شكرا على اختيارك بوت فاذكروني 🌹**",
         color=0xffd430
@@ -64,18 +62,17 @@ async def support(ctx: SlashContext):
         .add_to_container()
     )
     buttons = (
-        buttons.add_button(ButtonStyle.LINK, "https://fdrbot.xyz/paypal")
-        .set_label("التبرع")
+        buttons.add_button(ButtonStyle.LINK, "https://fdrbot.com")
+        .set_label("لوحة التحكم")
         .add_to_container()
     )
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-    await ctx.interaction.edit_initial_response(embed=embed, component=buttons)
+    await ctx.respond(embed=embed, component=buttons)
 
 @general_plugin.command()
 @lightbulb.command("info", "طلب معلومات الخادم")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def info(ctx: SlashContext):
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     data = ctx.bot.db.fetch_guild(ctx.guild_id)
     times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
@@ -127,7 +124,7 @@ async def info(ctx: SlashContext):
     )
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.respond(embed=embed)
 
 @general_plugin.command()
 @lightbulb.option(
@@ -165,7 +162,6 @@ async def azan(ctx: SlashContext):
 @lightbulb.command("bot", "جلب معلومات البوت")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def bot(ctx: SlashContext):
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     hashtag = ctx.bot.emojis.hashtag
 
     guilds_count = len(ctx.bot.cache.get_guilds_view())
@@ -173,7 +169,7 @@ async def bot(ctx: SlashContext):
     embed = hikari.Embed(
         color=0xffd430,
         description=ctx.bot.get_me().username,
-        url="http://fdrbot.xyz/invite"
+        url="http://fdrbot.com/invite"
     )
     embed.add_field(
         name="%s - الخوادم" % hashtag,
@@ -210,20 +206,19 @@ async def bot(ctx: SlashContext):
     )
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.respond(embed=embed)
 
 @general_plugin.command()
 @lightbulb.command("invite", "أضافة البوت إلى خادمك")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def invite(ctx: SlashContext):
-    await ctx.interaction.create_initial_response(
-        hikari.ResponseType.MESSAGE_CREATE,
+    await ctx.respond(
         f"<https://discord.com/oauth2/authorize?client_id={ctx.bot.get_me().id}&permissions=8&scope=bot%20applications.commands>",
         flags=MessageFlag.EPHEMERAL
     )
 
 @general_plugin.command()
-@lightbulb.command("zker", "ارسال ذكر عشوائي")
+@lightbulb.command("zker", "أرسال ذكر عشوائي")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def zker(ctx: SlashContext):
     random_zker = ctx.bot.db.get_random_zker()
@@ -233,25 +228,28 @@ async def zker(ctx: SlashContext):
         color=0xffd430
     )
     embed.set_footer(ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-    await ctx.interaction.create_initial_response(
-        ResponseType.MESSAGE_CREATE,
-        embed=embed
-    )
+    await ctx.respond(embed=embed)
 
 @general_plugin.command()
 @lightbulb.command("help", "أرسل هذا الرسالة للحصول على مساعدة")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def help_command(ctx: SlashContext):
+    category = {
+        "quran": "القرآن الكريم",
+        "set": "الأداره",
+        "moshaf": "المصحف",
+    }
     embed = hikari.Embed(color=0xffd430)
     commands = ctx.bot._slash_commands
     description = ""
+    description = "[لوحة التحكم](https://fdrbot.com) | [أضف البوت](https://discordapp.com/oauth2/authorize?client_id={}&permissions=8&scope=bot%20applications.commands) | [الدعم الفني](https://discord.gg/VX5F54YNuy)\n".format(ctx.bot.get_me().id.__str__()) 
     fields: typing.List[EmbedField] = []
     for name, command in commands.items():
         if isinstance(command, SlashCommandGroup):
             value = ""
             for com_name, com in command.subcommands.items():
                 value += f"`/{name} {com_name}` - {com.description}\n"
-            fields.append(EmbedField(name=name, value=value, inline=True))
+            fields.append(EmbedField(name=category.get(name, name), value=value, inline=True))
             continue
         if command.hidden:
             continue

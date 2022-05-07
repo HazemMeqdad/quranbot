@@ -10,8 +10,4 @@ async def command_error(ctx, message: str):
         description=message,
         color=0xffd430
     )
-    await ctx.interaction.create_initial_response(
-        hikari.ResponseType.MESSAGE_CREATE, 
-        flags=hikari.MessageFlag.EPHEMERAL,
-        embed=embed
-    )
+    await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
