@@ -1,15 +1,15 @@
-import logging
-from bot import utils
-from bot import database
+import asyncio
 import hikari
+from lightbulb.ext import tasks
+from lightbulb.ext.tasks import triggers
 import lightbulb
 import lavaplayer
-from .utils import Tasks
 import pymongo
 import yaml
+import logging
 from bot.api import Api
-from lightbulb.ext import tasks
-
+from bot import manger, utils, database
+import os
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
@@ -31,10 +31,10 @@ class Bot(lightbulb.BotApp):
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.config["emojis"])
         self.footer = self.config["bot"]["footer"]
-        mongodb = pymongo.MongoClient(self.config["bot"]["mongo_url"])
+        mongodb = pymongo.MongoClient(os.environ.get("MONGODB_URI", self.config["bot"]["mongo_url"]))
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink: lavaplayer.LavalinkClient = None
-        # logging.getLogger().setLevel(logging.DEBUG)
+        tasks.load(self)
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
@@ -43,7 +43,7 @@ class Bot(lightbulb.BotApp):
         if not self.db.get_guild(event.guild_id):
             self.db.insert(event.guild_id)
 
-    # not used because the prefix for all guilds is `/`
+    # not used because the prefix for all guilds is use slash commands
     async def resolve_prefix(self, bot: lightbulb.BotApp, message: hikari.Message):
         if not message.guild_id:
             return ["!", "/"]
@@ -55,18 +55,20 @@ class Bot(lightbulb.BotApp):
 
     async def on_ready(self, event: hikari.StartedEvent):
         logging.info(self.get_me().username)
-        tasks.load(self)
-        self.azkar_task.start()
+        self.create_task(self.make_tasks())
 
-    @tasks.task(h=4)
-    async def azkar_task(self):
-        self.tasks = Tasks(
-            guilds=[i for i in self.cache.get_guilds_view() if isinstance(i, hikari.GatewayGuild)], 
-            rest=self.rest, 
-            bot=self.get_me(), 
-            db=self.db
-        )
-        await self.tasks.start()
+    async def make_tasks(self):
+        await asyncio.sleep(20)
+        timers = [1800, 3600, 7200, 10800, 21600, 43200, 86400]
+        for timer in timers:
+            x = tasks.Task(self.task, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=3, max_executions=None, pass_app=False, wait_before_execution=False)
+            x.start()
+
+    async def task(self, timer: int) -> None:
+        x = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
+        guilds = filter(lambda x: x.id in self.db.fetch_guilds_by_time(timer), x)
+        task_manger = manger.Manger(list(guilds), self.rest, self.get_me(), self.db)
+        await task_manger.start(timer)
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         # stop_tasks()
@@ -75,9 +77,6 @@ class Bot(lightbulb.BotApp):
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
             await self.create_lavalink_connection()
-            # await create_tasks(self)
-            # logging.info("tasks now ready")
-
 
     async def create_lavalink_connection(self):
         self.lavalink = lavaplayer.LavalinkClient(
@@ -144,7 +143,7 @@ class Bot(lightbulb.BotApp):
         self.api.run_as_thread()
         super().run(
                 activity=hikari.Activity(
-                    name="/help - fdrbot.xyz",
+                    name="/help - fdrbot.com",
                     type=hikari.ActivityType.PLAYING,
                 ),
                 status=hikari.Status.DO_NOT_DISTURB,

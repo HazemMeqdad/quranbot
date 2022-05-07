@@ -32,10 +32,9 @@ async def prefix(ctx: SlashContext):
 
     if len(new_prefix) > 5:
         return await command_error(ctx, "%s لا يمكنك وضع بادئه اكثر من خمس حروف" % ctx.bot.emojis.error)
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     ctx.bot.db.update_guild(guild, GuildUpdateType.prefix, new_prefix)
     embed.description = "تم تغير البادئه الى `%s`" % new_prefix
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.respond(embed=embed)
 
 @_set.child()
 @lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))
@@ -51,14 +50,12 @@ async def set_spam(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     mode = ctx.raw_options.get("mode")
     msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     ctx.bot.db.update_guild(guild, GuildUpdateType.anti_spam, mode)
     embed = hikari.Embed(
         description=msg,
         color=0xffd430
     )
-    await ctx.interaction.edit_initial_response(embed=embed)
-
+    await ctx.respond(embed=embed)
 
 @_set.child()
 @lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))
@@ -73,13 +70,12 @@ async def set_embed(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     mode = ctx.raw_options.get("mode")
     msg = "تم تفعيل خاصية الأمبد" if mode else "تم اطفاء خاصية الأمبد"
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     ctx.bot.db.update_guild(guild, GuildUpdateType.embed, mode)
     embed = hikari.Embed(
         description=msg,
         color=0xffd430
     )
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.respond(embed=embed)
 
 times = {
     "30 دقيقة": 1800, 
@@ -109,7 +105,7 @@ async def set_time(ctx: SlashContext):
     ctx.bot.db.update_guild(
         guild, GuildUpdateType.time, times.get(value))
     embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
-    await ctx.interaction.create_initial_response(hikari.ResponseType.MESSAGE_CREATE, embed=embed)
+    await ctx.respond(embed=embed)
 
 
 @_set.child()
@@ -120,9 +116,9 @@ async def set_time(ctx: SlashContext):
     type=hikari.TextableChannel,
     required=False,
 )
-@lightbulb.command("room", "أختيار قناة الأذكار")
+@lightbulb.command("channel", "أختيار قناة الأذكار")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
-async def set_room(ctx: SlashContext):
+async def set_channel(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     channel_id = ctx.raw_options.get("channel")
 
@@ -132,7 +128,6 @@ async def set_room(ctx: SlashContext):
         channel = guild.channel
         if not channel:
             return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
-        await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
 
         embed.description = "هل انت موافق على ايقاف ارسال الاذكار في روم <#%s>" % channel
         buttons = ctx.bot.rest.build_action_row()
@@ -147,7 +142,7 @@ async def set_room(ctx: SlashContext):
         false.set_emoji(ctx.bot.emojis.no)
         false.add_to_container()
 
-        await ctx.interaction.edit_initial_response(embed=embed, component=buttons)
+        await ctx.respond(embed=embed, component=buttons)
 
         def check(res):
             return res.interaction.user.id == ctx.author.id and \
@@ -161,15 +156,15 @@ async def set_room(ctx: SlashContext):
             await event.interaction.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
         except asyncio.TimeoutError:
             embed.description = "تم الغاء الأمر بسبب نفاذ الوقت"
-            await ctx.interaction.edit_initial_response(embed=embed, component=buttons)
+            await ctx.edit_last_response(embed=embed, component=buttons)
             return
         if event.interaction.custom_id == "true":
             ctx.bot.db.update_guild(guild, GuildUpdateType.channel, None)
             embed.description = "تم الغاء ارسال الاذكار بنجاح"
-            await ctx.interaction.edit_initial_response(embed=embed, component=buttons)
+            await ctx.edit_last_response(embed=embed, component=buttons)
             return
         embed.description = "تم الغاء الأمر"
-        await ctx.interaction.edit_initial_response(embed=embed, component=buttons)
+        await ctx.edit_last_response(embed=embed, component=buttons)
         return
 
     channel = ctx.bot.cache.get_guild_channel(channel_id)
@@ -179,10 +174,10 @@ async def set_room(ctx: SlashContext):
         return await command_error(ctx, "يجب التأكد من نوع القناة المحدده من انها كتابية")
     if int(channel_id) == guild.channel:
         return await command_error(ctx, "لقد قمت بتحديد هذا الروم مسبقًا")
-    await ctx.interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
+
     ctx.bot.db.update_guild(guild, GuildUpdateType.channel, channel.id)
     embed.description = "! الله يكتب اجرك راح ارسل الاذكار للروم %s" % channel.mention
-    await ctx.interaction.edit_initial_response(embed=embed)
+    await ctx.respond(embed=embed)
 
 @_set.child()
 @lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))

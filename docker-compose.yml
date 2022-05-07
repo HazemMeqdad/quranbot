@@ -1,10 +1,36 @@
 version: '3'
 
-services:
-  bot:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
 
+services:
+  fdrbot:
+    build: .
+    volumes:
+      - ./configuration.yml:/opt/fdrbot/configuration.yml
+    ports:
+      - 8080:8080
+    environment:
+      - MONGODB_URI=mongodb://db:27017
+      - LAVALINK_URI=lavalink
+    links:
+      - mongodb
+      - lavalink
+    #network_mode: host
+  
+  lavalink:
+    image: fredboat/lavalink:master
+    volumes:
+      - ./application.yml:/opt/Lavalink/application.yml
+    ports:
+      - 2333:2333
+    network_mode: host
+
+  db:
+    image: mongo
+    volumes:
+      - .\mongodb:/data/db
+    ports:
+      - 27019:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root_password
+    #network_mode: host

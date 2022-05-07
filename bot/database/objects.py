@@ -12,6 +12,7 @@ class Guild:
     time: int
     anti_spam: bool
     embed: bool
+    webhook_url: t.Optional[str] = None
     color: str = None
     voice_channel: t.Optional[int] = None
     seal_channel: t.Optional[str] = None
@@ -44,3 +45,4 @@ class GuildUpdateType(Enum):
     anti_spam = "anti_spam"
     embed = "embed"
     role_id = "role_id"
+    webhook_url = "webhook_url"

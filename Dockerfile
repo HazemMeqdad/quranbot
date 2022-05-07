@@ -1,9 +1,14 @@
-FROM python:3.10-slim
+FROM python:3.10
 
-WORKDIR /
+COPY requirements.txt /opt/fdrbot/requirements.txt
 
-COPY . .
+WORKDIR /opt/fdrbot
 
 RUN pip install -r requirements.txt
 
-CMD python run.py
+COPY . /opt/fdrbot
+
+EXPOSE 8080
+
+CMD ["python", "-OO", "run.py"]
+

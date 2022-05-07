@@ -1,7 +1,4 @@
-.git
-logs
+/logs
 Lavalink.jar
-application.yml
-# configuration.yml
-test*.py
-
+.git
+configuration.yml
