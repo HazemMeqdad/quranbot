@@ -53,10 +53,10 @@ class Api:
         return jsonify({
             "status": True if guild else False,
             "guild": {
-                "id": guild.id,
+                "id": str(guild.id),
                 "name": guild.name,
                 "icon": guild.icon_url.url if guild.icon_url else f"https://via.placeholder.com/1024/2c2f33/ffffff?text={guild.name[0]}",
-                "owner_id": guild.owner_id,
+                "owner_id": str(guild.owner_id),
                 # "owner": owner.username + "#" + owner.discriminator,
                 # "owner_id": owner.id,
                 "joined_at": guild.joined_at.timestamp(),
