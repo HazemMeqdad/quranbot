@@ -44,3 +44,5 @@ async def prefix_command_error_event(event: lightbulb.PrefixCommandErrorEvent):
 def load(bot):
     bot.add_plugin(error_plugin)
 
+def unload(bot):
+    bot.remove_plugin(error_plugin)
