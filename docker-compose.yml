@@ -9,19 +9,18 @@ services:
     ports:
       - 8080:8080
     environment:
-      - MONGODB_URI=mongodb://db:27017
-      - LAVALINK_URI=lavalink
+      - MONGODB_URI=mongodb+srv://fdrbot:kncz2yeoMZ1rMoqL@cluster0.cruh9.mongodb.net/admin?authSource=admin&replicaSet=atlas-12nh4s-shard-0&readPreference=primary&ssl=true
     links:
-      - mongodb
+      - db
       - lavalink
-    #network_mode: host
-  
+
   lavalink:
     image: fredboat/lavalink:master
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
     ports:
       - 2333:2333
+    restart: always
     network_mode: host
 
   db:
@@ -33,4 +32,4 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root_password
-    #network_mode: host
+    network_mode: host
