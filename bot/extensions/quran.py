@@ -1,6 +1,5 @@
 import hikari
 from hikari.commands import CommandChoice
-from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import MessageFlag
 from lightbulb import Plugin, commands 
 import lightbulb

@@ -1,11 +1,10 @@
 import typing
 from hikari.embeds import EmbedField
-from hikari.interactions.base_interactions import ResponseType
 from hikari.messages import MessageFlag
 import hikari
 from hikari import ButtonStyle
 import time
-from lightbulb import Plugin, commands, filter_commands
+from lightbulb import Plugin, commands
 import lightbulb
 from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
@@ -82,11 +81,6 @@ async def info(ctx: SlashContext):
         color=0xffd430
     )
     embed.add_field(
-        name="%s - البادئه:" % ctx.bot.emojis.hashtag,
-        value=data.prefix,
-        inline=True
-    )
-    embed.add_field(
         name="%s - روم الاذكار:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.cache.get_guild_channel(
             data.channel).mention if data.channel is not None else "لا يوجد",
@@ -95,11 +89,6 @@ async def info(ctx: SlashContext):
     embed.add_field(
         name="%s - وقت ارسال الاذكار:" % ctx.bot.emojis.hashtag,
         value=times.get(data.time),
-        inline=True
-    )
-    embed.add_field(
-        name="%s - وضع تكرار الرسائل:" % ctx.bot.emojis.hashtag,
-        value=ctx.bot.emojis.on if data.anti_spam else ctx.bot.emojis.off,
         inline=True
     )
     embed.add_field(
@@ -188,7 +177,7 @@ async def bot(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - أصدار النسخة" % hashtag,
-        value="V3.0.1",
+        value="V3.0.2",
         inline=True
     )
     embed.add_field(

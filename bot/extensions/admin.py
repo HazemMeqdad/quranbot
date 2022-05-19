@@ -4,8 +4,7 @@ from lightbulb import Plugin, commands
 from lightbulb.context.slash import SlashContext
 from bot.database import GuildUpdateType
 from bot.utils import command_error
-from hikari import ButtonStyle, Permissions
-import asyncio
+from hikari import Permissions
 
 
 admin_plugin = Plugin("الأداره")
@@ -15,47 +14,6 @@ admin_plugin = Plugin("الأداره")
 @lightbulb.implements(commands.SlashCommandGroup, commands.PrefixCommandGroup)
 async def _set(ctx: SlashContext):
     ...
-
-@_set.child()
-@lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))
-@lightbulb.option(
-    name="new_prefix", 
-    description="البادئة الجديدة",
-    required=True
-)
-@lightbulb.command("prefix", "تغير البادئة الخاصة بالخادم")
-@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
-async def prefix(ctx: SlashContext):
-    new_prefix = ctx.raw_options.get("new_prefix")
-    embed = hikari.Embed(color=0xffd430)
-    guild = ctx.bot.db.fetch_guild(ctx.guild_id)
-
-    if len(new_prefix) > 5:
-        return await command_error(ctx, "%s لا يمكنك وضع بادئه اكثر من خمس حروف" % ctx.bot.emojis.error)
-    ctx.bot.db.update_guild(guild, GuildUpdateType.prefix, new_prefix)
-    embed.description = "تم تغير البادئه الى `%s`" % new_prefix
-    await ctx.respond(embed=embed)
-
-@_set.child()
-@lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))
-@lightbulb.option(
-    name="mode",
-    description="تحديد الوضع",
-    type=bool,
-    required=True
-)
-@lightbulb.command("spam", "خاصية تمنع تكرر ارسال الاذكار في حالة عدم تفاعل الشات")
-@lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
-async def set_spam(ctx: SlashContext):
-    guild = ctx.bot.db.fetch_guild(ctx.guild_id)
-    mode = ctx.raw_options.get("mode")
-    msg = "تم تفعيل خاصية تكرار الرسائل" if mode else "تم اطفاء خاصية تكرار الرسائل"
-    ctx.bot.db.update_guild(guild, GuildUpdateType.anti_spam, mode)
-    embed = hikari.Embed(
-        description=msg,
-        color=0xffd430
-    )
-    await ctx.respond(embed=embed)
 
 @_set.child()
 @lightbulb.add_checks(lightbulb.has_guild_permissions(Permissions.MANAGE_GUILD))
@@ -102,8 +60,7 @@ async def set_time(ctx: SlashContext):
     if not guild.channel:
         return await command_error(ctx, "يجب عليك تثبيت روم لاستعمال هاذ الامر")
     value = ctx.raw_options.get("time")
-    ctx.bot.db.update_guild(
-        guild, GuildUpdateType.time, times.get(value))
+    ctx.bot.db.update_guild(guild, GuildUpdateType.time, times.get(value))
     embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
     await ctx.respond(embed=embed)
 
@@ -122,50 +79,15 @@ async def set_channel(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     channel_id = ctx.raw_options.get("channel")
 
+    # if not setup a channel
     if not channel_id:
         guild = ctx.bot.db.fetch_guild(ctx.guild_id)
         embed = hikari.Embed(color=0xffd430)
         channel = guild.channel
         if not channel:
             return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
-
-        embed.description = "هل انت موافق على ايقاف ارسال الاذكار في روم <#%s>" % channel
-        buttons = ctx.bot.rest.build_action_row()
-
-        true = buttons.add_button(ButtonStyle.SUCCESS, "true")
-        true.set_label("موافق")
-        true.set_emoji(ctx.bot.emojis.like)
-        true.add_to_container()
-
-        false = buttons.add_button(ButtonStyle.DANGER, "false")
-        false.set_label("غير موافق")
-        false.set_emoji(ctx.bot.emojis.no)
-        false.add_to_container()
-
-        await ctx.respond(embed=embed, component=buttons)
-
-        def check(res):
-            return res.interaction.user.id == ctx.author.id and \
-                res.interaction.channel_id == ctx.channel_id and \
-                res.interaction.custom_id in ["true", "false"]
-
-        true.set_is_disabled(True)
-        false.set_is_disabled(True)
-        try:
-            event = await ctx.bot.wait_for(hikari.InteractionCreateEvent, predicate=check, timeout=15)
-            await event.interaction.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
-        except asyncio.TimeoutError:
-            embed.description = "تم الغاء الأمر بسبب نفاذ الوقت"
-            await ctx.edit_last_response(embed=embed, component=buttons)
-            return
-        if event.interaction.custom_id == "true":
-            ctx.bot.db.update_guild(guild, GuildUpdateType.channel, None)
-            embed.description = "تم الغاء ارسال الاذكار بنجاح"
-            await ctx.edit_last_response(embed=embed, component=buttons)
-            return
-        embed.description = "تم الغاء الأمر"
-        await ctx.edit_last_response(embed=embed, component=buttons)
-        return
+        embed.description = "تم إيقاف أرسال الأذكار في قناة <#%s>" % channel
+        await ctx.respond(embed=embed)
 
     channel = ctx.bot.cache.get_guild_channel(channel_id)
     embed = hikari.Embed(color=0xffd430)
@@ -175,8 +97,11 @@ async def set_channel(ctx: SlashContext):
     if int(channel_id) == guild.channel:
         return await command_error(ctx, "لقد قمت بتحديد هذا الروم مسبقًا")
 
-    ctx.bot.db.update_guild(guild, GuildUpdateType.channel, channel.id)
-    embed.description = "! الله يكتب اجرك راح ارسل الاذكار للروم %s" % channel.mention
+    webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
+
+    ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, channel.id)
+    ctx.bot.db.update_guild(guild, GuildUpdateType.webhook_url, "https://discord.com/api/v9/webhooks/%s/%s" % (webhook.id, webhook.token))
+    embed.description = "الله يكتب أجرك سيتم أرسال الأذكار بشكل تلقائي للقناة الآتية %s" % channel.mention
     await ctx.respond(embed=embed)
 
 @_set.child()

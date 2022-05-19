@@ -8,6 +8,7 @@ import pathlib
 
 error_plugin = Plugin("errors")
 
+# must edit this file to add new errors
 @error_plugin.listener(lightbulb.SlashCommandErrorEvent)
 async def on_slash_command_error_event(event: lightbulb.SlashCommandErrorEvent):
     embed = hikari.Embed(color=0xffd430)
