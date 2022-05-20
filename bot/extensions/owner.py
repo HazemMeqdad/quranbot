@@ -4,7 +4,6 @@ from lightbulb import Plugin, commands
 from lightbulb.context import SlashContext
 import inspect
 import logging
-import typing as t
 
 
 owner_plugin = Plugin("owner")

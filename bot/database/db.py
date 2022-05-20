@@ -61,12 +61,11 @@ class DB:
         if not self.get_guild(guild_id) and not self.fetch_guild(guild_id):
             data = {
                 "_id": guild_id,
-                "prefix": "!",
-                "channel": None,
+                "channel_id": None,
                 "time": 1800,
-                "anti_spam": False,
                 "embed": False,
-                "role_id": None
+                "role_id": None,
+                "webhook_url": None,
             }
 
             self.col_guilds.insert_one(data)

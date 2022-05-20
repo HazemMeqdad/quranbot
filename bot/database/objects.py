@@ -7,21 +7,16 @@ import typing as t
 @dataclass
 class Guild:
     _id: int
-    prefix: str
-    channel: t.Optional[int]
     time: int
-    anti_spam: bool
     embed: bool
+    channel_id: t.Optional[int] = None
+    role_id: t.Optional[int] = None
     webhook_url: t.Optional[str] = None
     color: str = None
-    voice_channel: t.Optional[int] = None
-    seal_channel: t.Optional[str] = None
-    role_id: t.Optional[int] = None
 
     @property
     def id(self) -> int:
         return self._id
-
 
 class Azkar:
     def __init__(self, data: dict) -> None:
@@ -39,10 +34,8 @@ class Azkar:
         return self.content
 
 class GuildUpdateType(Enum):
-    prefix = "prefix"
-    channel = "channel"
+    channel_id = "channel_id"
     time = "time"
-    anti_spam = "anti_spam"
     embed = "embed"
     role_id = "role_id"
     webhook_url = "webhook_url"

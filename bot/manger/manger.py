@@ -42,10 +42,7 @@ class Manger:
             assert data.channel
             channel = guild.get_channel(data.channel)
             assert channel
-            if data.anti_spam:
-                channel_history = await self.rest.fetch_messages(channel.id)
-                if channel_history[0].webhook_id == webhook.id: 
-                    return
+
             zker = self.db.get_random_zker().content
             webhook = await self.get_webhook_or_fetch(channel, data)
             if data.embed:
