@@ -9,6 +9,7 @@ import lightbulb
 from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
+from bot.manger.manger import Manger
 from bot.utils import Prayer
 from bot.utils import command_error
 
@@ -19,10 +20,7 @@ general_plugin = Plugin("general")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def ping(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
-    embed.set_footer(
-        text="بوت فاذكروني لإحياء سنة ذكر الله",
-        icon=ctx.bot.get_me().avatar_url
-    )
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
     embed.description = "```\nping\n```"
     before = time.monotonic()
@@ -43,10 +41,7 @@ async def support(ctx: SlashContext):
         title="**شكرا على اختيارك بوت فاذكروني 🌹**",
         color=0xffd430
     )
-    embed.set_footer(
-        text="بوت فاذكروني لإحياء سنة ذكر الله",
-        icon=ctx.bot.get_me().avatar_url
-    )
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     buttons = ctx.bot.rest.build_action_row()
     buttons = (
         buttons.add_button(
@@ -83,7 +78,7 @@ async def info(ctx: SlashContext):
     embed.add_field(
         name="%s - روم الاذكار:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.cache.get_guild_channel(
-            data.channel).mention if data.channel is not None else "لا يوجد",
+            data.channel_id).mention if data.channel_id is not None else "لا يوجد",
         inline=True
     )
     embed.add_field(
@@ -139,7 +134,7 @@ async def azan(ctx: SlashContext):
     embed.add_field(name="صلاة العَصر", value=x.pressing, inline=True)
     embed.add_field(name="صلاة المَغرب", value=x.moroccan, inline=True)
     embed.add_field(name="صلاة العِشاء", value=x.isha, inline=True)
-    embed.set_footer(text=ctx.bot.footer)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     embed.set_thumbnail(ctx.bot.get_me().avatar_url)
     try:
         await ctx.respond(embed=embed)
@@ -216,7 +211,7 @@ async def zker(ctx: SlashContext):
         description=random_zker.content,
         color=0xffd430
     )
-    embed.set_footer(ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     await ctx.respond(embed=embed)
 
 @general_plugin.command()
@@ -245,7 +240,7 @@ async def help_command(ctx: SlashContext):
         description += f"`/{name}` - {command.description}\n"
     embed.description = description
     embed._fields = fields
-    embed.set_footer(ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     await ctx.respond(embed=embed)
 
 

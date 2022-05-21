@@ -2,77 +2,62 @@ import asyncio
 import logging
 import typing as t
 import hikari
+import lightbulb
 from bot import database
-
+from attr import asdict
 
 logger = logging.getLogger("bot.manger.tasks")
 
 class Manger:
-    def __init__(self, guilds: t.List[hikari.GatewayGuild], rest: hikari.api.RESTClient, bot: t.Optional[hikari.OwnUser], db: database.DB) -> None:
+    def __init__(self, timer: t.Union[float, int]) -> None:
         self.index = 0
-        self.rest = rest
-        self.guilds = guilds
-        self.bot = bot
-        self.db: database.DB = db
-
-    def webhook_object_to_url(self, webhook: hikari.PartialWebhook) -> str:
-        return f"https://discord.com/api/webhooks/{webhook.id}/{webhook.token}"
-
-    async def get_webhook_or_fetch(self, channel: hikari.GuildChannel, guild_data: database.Guild) -> hikari.IncomingWebhook:
-        webhook = guild_data.webhook_url
-        if not webhook:
-            webhooks = await self.rest.fetch_channel_webhooks(channel)
-            webhook = [i for i in webhooks if i.name == "فاذكروني"]
-            webhook = webhook[0] if webhook else None
-            if not webhook:
-                webhook = await self.rest.create_webhook(
-                    channel=channel, 
-                    name="فاذكروني", 
-                    avatar=self.bot.avatar_url.url
-                )
-                webhook = self.webhook_object_to_url(webhook)
-            self.db.update_guild(guild_data, database.GuildUpdateType.webhook_url, webhook)
-        return webhook
+        self.timer = timer
 
     async def make_task(self, guild: hikari.Guild):
         try:
-            data = self.db.fetch_guild(guild.id)
+            data = self.db.fetch_guild(guild if isinstance(guild, int) else guild.id)
             if not data:
-                data = self.db.insert(guild.id)
-            assert data.channel
-            channel = guild.get_channel(data.channel)
-            assert channel
-
+                self.db.insert(guild.id)
+                return
+            assert data.channel_id
+            assert self.bot.cache.get_guild_channel(data.channel_id)
+            assert data.webhook
+            webhook = await self.bot.rest.fetch_webhook(data.webhook["id"], token=data.webhook["token"])
+            assert webhook.channel_id == data.channel_id
             zker = self.db.get_random_zker().content
-            webhook = await self.get_webhook_or_fetch(channel, data)
             if data.embed:
                 embed = (
                     hikari.Embed(
                         description=zker,
                         color=0xffd430
                     )
-                    .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.avatar_url.url)
-                    .set_thumbnail(self.bot.avatar_url.url)
+                    .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.get_me().avatar_url.url)
+                    .set_thumbnail(self.bot.get_me().avatar_url.url)
                 )
-            try:
-                await self.rest.execute_webhook(
-                    webhook=webhook, 
-                    token=webhook.token,
-                    username="فاذكروني",
-                    avatar_url=self.bot.avatar_url.url,
-                    **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
-                )
-                return True
-            except (hikari.NotFoundError, hikari.UnauthorizedError):
-                return
-        except AssertionError: return
+            msg = await self.rest.execute_webhook(
+                webhook=data.webhook["id"], 
+                token=data.webhook["token"],
+                username="فاذكروني",
+                avatar_url=self.bot.get_me().avatar_url.url,
+                **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
+            )
+            print(msg)
+            return True
+        except AssertionError: 
+            return
 
-    async def start(self, timer: t.Union[int, float]) -> None:
-        logger.info("[Task] Started with timer: %s", timer)
+    async def start(self, bot: lightbulb.BotApp) -> None:
+        self.bot = bot
+        self.rest = self.bot.rest
+        self.db: database.DB = self.bot.db
+        logger.info("[Task] Started with timer: %s", self.timer)
         count = 0
-        for guild in self.guilds:
+        cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.bot.cache.get_guilds_view().values())
+        db_guilds = self.db.fetch_guilds_by_time(self.timer)
+        guilds = filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds))
+        for guild in list(guilds):
             task = await self.make_task(guild)
             if task:
                 count += 1
             await asyncio.sleep(.3)
-        logger.info("[Task] Ended with timer: %s, counts: %s", timer, count)
+        logger.info("[Task] Ended with timer: %s, counts: %s", self.timer, count)

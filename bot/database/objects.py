@@ -11,7 +11,7 @@ class Guild:
     embed: bool
     channel_id: t.Optional[int] = None
     role_id: t.Optional[int] = None
-    webhook_url: t.Optional[str] = None
+    webhook: t.Optional[str] = None
     color: str = None
 
     @property
@@ -38,4 +38,4 @@ class GuildUpdateType(Enum):
     time = "time"
     embed = "embed"
     role_id = "role_id"
-    webhook_url = "webhook_url"
+    webhook = "webhook"
