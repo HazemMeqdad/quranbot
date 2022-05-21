@@ -7,7 +7,8 @@ bot:
   prived_guilds: 123
   support_guild: 123
   securekey: "example for securekey"  # to encrypt webhook data on database keep private
-
+  debug: true
+  
 lavalink:
   host: 127.0.0.1
   port: 4569
