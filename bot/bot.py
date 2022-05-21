@@ -59,6 +59,8 @@ class Bot(lightbulb.BotApp):
             task_manger = manger.Manger(timer)
             task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=100, max_executions=None, pass_app=True, wait_before_execution=False)
             self.tasks.append(task)
+            # this is for not to make the bot crash when the bot is restarted
+            await asyncio.sleep(timer / 8)
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         # stop_tasks()

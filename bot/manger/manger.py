@@ -4,7 +4,7 @@ import typing as t
 import hikari
 import lightbulb
 from bot import database
-from attr import asdict
+
 
 logger = logging.getLogger("bot.manger.tasks")
 
@@ -34,14 +34,13 @@ class Manger:
                     .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.get_me().avatar_url.url)
                     .set_thumbnail(self.bot.get_me().avatar_url.url)
                 )
-            msg = await self.rest.execute_webhook(
+            await self.rest.execute_webhook(
                 webhook=data.webhook["id"], 
                 token=data.webhook["token"],
                 username="فاذكروني",
                 avatar_url=self.bot.get_me().avatar_url.url,
                 **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
             )
-            print(msg)
             return True
         except AssertionError: 
             return
