@@ -16,14 +16,16 @@ lavalink:
 
 # webhook for log
 webhook:
-  id: 123
-  token: "webhook_token"
+  logger:
+    id: 123
+    token: "webhook_token"
 
-emojis:
-  hashtag: "<:hashtag:123>"
-  _on: "<:on_emoji:123>"
-  _off: "<:off:123>"
-  ping: "<:ping_emoji:123>"
-  error: "<:errors:123>"
-  like: "<:dislike:123>"
-  dislike: "<:like:123>"
+# you can uncomment this if you want to use custom emojis
+# emojis:
+  # hashtag: "<:hashtag:123>"
+  # _on: "<:on_emoji:123>"
+  # _off: "<:off:123>"
+  # ping: "<:ping_emoji:123>"
+  # error: "<:errors:123>"
+  # like: "<:dislike:123>"
+  # dislike: "<:like:123>"
