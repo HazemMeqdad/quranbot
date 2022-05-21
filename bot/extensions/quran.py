@@ -136,7 +136,7 @@ async def quran_radio(ctx: SlashContext):
         await ctx.respond(embed=embed)
         return
 
-    tracks = await ctx.bot.lavalink.get_tracks("http://live.mp3quran.net:9702/")
+    tracks = await ctx.bot.lavalink.get_tracks("https://qurango.net/radio/tarateel")
     await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
     embed.description = "تم تشغيل أذاعة القران الكريم المتنوعه في روم <#%s>" % channel_id
     await ctx.respond(embed=embed)
