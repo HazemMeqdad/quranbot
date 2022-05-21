@@ -59,6 +59,7 @@ async def quran(ctx: SlashContext):
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_play(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     stream_url = ctx.options.quran_reader
     try:
         name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
@@ -124,6 +125,7 @@ async def quran_radio(ctx: SlashContext):
         return
 
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     stream_url = ctx.options.quran_reader
     if stream_url:
         name = [i["name"] for i in quran_stream_readers if i["value"] == stream_url][0]
@@ -147,6 +149,7 @@ async def quran_radio(ctx: SlashContext):
 async def quran_stop(ctx: SlashContext):
     data = await voice.leave_and_stop(ctx)
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if not data:
         return await command_error(ctx, "البوت غير موجود في روم صوتي")
     embed.description = "تم مغادره الروم الصوتي"
@@ -165,6 +168,7 @@ async def quran_stop(ctx: SlashContext):
 async def quran_volume(ctx: SlashContext):
     vol = ctx.raw_options.get("المتسوى")
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if vol > 100 or vol < 0:
         return await command_error(ctx, "الصوت المتاح من 0 - 100")
     await ctx.bot.lavalink.volume(ctx.guild_id, vol)

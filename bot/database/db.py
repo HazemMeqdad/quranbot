@@ -48,26 +48,33 @@ class DB:
 
     def fetch_guild(self, guild_id: int) -> t.Optional[Guild]:
         result = self.col_guilds.find_one({"_id": guild_id})
+        if not result:
+            self.insert(guild_id)
+        result = self.col_guilds.find_one({"_id": guild_id})
         return Guild(**result) if result else None
 
     def fetch_guilds_by_time(self, time: int) -> t.List[Guild]:
-        return [Guild(**i) for i in self.col_guilds.find({"time": time})]
+        data = self.col_guilds.find({"time": time})
+        return [Guild(**i) for i in list(data)]
 
     def update_guild(self, guild: Guild, update_type: GuildUpdateType, new_value: Any):
         self.col_guilds.update_one({"_id": guild.id}, {"$set": {update_type.value: new_value}})
         self._guilds[guild.id] = self.fetch_guild(guild.id)
     
-    def insert(self, guild_id: int):
-        if not self.get_guild(guild_id) and not self.fetch_guild(guild_id):
-            data = {
-                "_id": guild_id,
-                "channel_id": None,
-                "time": 1800,
-                "embed": False,
-                "role_id": None,
-                "webhook_url": None,
-            }
+    def delete_guild(self, guild_id: int):
+        self.col_guilds.delete_one({"_id": guild_id})
+        self._guilds.pop(guild_id)
 
-            self.col_guilds.insert_one(data)
-            self._guilds[guild_id] = Guild(**data)
-            return self._guilds[guild_id]
+    def insert(self, guild_id: int):
+        data = {
+            "_id": guild_id,
+            "channel_id": None,
+            "time": 3600,
+            "embed": False,
+            "role_id": None,
+            "webhook": None,
+        }
+
+        self.col_guilds.insert_one(data)
+        self._guilds[guild_id] = Guild(**data)
+        return self._guilds[guild_id]

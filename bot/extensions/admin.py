@@ -33,6 +33,7 @@ async def set_embed(ctx: SlashContext):
         description=msg,
         color=0xffd430
     )
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     await ctx.respond(embed=embed)
 
 times = {
@@ -57,6 +58,7 @@ times = {
 async def set_time(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if not guild.channel:
         return await command_error(ctx, "يجب عليك تثبيت روم لاستعمال هاذ الامر")
     value = ctx.raw_options.get("time")
@@ -78,29 +80,29 @@ async def set_time(ctx: SlashContext):
 async def set_channel(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     channel_id = ctx.raw_options.get("channel")
+    embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
 
     # if not setup a channel
     if not channel_id:
-        guild = ctx.bot.db.fetch_guild(ctx.guild_id)
-        embed = hikari.Embed(color=0xffd430)
-        channel = guild.channel
-        if not channel:
+        if not guild.channel_id:
             return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
-        embed.description = "تم إيقاف أرسال الأذكار في قناة <#%s>" % channel
+        ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, None)
+        ctx.bot.db.update_guild(guild, GuildUpdateType.webhook, None)
+        embed.description = "تم إيقاف أرسال الأذكار في قناة <#%s>" % guild.channel_id
         await ctx.respond(embed=embed)
 
     channel = ctx.bot.cache.get_guild_channel(channel_id)
-    embed = hikari.Embed(color=0xffd430)
 
     if channel.type != hikari.ChannelType.GUILD_TEXT:
         return await command_error(ctx, "يجب التأكد من نوع القناة المحدده من انها كتابية")
-    if int(channel_id) == guild.channel:
+    if int(channel_id) == guild.channel_id:
         return await command_error(ctx, "لقد قمت بتحديد هذا الروم مسبقًا")
 
     webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
 
     ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, channel.id)
-    ctx.bot.db.update_guild(guild, GuildUpdateType.webhook_url, "https://discord.com/api/v9/webhooks/%s/%s" % (webhook.id, webhook.token))
+    ctx.bot.db.update_guild(guild, GuildUpdateType.webhook, {"id": webhook.id, "token": webhook.token})
     embed.description = "الله يكتب أجرك سيتم أرسال الأذكار بشكل تلقائي للقناة الآتية %s" % channel.mention
     await ctx.respond(embed=embed)
 
@@ -117,22 +119,17 @@ async def set_channel(ctx: SlashContext):
 async def set_role(ctx: SlashContext):
     role = ctx.raw_options.get("role")
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
+    embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
 
     if not role:
         ctx.bot.db.update_guild(guild, GuildUpdateType.role_id, None)
-        embed = hikari.Embed(
-            description="لقد تم الغاء تقيد صلاحيات التحكم بالقرآن الكريم من رتبة <@&{}>".format(
-                guild.role_id),
-            color=0xffd430
-        )
+        embed.description = "لقد تم الغاء تقيد صلاحيات التحكم بالقرآن الكريم من رتبة <@&{}>".format(guild.role_id)
         await ctx.respond(embed=embed)
         return
 
     ctx.bot.db.update_guild(guild, GuildUpdateType.role_id, role.id)
-    embed = hikari.Embed(
-        description="لقد تم تعين رتبة <@&{}> للتحكم بالقرآن الكريم".format(role.id),
-        color=0xffd430
-    )
+    embed.description = "لقد تم تعين رتبة <@&{}> للتحكم بالقرآن الكريم".format(role.id)
     await ctx.respond(embed=embed)
 
 

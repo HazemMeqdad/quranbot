@@ -12,6 +12,7 @@ error_plugin = Plugin("errors")
 @error_plugin.listener(lightbulb.SlashCommandErrorEvent)
 async def on_slash_command_error_event(event: lightbulb.SlashCommandErrorEvent):
     embed = hikari.Embed(color=0xffd430)
+    embed.set_footer(text=event.context.bot.footer, icon=event.context.bot.get_me().avatar_url)
     if isinstance(event.exception, MissingRequiredPermission):
         embed.description = "ليس لديك الصلاحيات الكافية لتنفيذ هذا الأمر"
         await event.context.respond(embed=embed)
