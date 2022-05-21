@@ -5,11 +5,11 @@ import typing
 @dataclass(init=True)
 class Emojis:
     def __init__(self, emoji_config: typing.Dict[str, str]):
-        self.hashtag = emoji_config["hashtag"]
-        self.on = emoji_config["_on"]
-        self.off = emoji_config["_off"]
-        self.ping = emoji_config["ping"]
-        self.error = emoji_config["error"]
-        self.like = emoji_config["like"]
-        self.dislike = emoji_config["dislike"]
+        self.hashtag = emoji_config.get("hashtag", "#️⃣")
+        self.on = emoji_config.get("_on", "🟢")
+        self.off = emoji_config.get("_off", "🔴")
+        self.ping = emoji_config.get("ping", "🏓")
+        self.error = emoji_config.get("error", "❌")
+        self.like = emoji_config.get("like", "✅")
+        self.dislike = emoji_config.get("dislike", "❌")
 

@@ -11,6 +11,8 @@ from bot.api import Api
 from bot import manger, utils, database
 import os
 
+log = logging.getLogger("fdrbot")
+
 class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
@@ -18,17 +20,21 @@ class Bot(lightbulb.BotApp):
             "quran", "general", "admin",  "moshaf", "owner"
         ]
         self.config["bot"].get("debug", False) or self._extensions.append("errors")
+        if not self.config["bot"].get("token"):
+            raise ValueError("Token is not configured")
         super().__init__(
             ignore_bots=True,
-            owner_ids=self.config["bot"]["owner_ids"],
+            owner_ids=self.config["bot"].get("owner_ids", []),
             token=self.config["bot"]["token"],
             banner=None,
             default_enabled_guilds=self.config["bot"].get("default_enabled_guilds", ()) if self.config["bot"].get("debug", False) else [],
             help_class=None,
         )
         self.print_banner("bot.banner", True, True)
-        self.emojis = utils.Emojis(self.config["emojis"])
-        self.footer = self.config["bot"]["footer"]
+        self.emojis = utils.Emojis(self.config.get("emojis", {}))
+        self.footer = self.config["bot"].get("footer", "بوت فاذكروني لإحياء سنة ذكر الله")
+        if not os.environ.get("MONGODB_URI", self.config["bot"].get("mongo_url")):
+            raise ValueError("MongoDB URI is not configured")
         mongodb = pymongo.MongoClient(os.environ.get("MONGODB_URI", self.config["bot"]["mongo_url"]))
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink: lavaplayer.LavalinkClient = None
@@ -37,20 +43,6 @@ class Bot(lightbulb.BotApp):
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
-
-    # not used because the prefix for all guilds is use slash commands
-    async def resolve_prefix(self, bot: lightbulb.BotApp, message: hikari.Message):
-        if not message.guild_id:
-            return ["!", "/"]
-        guild = self.db.get_guild(message.guild_id)
-        if not guild:
-            self.db.insert(guild)
-            return ["!", "/"]
-        return [guild.prefix, "/"]
-
-    async def on_ready(self, event: hikari.StartedEvent):
-        logging.info(self.get_me().username)
-        self.create_task(self.make_tasks())
 
     async def make_tasks(self):
         await asyncio.sleep(20)
@@ -62,15 +54,10 @@ class Bot(lightbulb.BotApp):
             # this is for not to make the bot crash when the bot is restarted
             await asyncio.sleep(timer / 8)
 
-    async def on_shotdown(self, event: hikari.StoppedEvent):
-        # stop_tasks()
-        logging.info("shotdown event tasks")
-
-    async def on_shard_ready(self, event: hikari.ShardReadyEvent):
-        if event.shard.id == self.shard_count-1:
-            await self.create_lavalink_connection()
-
     async def create_lavalink_connection(self):
+        if not self.config.get("lavalink"):
+            log.warning("[ Configuration ] lavalink is not configured")
+            return
         self.lavalink = lavaplayer.LavalinkClient(
             host=self.config["lavalink"]["host"],
             password=self.config["lavalink"]["password"],
@@ -80,10 +67,22 @@ class Bot(lightbulb.BotApp):
         )
         self.lavalink.connect()
 
+    async def on_ready(self, event: hikari.StartedEvent):
+        log.info(self.get_me().username + " is ready")
+        self.create_task(self.make_tasks())
+
+    async def on_shotdown(self, event: hikari.StoppedEvent):
+        log.info("shotdown event tasks")
+
+    async def on_shard_ready(self, event: hikari.ShardReadyEvent):
+        if event.shard.id == self.shard_count-1:
+            await self.create_lavalink_connection()
+
     async def on_guild_join(self, event: hikari.GuildJoinEvent):
         self.db.insert(event.get_guild().id)
         owner_id = event.get_guild().owner_id
         owner = await self.rest.fetch_user(owner_id)
+        
         embed = hikari.Embed(
             title="أضافة جديده",
             color=0x46FF00
@@ -152,11 +151,11 @@ class Bot(lightbulb.BotApp):
         self.api = Api(self)
         self.api.run_as_thread()
         super().run(
-                activity=hikari.Activity(
-                    name="/help - fdrbot.com",
-                    type=hikari.ActivityType.PLAYING,
-                ),
-                status=hikari.Status.DO_NOT_DISTURB,
-                asyncio_debug=False
-            )
+            activity=hikari.Activity(
+                name="/help - fdrbot.com",
+                type=hikari.ActivityType.PLAYING,
+            ),
+            status=hikari.Status.DO_NOT_DISTURB,
+            asyncio_debug=False
+        )
 
