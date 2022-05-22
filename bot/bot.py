@@ -46,7 +46,7 @@ class Bot(lightbulb.BotApp):
 
     async def make_tasks(self):
         await asyncio.sleep(20)
-        timers = [1800, 3600, 7200, 10800, 21600, 43200, 86400]
+        timers = [1800, 3600, 7200, 21600, 43200, 86400]
         for timer in timers:
             task_manger = manger.Manger(timer)
             task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=100, max_executions=None, pass_app=True, wait_before_execution=False)
@@ -72,7 +72,7 @@ class Bot(lightbulb.BotApp):
         self.create_task(self.make_tasks())
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
-        log.info("shotdown event tasks")
+        log.info("shotdown")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
@@ -80,6 +80,8 @@ class Bot(lightbulb.BotApp):
 
     async def on_guild_join(self, event: hikari.GuildJoinEvent):
         self.db.insert(event.get_guild().id)
+        if not self.config.get("webhooks") or not self.config["webhooks"].get("logger"):
+            return
         owner_id = event.get_guild().owner_id
         owner = await self.rest.fetch_user(owner_id)
         
@@ -94,13 +96,15 @@ class Bot(lightbulb.BotApp):
         embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
         embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
         await self.rest.execute_webhook(
-            self.config["webhook"]["id"], 
-            self.config["webhook"]["token"],
+            self.config["webhooks"]["logger"]["id"], 
+            self.config["webhooks"]["logger"]["token"],
             embed=embed
         )
     
     async def on_guild_leave(self, event: hikari.GuildLeaveEvent):
         self.db.delete_guild(event.guild_id)
+        if not self.config.get("webhooks") or not self.config["webhooks"].get("logger"):
+            return
         guild = event.old_guild
         if guild:
             owner_id = guild.owner_id
@@ -116,8 +120,8 @@ class Bot(lightbulb.BotApp):
             embed.set_footer(text=guild.name, icon=guild.icon_url)
             embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
             await self.rest.execute_webhook(
-                self.config["webhook"]["id"], 
-                self.config["webhook"]["token"],
+                self.config["webhooks"]["logger"]["id"], 
+                self.config["webhooks"]["logger"]["token"],
                 embed=embed
             )
 

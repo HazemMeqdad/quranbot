@@ -8,19 +8,20 @@ bot:
   support_guild: 123
   securekey: "example for securekey"  # to encrypt webhook data on database keep private
   debug: true
-  
+
+# If you don't want to use lavalink, you can comment it.
 lavalink:
   host: 127.0.0.1
   port: 4569
   password: "pass"
 
-# webhook for log
-webhook:
+# If you don't want to use webhooks, you can comment it.
+webhooks:
   logger:
     id: 123
     token: "webhook_token"
 
-# you can uncomment this if you want to use custom emojis
+# You can uncomment this if you want to use custom emojis
 # emojis:
   # hashtag: "<:hashtag:123>"
   # _on: "<:on_emoji:123>"
