@@ -3,7 +3,6 @@ import lightbulb
 from lightbulb import Plugin, commands
 from lightbulb.context.slash import SlashContext
 from bot.database import GuildUpdateType
-from bot.utils import command_error
 from hikari import Permissions
 
 
@@ -60,7 +59,9 @@ async def set_time(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if not guild.channel:
-        return await command_error(ctx, "يجب عليك تثبيت روم لاستعمال هاذ الامر")
+        embed.description = "يجب عليك تثبيت روم لاستعمال هاذ الامر"
+        await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
     value = ctx.raw_options.get("time")
     ctx.bot.db.update_guild(guild, GuildUpdateType.time, times.get(value))
     embed.description = "تم تغير وقت ارسال الأذكار إلى: **%s**" % value
@@ -86,7 +87,9 @@ async def set_channel(ctx: SlashContext):
     # if not setup a channel
     if not channel_id:
         if not guild.channel_id:
-            return await command_error(ctx, "انت لم تقم بتثبيت الروم من قبل")
+            embed.description = "انت لم تقم بتثبيت الروم من قبل"
+            await ctx.respond(embed=embed)
+            return
         ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, None)
         ctx.bot.db.update_guild(guild, GuildUpdateType.webhook, None)
         embed.description = "تم إيقاف أرسال الأذكار في قناة <#%s>" % guild.channel_id
@@ -95,9 +98,13 @@ async def set_channel(ctx: SlashContext):
     channel = ctx.bot.cache.get_guild_channel(channel_id)
 
     if channel.type != hikari.ChannelType.GUILD_TEXT:
-        return await command_error(ctx, "يجب التأكد من نوع القناة المحدده من انها كتابية")
+        embed.description = "يجب التأكد من نوع القناة المحدده من انها كتابية"
+        await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
     if int(channel_id) == guild.channel_id:
-        return await command_error(ctx, "لقد قمت بتحديد هذا الروم مسبقًا")
+        embed.description = "لقد قمت بتحديد هذا الروم مسبقًا"
+        await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
 
     webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
 
@@ -123,6 +130,10 @@ async def set_role(ctx: SlashContext):
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
 
     if not role:
+        if not guild.role_id:
+            embed.description = "انت لم تقم بتثبيت الرتبة من قبل"
+            await ctx.respond(embed=embed)
+            return 
         ctx.bot.db.update_guild(guild, GuildUpdateType.role_id, None)
         embed.description = "لقد تم الغاء تقيد صلاحيات التحكم بالقرآن الكريم من رتبة <@&{}>".format(guild.role_id)
         await ctx.respond(embed=embed)

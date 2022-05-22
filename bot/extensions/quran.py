@@ -4,8 +4,8 @@ from hikari.messages import MessageFlag
 from lightbulb import Plugin, commands 
 import lightbulb
 from lightbulb.context import SlashContext
-from bot.utils import voice, command_error
 import json
+from bot.utils import voice
 
 
 quran_plugin = Plugin("القرآن الكريم")
@@ -31,7 +31,8 @@ async def only_role(ctx: SlashContext):
     role = _guild.get_role(guild.role_id) if guild.role_id else None
     if not role or guild.role_id in [i.id for i in ctx.member.get_roles()] or check_permission(ctx, hikari.Permissions.MANAGE_GUILD):
         return True
-    await command_error(ctx, "أنت لا تمتلك صلاحيات للتحكم بهاذ الأمر")
+    embed = hikari.Embed(color=0xffd430, description="ليس لديك صلاحية لاستخدام هذا الأمر")
+    await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
     return False
 
 @quran_plugin.command()
@@ -151,7 +152,9 @@ async def quran_stop(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if not data:
-        return await command_error(ctx, "البوت غير موجود في روم صوتي")
+        embed.description = "البوت غير موجود في روم صوتي"
+        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        return
     embed.description = "تم مغادره الروم الصوتي"
     await ctx.respond(embed=embed)
 
@@ -170,7 +173,9 @@ async def quran_volume(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if vol > 100 or vol < 0:
-        return await command_error(ctx, "الصوت المتاح من 0 - 100")
+        embed.description = "المستوى يجب أن يكون بين 0 - 100"
+        await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
+        return
     await ctx.bot.lavalink.volume(ctx.guild_id, vol)
     embed.description = f"تم تغير مستوى الصوت إلى `{vol}%`"
     await ctx.respond(embed=embed)

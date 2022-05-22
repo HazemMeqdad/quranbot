@@ -9,9 +9,8 @@ import lightbulb
 from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
-from bot.manger.manger import Manger
 from bot.utils import Prayer
-from bot.utils import command_error
+
 
 general_plugin = Plugin("general")
 
@@ -38,7 +37,7 @@ async def ping(ctx: SlashContext):
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def support(ctx: SlashContext):
     embed = hikari.Embed(
-        title="**شكرا على اختيارك بوت فاذكروني 🌹**",
+        title="**شكراً على أختيارك بوت فاذكروني 🌹**",
         color=0xffd430
     )
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
@@ -126,7 +125,9 @@ async def azan(ctx: SlashContext):
     if isinstance(x, dict):
         x = prayer.city()
         if isinstance(x, dict):
-            return await command_error(ctx, "لم استطع العثور على المدينه او الدوله")
+            embed.description = "لم أستطع العثور على المدينة او الدولة المطلوبة"
+            await ctx.respond(embed=embed)
+            return
     embed.set_author(name=x.description, url=x.url)
     embed.add_field(name="صلاة الفجْر", value=x.fjer, inline=True)
     embed.add_field(name="الشروق", value=x.sunrise, inline=True)
@@ -166,7 +167,7 @@ async def bot(ctx: SlashContext):
         inline=True
     )
     embed.add_field(
-        name="%s - سرعة استجابة قواعد البيانات" % hashtag,
+        name="%s - سرعة أستجابة قواعد البيانات" % hashtag,
         value="%sms" % ctx.bot.db.speed_test(),
         inline=True
     )
