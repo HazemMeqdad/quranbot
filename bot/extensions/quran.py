@@ -119,7 +119,7 @@ async def quran_play(ctx: SlashContext):
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_radio(ctx: SlashContext):
     channel_id = await voice.join_voice_channel(ctx)
-
+    await ctx.respond(response_type=hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
     if isinstance(channel_id, hikari.Embed):
         await ctx.respond(embed=channel_id, flags=MessageFlag.EPHEMERAL)
         return
