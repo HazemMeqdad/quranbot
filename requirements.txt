@@ -11,3 +11,4 @@ pyyaml
 requests
 flask_cors
 uvloop; sys_platform == "linux"
+redis
