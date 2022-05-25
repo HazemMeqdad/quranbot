@@ -9,6 +9,7 @@ import lightbulb
 from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
+from bot.manger.manger import Manger
 from bot.utils import Prayer
 
 
