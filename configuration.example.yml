@@ -21,6 +21,12 @@ webhooks:
     id: 123
     token: "webhook_token"
 
+# If you don't want to use redis, you can comment it.
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+
 # You can uncomment this if you want to use custom emojis
 # emojis:
   # hashtag: "<:hashtag:123>"
