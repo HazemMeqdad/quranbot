@@ -1,13 +1,14 @@
 import asyncio
+import json
 import hikari
 from lightbulb.ext import tasks
 from lightbulb.ext.tasks import triggers
 import lightbulb
 import lavaplayer
 import pymongo
+import redis
 import yaml
 import logging
-from bot.api import Api
 from bot import manger, utils, database
 import os
 
@@ -39,6 +40,9 @@ class Bot(lightbulb.BotApp):
         self.db: database.DB = database.DB(mongodb["fa-azcrone"])
         self.lavalink: lavaplayer.LavalinkClient = None
         self.tasks = []
+        if not self.config.get("redis"):
+            log.warn("[ Configuration ] redis is not configured")
+        self.redis = redis.Redis(**self.config["redis"])
         tasks.load(self)
         
     def setup(self):
@@ -67,12 +71,29 @@ class Bot(lightbulb.BotApp):
         )
         self.lavalink.connect()
 
+    @classmethod
+    @tasks.task(s=10, auto_start=True, pass_app=True)
+    async def stats_redis_update(app: lightbulb.BotApp):
+        status = {
+            "shards": app.shard_count,
+            "guilds": len(app.cache.get_available_guilds_view().values()),
+            "channels": len(app.cache.get_guild_channels_view().values()),
+            "online": True
+        }
+        app.redis.set("bot:stats", json.dumps(status))
+
     async def on_ready(self, event: hikari.StartedEvent):
         log.info(self.get_me().username + " is ready")
+        # self.status_redis_update.start()
         self.create_task(self.make_tasks())
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
-        log.info("shotdown")
+        # for key in self.redis.scan_iter(match="guild:*"):
+        #     self.redis.delete(key)
+        stats = json.loads(self.redis.get("bot:stats"))
+        stats["online"] = False
+        self.redis.set("bot:stats", json.dumps(stats))
+        log.info("[ Redis ] cache reset")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
@@ -140,6 +161,41 @@ class Bot(lightbulb.BotApp):
                 event.guild_id, event.endpoint, event.token
             )
 
+    # Redis cache events
+    async def update_redis_cache(self, guild: hikari.Guild):
+        data = {
+            "id": guild.id.__str__(),
+            "name": guild.name,
+            "icon_url": guild.icon_url.url if guild.icon_url else None,
+            "member_count": guild.member_count.__str__(),
+            "description": guild.description,
+            "owner_id": guild.owner_id.__str__(),
+            "channels": [{"id": channel.id.__str__(), "name": channel.name, "type": channel.type.value} for channel in guild.get_channels().values()],
+            "roles": [{"id": role.id.__str__(), "name": role.name} for role in guild.get_roles().values()],
+        }
+        self.redis.set(f"guild:{guild.id}", json.dumps(data))
+
+    async def guild_available(self, event: hikari.GuildAvailableEvent) -> None:
+        await self.update_redis_cache(event.guild)
+
+    async def guild_unavailable(self, event: hikari.GuildUnavailableEvent) -> None:
+        self.redis.delete(f"guild:{event.guild_id}")
+
+    async def on_guild_update(self, event: hikari.GuildUpdateEvent) -> None:
+        await self.update_redis_cache(event.guild)
+
+    async def on_channel_update(self, event: hikari.GuildChannelEvent) -> None:
+        await self.update_redis_cache(event.get_guild())
+
+    async def on_role_update(self, event: hikari.RoleUpdateEvent) -> None:
+        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
+
+    async def on_role_create(self, event: hikari.RoleCreateEvent):
+        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
+    
+    async def on_role_delete(self, event: hikari.RoleDeleteEvent):
+        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
+
     def run(self):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
@@ -151,9 +207,16 @@ class Bot(lightbulb.BotApp):
 
         self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
         self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
-        
-        self.api = Api(self)
-        self.api.run_as_thread()
+
+        # To redis cache
+        self.event_manager.subscribe(hikari.GuildAvailableEvent, self.guild_available)
+        self.event_manager.subscribe(hikari.GuildUnavailableEvent, self.guild_unavailable)
+        self.event_manager.subscribe(hikari.GuildUpdateEvent, self.on_guild_update)
+        self.event_manager.subscribe(hikari.GuildChannelEvent, self.on_channel_update)
+        self.event_manager.subscribe(hikari.RoleUpdateEvent, self.on_role_update)
+        self.event_manager.subscribe(hikari.RoleCreateEvent, self.on_role_create)
+        self.event_manager.subscribe(hikari.RoleDeleteEvent, self.on_role_delete)
+
         super().run(
             activity=hikari.Activity(
                 name="/help - fdrbot.com",
