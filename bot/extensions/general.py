@@ -78,7 +78,7 @@ async def info(ctx: SlashContext):
     embed.add_field(
         name="%s - روم الاذكار:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.cache.get_guild_channel(
-            data.channel_id).mention if data.channel_id is not None else "لا يوجد",
+            data.channel_id).mention if data.channel_id else "لا يوجد",
         inline=True
     )
     embed.add_field(
@@ -93,7 +93,7 @@ async def info(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - رتبة القرآن الكريم" % ctx.bot.emojis.hashtag,
-        value=ctx.get_guild().get_role(data.role_id).mention if data.role_id is not None else "لا يوجد",
+        value=ctx.get_guild().get_role(data.role_id).mention if data.role_id else "لا يوجد",
         inline=True
     )
     embed.add_field(
