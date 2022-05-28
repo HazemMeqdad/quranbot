@@ -58,7 +58,7 @@ async def set_time(ctx: SlashContext):
     guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-    if not guild.channel:
+    if not guild.channel_id:
         embed.description = "يجب عليك تثبيت روم لاستعمال هاذ الامر"
         await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
