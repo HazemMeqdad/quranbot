@@ -88,8 +88,8 @@ class Bot(lightbulb.BotApp):
         self.create_task(self.make_tasks())
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
-        # for key in self.redis.scan_iter(match="guild:*"):
-        #     self.redis.delete(key)
+        for key in self.redis.scan_iter(match="guild:*"):
+            self.redis.delete(key)
         stats = json.loads(self.redis.get("bot:stats"))
         stats["online"] = False
         self.redis.set("bot:stats", json.dumps(stats))
