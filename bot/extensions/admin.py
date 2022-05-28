@@ -106,7 +106,12 @@ async def set_channel(ctx: SlashContext):
         await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
 
-    webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
+    webhooks = await ctx.bot.rest.fetch_channel_webhooks(channel_id)
+    bot_webhooks = list(filter(lambda webhook: webhook.author.id == ctx.bot.get_me().id, webhooks))
+    if not bot_webhooks:
+        webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
+    else:
+        webhook = bot_webhooks[0]
 
     ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, channel.id)
     ctx.bot.db.update_guild(guild, GuildUpdateType.webhook, {"id": webhook.id, "token": webhook.token})
