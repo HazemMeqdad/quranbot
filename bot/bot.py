@@ -37,7 +37,7 @@ class Bot(lightbulb.BotApp):
         if not os.environ.get("MONGODB_URI", self.config["bot"].get("mongo_url")):
             raise ValueError("MongoDB URI is not configured")
         mongodb = pymongo.MongoClient(os.environ.get("MONGODB_URI", self.config["bot"]["mongo_url"]))
-        self.db: database.DB = database.DB(mongodb["fa-azcrone"])
+        self.db: database.DB = database.DB(mongodb["fdrbot"])
         self.lavalink: lavaplayer.LavalinkClient = None
         self.tasks = []
         if not self.config.get("redis"):
