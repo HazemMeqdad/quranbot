@@ -19,9 +19,9 @@ class Manger:
             if not data:
                 self.db.insert(guild.id)
                 return
-            assert data.channel_id
-            assert self.bot.cache.get_guild_channel(data.channel_id)
-            assert data.webhook
+            assert data.channel_id or False
+            assert self.bot.cache.get_guild_channel(data.channel_id) or False
+            assert data.webhook or False
             webhook = await self.bot.rest.fetch_webhook(data.webhook["id"], token=data.webhook["token"])
             assert webhook.channel_id == data.channel_id
             zker = self.db.get_random_zker().content
