@@ -223,7 +223,8 @@ async def help_command(ctx: SlashContext):
     category = {
         "quran": "القرآن الكريم",
         "set": "الأداره",
-        "moshaf": "المصحف",
+        "moshaf": "المصحف الشريف",
+        "hadith": "الحديث النبوي"
     }
     embed = hikari.Embed(color=0xffd430)
     commands = ctx.bot._slash_commands

@@ -18,7 +18,7 @@ class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner"
+            "quran", "general", "admin",  "moshaf", "owner", "hadith"
         ]
         self.config["bot"].get("debug", False) or self._extensions.append("errors")
         if not self.config["bot"].get("token"):
