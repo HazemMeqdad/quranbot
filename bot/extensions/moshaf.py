@@ -172,7 +172,7 @@ async def moshaf_interaction_create(event: hikari.InteractionCreateEvent):
         embed = hikari.Embed(color=0xffd430)
         voice_state = await voice.join_voice_channel(moshaf_plugin.bot, event.interaction.guild_id, event.interaction.user)
         if not voice_state:
-            embed.description = "يجب عليك دخول غرفه صوتيه"
+            embed.description = "يجب عليك دخول قناة صوتيه"
             await event.app.rest.create_interaction_response(
                 interaction=event.interaction, 
                 token=event.interaction.token, 
