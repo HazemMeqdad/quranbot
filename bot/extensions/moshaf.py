@@ -1,6 +1,6 @@
 import logging
 import hikari
-from hikari import MessageFlag, CommandChoice
+from hikari import ButtonStyle, InteractionType, MessageFlag, CommandChoice, ResponseType
 import lightbulb
 from lightbulb import commands
 from lightbulb.app import BotApp
@@ -11,6 +11,7 @@ import aiohttp
 from requests import request
 from PIL import Image
 import io
+from bot.utils import voice
 
 moshaf_plugin = lightbulb.Plugin("المصحف الشريف")
 
@@ -137,7 +138,7 @@ async def moshaf_ayah(ctx: SlashContext):
         return
 
     surah_name = quran_surahs.get(surah)
-    cloud_data = cloud_surahs[int(surah)]
+    cloud_data = cloud_surahs[int(surah) - 1]
 
     if int(ayah) > len(cloud_data["ayahs"]) or int(ayah) < 0:
         embed.description = f"خطأ في رقم الآية مع العلم أن عدد آيات سورة {surah_name} {len(cloud_data['ayahs'])} آية"
@@ -147,7 +148,14 @@ async def moshaf_ayah(ctx: SlashContext):
     embed.set_image(image_bytes(f"http://cdn.islamic.network/quran/images/{surah}_{ayah}.png"))
     embed.set_footer(f"الآية {ayah}/{quran_surahs[surah]}")
 
-    await ctx.respond(embed=embed)
+    component = ctx.bot.rest.build_action_row()
+    (
+        component.add_button(ButtonStyle.PRIMARY, f"{surah}_{ayah}")
+        .set_label("تشغيل")
+        .set_emoji("▶️")
+        .add_to_container()
+    )
+    await ctx.respond(embed=embed, components=[component])
 
 @moshaf_ayah.autocomplete("surah")
 async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteInteraction):
@@ -155,6 +163,41 @@ async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteIntera
     if not option:
         return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items()][:25]
     return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items() if option in i[1]][:25]
+
+
+@moshaf_plugin.listener(hikari.InteractionCreateEvent)
+async def moshaf_interaction_create(event: hikari.InteractionCreateEvent):
+    embed = hikari.Embed(color=0xffd430)
+    if event.interaction.type == InteractionType.MESSAGE_COMPONENT and event.interaction.get_parent_message().components[0].components[0].label == "تشغيل":
+        embed = hikari.Embed(color=0xffd430)
+        voice_state = await voice.join_voice_channel(moshaf_plugin.bot, event.interaction.guild_id, event.interaction.user)
+        if not voice_state:
+            embed.description = "يجب عليك دخول غرفه صوتيه"
+            await event.app.rest.create_interaction_response(
+                interaction=event.interaction, 
+                token=event.interaction.token, 
+                response_type=ResponseType.MESSAGE_CREATE,
+                embed=embed,
+                flags=MessageFlag.EPHEMERAL
+            )
+            return
+        surah = event.interaction.custom_id.split("_")[0]
+        ayah = event.interaction.custom_id.split("_")[1]
+        audio = cloud_surahs[int(surah) - 1]["ayahs"][int(ayah) - 1]["audio"]
+        embed.description = f"تم تشغيل الآية رقم {ayah} من سورة {quran_surahs[surah]} بصوت القارئ **ياسر الدوسري**"
+        await event.app.rest.create_interaction_response(
+            interaction=event.interaction, 
+            token=event.interaction.token, 
+            response_type=ResponseType.MESSAGE_CREATE,
+            embed=embed,
+        )
+        await voice.play_lavalink_source(
+            lavalink=moshaf_plugin.bot.lavalink,
+            guild=event.interaction.guild_id,
+            source=audio,
+            user=event.interaction.user
+        )
+
 
 
 
