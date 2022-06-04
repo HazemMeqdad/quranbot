@@ -43,6 +43,11 @@ class Bot(lightbulb.BotApp):
         if not self.config.get("redis"):
             log.warn("[ Configuration ] redis is not configured")
         self.redis = redis.Redis(**self.config["redis"])
+        try:
+            self.loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
         tasks.load(self)
         
     def setup(self):
