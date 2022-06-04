@@ -51,10 +51,10 @@ async def quran(ctx: SlashContext):
     choices=[CommandChoice(name=i["name"], value=i["value"]) for i in quran_reader],
 )
 @lightbulb.option(
-    name="surah_number",
-    description="أكتب رقم السوره",
-    type=int,
+    name="surah",
+    description="السورة المطلوبة يمكن كتابة رقم أو أسم السورة",
     required=False,
+    autocomplete=True
 )
 @lightbulb.command("play", "تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
@@ -68,7 +68,7 @@ async def quran_play(ctx: SlashContext):
         name = "اسلام صبحي"
         stream_url = "https://youtu.be/QJbp6uJ-Wjo"
 
-    surah_number = ctx.options.surah_number
+    surah_number = ctx.options.surah
     surah_number = str(surah_number) if surah_number else None
 
     channel = await voice.join_voice_channel(ctx)
@@ -77,6 +77,11 @@ async def quran_play(ctx: SlashContext):
         return
 
     await ctx.bot.lavalink.skip(ctx.guild_id)
+
+    if surah_number and not surah_number.isdigit():
+        embed.description = "السورة المطلوبة غير موجودة"
+        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        return
 
     if surah_number:
         if name == "حسن صالح" or name == "اسلام صبحي":
@@ -107,6 +112,14 @@ async def quran_play(ctx: SlashContext):
     await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
     embed.description = "تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % name
     await ctx.respond(embed=embed)
+
+
+@quran_play.autocomplete("surah")
+async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteInteraction):
+    option = query.options[0].options[1].value
+    if not option:
+        return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items()][:25]
+    return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items() if option in i[1]][:25]
 
 @quran.child()
 @lightbulb.add_checks(only_role)
