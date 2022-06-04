@@ -5,6 +5,7 @@ from lightbulb.context import SlashContext
 import inspect
 import logging
 import yaml
+import os
 
 owner_plugin = Plugin("owner")
 
