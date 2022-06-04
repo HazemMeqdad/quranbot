@@ -123,12 +123,7 @@ async def autocomplete_query(ctx: lightbulb.SlashContext, query: hikari.Autocomp
 
 
 def load(bot: lightbulb.BotApp):
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    loop.create_task(fetch_data())
+    bot.loop.create_task(fetch_data())
     bot.add_plugin(hadith_plugin)
 
 def unload(bot: lightbulb.BotApp):
