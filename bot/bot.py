@@ -18,7 +18,7 @@ class Bot(lightbulb.BotApp):
     def __init__(self):
         self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner", "hadith"
+            "quran", "general", "admin",  "moshaf", "owner", "hadith", "events"
         ]
         self.config["bot"].get("debug", False) or self._extensions.append("errors")
         if not self.config["bot"].get("token"):
@@ -104,123 +104,12 @@ class Bot(lightbulb.BotApp):
         if event.shard.id == self.shard_count-1:
             await self.create_lavalink_connection()
 
-    async def on_guild_join(self, event: hikari.GuildJoinEvent):
-        self.db.insert(event.get_guild().id)
-        if not self.config.get("webhooks") or not self.config["webhooks"].get("logger"):
-            return
-        owner_id = event.get_guild().owner_id
-        owner = await self.rest.fetch_user(owner_id)
-        
-        embed = hikari.Embed(
-            title="أضافة جديده",
-            color=0x46FF00
-        )
-        embed.add_field("اسم الخادم:", f"{event.get_guild().name} (`{event.get_guild().id}`)")
-        embed.add_field("عدد أعضاء الخادم:", str(event.get_guild().member_count))
-        embed.add_field("مالك الخادم:", f"{owner.username}#{owner.discriminator} (`{owner.id}`)")
-        embed.add_field("خوادم فاذكروني", str(len(self.cache.get_guilds_view())))
-        embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
-        embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
-        await self.rest.execute_webhook(
-            self.config["webhooks"]["logger"]["id"], 
-            self.config["webhooks"]["logger"]["token"],
-            embed=embed
-        )
-    
-    async def on_guild_leave(self, event: hikari.GuildLeaveEvent):
-        self.db.delete_guild(event.guild_id)
-        if not self.config.get("webhooks") or not self.config["webhooks"].get("logger"):
-            return
-        guild = event.old_guild
-        if guild:
-            owner_id = guild.owner_id
-            owner = await self.rest.fetch_user(owner_id)
-            embed = hikari.Embed(
-                title="أضافة جديده",
-                color=0xFF0000
-            )
-            embed.add_field("اسم الخادم:", f"{guild.name} (`{guild.id}`)")
-            embed.add_field("عدد أعضاء الخادم:", str(guild.member_count))
-            embed.add_field("مالك الخادم:", f"{owner.username}#{owner.discriminator} (`{owner.id}`)")
-            embed.add_field("خوادم فاذكروني", str(len(self.cache.get_guilds_view())))
-            embed.set_footer(text=guild.name, icon=guild.icon_url)
-            embed.set_author(name=self.get_me().username, icon=self.get_me().avatar_url)
-            await self.rest.execute_webhook(
-                self.config["webhooks"]["logger"]["id"], 
-                self.config["webhooks"]["logger"]["token"],
-                embed=embed
-            )
-
-    async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent) -> None:
-        if self.lavalink and self.lavalink.is_connect:
-            await self.lavalink.raw_voice_state_update(
-                event.state.guild_id,
-                event.state.user_id,
-                event.state.session_id,
-                event.state.channel_id,
-            )
-
-    async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent) -> None:
-        if self.lavalink and self.lavalink.is_connect:
-            await self.lavalink.raw_voice_server_update(
-                event.guild_id, event.endpoint, event.token
-            )
-
-    # Redis cache events
-    async def update_redis_cache(self, guild: hikari.Guild):
-        data = {
-            "id": guild.id.__str__(),
-            "name": guild.name,
-            "icon_url": guild.icon_url.url if guild.icon_url else None,
-            "member_count": guild.member_count.__str__(),
-            "description": guild.description,
-            "owner_id": guild.owner_id.__str__(),
-            "channels": [{"id": channel.id.__str__(), "name": channel.name, "type": channel.type.value} for channel in guild.get_channels().values()],
-            "roles": [{"id": role.id.__str__(), "name": role.name} for role in guild.get_roles().values()],
-        }
-        self.redis.set(f"guild:{guild.id}", json.dumps(data))
-
-    async def guild_available(self, event: hikari.GuildAvailableEvent) -> None:
-        await self.update_redis_cache(event.guild)
-
-    async def guild_unavailable(self, event: hikari.GuildUnavailableEvent) -> None:
-        self.redis.delete(f"guild:{event.guild_id}")
-
-    async def on_guild_update(self, event: hikari.GuildUpdateEvent) -> None:
-        await self.update_redis_cache(event.guild)
-
-    async def on_channel_update(self, event: hikari.GuildChannelEvent) -> None:
-        await self.update_redis_cache(event.get_guild())
-
-    async def on_role_update(self, event: hikari.RoleUpdateEvent) -> None:
-        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
-
-    async def on_role_create(self, event: hikari.RoleCreateEvent):
-        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
-    
-    async def on_role_delete(self, event: hikari.RoleDeleteEvent):
-        await self.update_redis_cache(self.cache.get_available_guild(event.guild_id))
 
     def run(self):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
         self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
-
-        self.event_manager.subscribe(hikari.GuildJoinEvent, self.on_guild_join)
-        self.event_manager.subscribe(hikari.GuildLeaveEvent, self.on_guild_leave)
-
-        self.event_manager.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
-        self.event_manager.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
-
-        # To redis cache
-        self.event_manager.subscribe(hikari.GuildAvailableEvent, self.guild_available)
-        self.event_manager.subscribe(hikari.GuildUnavailableEvent, self.guild_unavailable)
-        self.event_manager.subscribe(hikari.GuildUpdateEvent, self.on_guild_update)
-        self.event_manager.subscribe(hikari.GuildChannelEvent, self.on_channel_update)
-        self.event_manager.subscribe(hikari.RoleUpdateEvent, self.on_role_update)
-        self.event_manager.subscribe(hikari.RoleCreateEvent, self.on_role_create)
-        self.event_manager.subscribe(hikari.RoleDeleteEvent, self.on_role_delete)
 
         super().run(
             activity=hikari.Activity(
