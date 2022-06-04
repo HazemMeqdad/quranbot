@@ -62,21 +62,18 @@ async def quran_play(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     stream_url = ctx.options.quran_reader
-    try:
-        name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
-    except IndexError:
-        name = "اسلام صبحي"
-        stream_url = "https://youtu.be/QJbp6uJ-Wjo"
+
+    name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
 
     surah_number = ctx.options.surah
     surah_number = str(surah_number) if surah_number else None
 
-    channel = await voice.join_voice_channel(ctx)
-    if isinstance(channel, hikari.Embed):
-        await ctx.respond(embed=channel, flags=MessageFlag.EPHEMERAL)
-        return
+    channel = await voice.join_voice_channel(bot=ctx.bot, guild=ctx.guild_id, auther=ctx.author)
 
-    await ctx.bot.lavalink.skip(ctx.guild_id)
+    if not channel:
+        embed.description = "يجب عليك دخول قناة صوتية"
+        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        return
 
     if surah_number and not surah_number.isdigit():
         embed.description = "السورة المطلوبة غير موجودة"
@@ -90,7 +87,7 @@ async def quran_play(ctx: SlashContext):
             return
         
         if int(surah_number) > 114 or int(surah_number) < 1:
-            embed.description = "خطأ في أدخال رقم السورة يرجا العلم بان عدد سور القرآن الكريم 114 سوره"
+            embed.description = "خطأ في أدخال رقم السورة يرجى العلم بان عدد سور القرآن الكريم 114 سورة"
             await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
             return
 
@@ -102,8 +99,7 @@ async def quran_play(ctx: SlashContext):
                                             if len(surah_number) == 2 \
                                             else stream_url+"00"+surah_number
 
-        tracks = await ctx.bot.lavalink.get_tracks(stream_url+".mp3")
-        await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
+        await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, stream_url+".mp3", ctx.author)
         embed.description = "تم تشغيل سوره %s بصوت الشيخ: **%s**" % (surah, name)
         await ctx.respond(embed=embed)
         return
@@ -132,27 +128,29 @@ async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteIntera
 @lightbulb.command("radio", "تشغيل اذاعه القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_radio(ctx: SlashContext):
-    channel_id = await voice.join_voice_channel(ctx)
+    
     await ctx.respond(response_type=hikari.ResponseType.DEFERRED_MESSAGE_CREATE)
-    if isinstance(channel_id, hikari.Embed):
-        await ctx.respond(embed=channel_id, flags=MessageFlag.EPHEMERAL)
-        return
+    
+    channel = await voice.join_voice_channel(bot=ctx.bot, guild=ctx.guild_id, auther=ctx.author)
 
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+
+    if not channel:
+        embed.description = "يجب عليك دخول قناة صوتية"
+        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        return
     stream_url = ctx.options.quran_reader
     if stream_url:
         name = [i["name"] for i in quran_stream_readers if i["value"] == stream_url][0]
-        tracks = await ctx.bot.lavalink.get_tracks(stream_url)
-        await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
+        await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, stream_url, ctx.author)
         embed.description = "تم تشغيل أذاعة القران الكريم الخاص بالقارئ %s في روم <#%s>" % (
-            name, channel_id)
+            name, channel)
         await ctx.respond(embed=embed)
         return
 
-    tracks = await ctx.bot.lavalink.get_tracks("https://qurango.net/radio/tarateel")
-    await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
-    embed.description = "تم تشغيل أذاعة القران الكريم المتنوعه في روم <#%s>" % channel_id
+    await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, "https://qurango.net/radio/tarateel", ctx.author)
+    embed.description = "تم تشغيل أذاعة القران الكريم المتنوعه في روم <#%s>" % channel
     await ctx.respond(embed=embed)
 
 
@@ -161,7 +159,7 @@ async def quran_radio(ctx: SlashContext):
 @lightbulb.command("stop", "إيقاف تشغيل القران الكريم")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_stop(ctx: SlashContext):
-    data = await voice.leave_and_stop(ctx)
+    data = await voice.leave_and_stop(ctx.bot, ctx.guild_id)
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     if not data:
@@ -185,6 +183,12 @@ async def quran_volume(ctx: SlashContext):
     vol = ctx.raw_options.get("المتسوى")
     embed = hikari.Embed(color=0xffd430)
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+    # check if bot is in voice channel
+    data = await voice.get_voice_data(ctx.bot, ctx.guild_id)
+    if not data:
+        embed.description = "البوت غير موجود في روم صوتي"
+        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        return
     if vol > 100 or vol < 0:
         embed.description = "المستوى يجب أن يكون بين 0 - 100"
         await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
