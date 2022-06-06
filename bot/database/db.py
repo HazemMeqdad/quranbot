@@ -20,7 +20,7 @@ class DB:
     
     def get_random_zker(self) -> Azkar:
         data = self.col_azkar.find({})
-        return random.choice(list(data))
+        return Azkar(random.choice(list(data)))
 
     def fetch_guild(self, guild_id: int) -> t.Optional[Guild]:
         result = self.col_guilds.find_one({"_id": guild_id})
