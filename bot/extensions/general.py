@@ -174,7 +174,7 @@ async def bot(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - أصدار النسخة" % hashtag,
-        value="V3.0.3",
+        value="V3.0.4",
         inline=True
     )
     embed.add_field(
