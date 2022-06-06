@@ -169,9 +169,9 @@ async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteIntera
 async def moshaf_interaction_create(event: hikari.InteractionCreateEvent):
     embed = hikari.Embed(color=0xffd430)
     if (
+        event.interaction.type == InteractionType.MESSAGE_COMPONENT and \
         event.interaction.get_parent_message() and \
         event.interaction.get_parent_message().components and \
-        event.interaction.type == InteractionType.MESSAGE_COMPONENT and \
         event.interaction.get_parent_message().components[0].components[0].label == "تشغيل"
     ):
         voice_state = await voice.join_voice_channel(moshaf_plugin.bot, event.interaction.guild_id, event.interaction.user)
