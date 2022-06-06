@@ -4,6 +4,7 @@ import typing as t
 import hikari
 import lightbulb
 from bot import database
+from bot.database.objects import GuildUpdateType
 
 
 logger = logging.getLogger("bot.manger.tasks")
@@ -14,36 +15,39 @@ class Manger:
         self.timer = timer
 
     async def make_task(self, guild: hikari.Guild):
-        try:
-            data = self.db.fetch_guild(guild if isinstance(guild, int) else guild.id)
-            if not data:
-                self.db.insert(guild.id)
-                return
-            assert data.channel_id or False
-            assert self.bot.cache.get_guild_channel(data.channel_id) or False
-            assert data.webhook or False
-            webhook = await self.bot.rest.fetch_webhook(data.webhook["id"], token=data.webhook["token"])
-            assert webhook.channel_id == data.channel_id
-            zker = self.db.get_random_zker().content
-            if data.embed:
-                embed = (
-                    hikari.Embed(
-                        description=zker,
-                        color=0xffd430
-                    )
-                    .set_footer("بوت فاذكروني لإحياء سنة ذكر الله", icon=self.bot.get_me().avatar_url.url)
-                    .set_thumbnail(self.bot.get_me().avatar_url.url)
-                )
-            await self.rest.execute_webhook(
-                webhook=data.webhook["id"], 
-                token=data.webhook["token"],
-                username="فاذكروني",
-                avatar_url=self.bot.get_me().avatar_url.url,
-                **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
-            )
-            return True
-        except AssertionError: 
+        data = self.db.fetch_guild(guild if isinstance(guild, int) else guild.id)
+        if not data:
+            self.db.insert(guild.id)
             return
+        if not data.channel_id or not self.bot.cache.get_guild_channel(data.channel_id) or not data.webhook:
+            return
+        try:
+            webhook = await self.bot.rest.fetch_webhook(data.webhook["id"], token=data.webhook["token"])
+        except hikari.UnauthorizedError:
+            self.db.update_guild(guild.id, GuildUpdateType.webhook, None)
+            return
+        
+        if webhook.channel_id != data.channel_id:
+            self.db.update_guild(guild.id, GuildUpdateType.webhook, None)
+            return
+        zker = self.db.get_random_zker().content
+        if data.embed:
+            embed = (
+                hikari.Embed(
+                    description=zker,
+                    color=0xffd430
+                )
+                .set_footer(self.bot.footer, icon=self.bot.get_me().avatar_url.url)
+                .set_thumbnail(self.bot.get_me().avatar_url.url)
+            )
+        await self.rest.execute_webhook(
+            webhook=data.webhook["id"], 
+            token=data.webhook["token"],
+            username="فاذكروني",
+            avatar_url=self.bot.get_me().avatar_url.url,
+            **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
+        )
+        return True
 
     async def start(self, bot: lightbulb.BotApp) -> None:
         self.bot = bot

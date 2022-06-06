@@ -58,7 +58,7 @@ class Bot(lightbulb.BotApp):
         timers = [1800, 3600, 7200, 21600, 43200, 86400]
         for timer in timers:
             task_manger = manger.Manger(timer)
-            task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=100, max_executions=None, pass_app=True, wait_before_execution=False)
+            task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=0, max_executions=None, pass_app=True, wait_before_execution=False)
             self.tasks.append(task)
             # this is for not to make the bot crash when the bot is restarted
             await asyncio.sleep(timer / 8)
