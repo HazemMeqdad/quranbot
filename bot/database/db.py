@@ -50,4 +50,4 @@ class DB:
         }
 
         self.col_guilds.insert_one(data)
-        return self._guilds[guild_id]
+        return data
