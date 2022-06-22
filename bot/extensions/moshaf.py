@@ -159,7 +159,10 @@ async def moshaf_ayah(ctx: SlashContext):
 
 @moshaf_ayah.autocomplete("surah")
 async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteInteraction):
-    option = query.options[0].options[1].value
+    try:
+        option = query.options[0].options[1].value
+    except IndexError:
+        return []
     if not option:
         return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items()][:25]
     return [CommandChoice(name=i[1], value=str(i[0])) for i in quran_surahs.items() if option in i[1]][:25]

@@ -75,6 +75,8 @@ async def voice_state_update(event: hikari.VoiceStateUpdateEvent) -> None:
 async def voice_server_update(event: hikari.VoiceServerUpdateEvent) -> None:
     bot = events.bot
     if bot.lavalink and bot.lavalink.is_connect:
+        if not event.endpoint:
+            return
         await bot.lavalink.raw_voice_server_update(
             event.guild_id, event.endpoint, event.token
         )
@@ -92,7 +94,7 @@ async def track_start_event(event: lavaplayer.TrackStartEvent) -> None:
 async def track_end_event(event: lavaplayer.TrackEndEvent) -> None:
     lavalink: lavaplayer.LavalinkClient = events.bot.lavalink
     node = await lavalink.get_guild_node(event.guild_id)
-    if not node.queue:
+    if node and not node.queue:
         await voice.leave_and_stop(events.bot, event.guild_id)
 
 ############################ Redis ############################
