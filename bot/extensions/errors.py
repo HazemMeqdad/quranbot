@@ -2,9 +2,7 @@ import hikari
 import lightbulb
 from lightbulb import Plugin, MissingRequiredPermission
 from bot.utils import leave_and_stop
-import json
-import datetime
-import pathlib
+
 
 error_plugin = Plugin("errors")
 
