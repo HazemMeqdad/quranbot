@@ -1,4 +1,4 @@
-import logging
+import os
 import threading
 import time
 import hikari
@@ -13,7 +13,7 @@ events = lightbulb.Plugin(__name__)
 async def on_guild_join(event: hikari.GuildJoinEvent):
     bot = events.bot
     bot.db.insert(event.get_guild().id)
-    if not bot.config.get("webhooks") or not bot.config["webhooks"].get("logger"):
+    if not os.environ.get("LOGGER_WEBHOOK_ID") or not os.environ.get("LOGGER_WEBHOOK_TOKEN"):
         return
     owner_id = event.get_guild().owner_id
     owner = await bot.rest.fetch_user(owner_id)
@@ -29,8 +29,8 @@ async def on_guild_join(event: hikari.GuildJoinEvent):
     embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
     embed.set_author(name=bot.get_me().username, icon=bot.get_me().avatar_url)
     await bot.rest.execute_webhook(
-        bot.config["webhooks"]["logger"]["id"], 
-        bot.config["webhooks"]["logger"]["token"],
+        os.environ["LOGGER_WEBHOOK_ID"], 
+        os.environ["LOGGER_WEBHOOK_TOKEN"],
         embed=embed
     )
 
@@ -38,7 +38,7 @@ async def on_guild_join(event: hikari.GuildJoinEvent):
 async def on_guild_leave(event: hikari.GuildLeaveEvent):
     bot = events.bot
     bot.db.delete_guild(event.guild_id)
-    if not bot.config.get("webhooks") or not bot.config["webhooks"].get("logger"):
+    if not os.environ.get("LOGGER_WEBHOOK_ID") or not os.environ.get("LOGGER_WEBHOOK_TOKEN"):
         return
     guild = event.old_guild
     if guild:
@@ -55,8 +55,8 @@ async def on_guild_leave(event: hikari.GuildLeaveEvent):
         embed.set_footer(text=guild.name, icon=guild.icon_url)
         embed.set_author(name=bot.get_me().username, icon=bot.get_me().avatar_url)
         await bot.rest.execute_webhook(
-            bot.config["webhooks"]["logger"]["id"], 
-            bot.config["webhooks"]["logger"]["token"],
+            os.environ["LOGGER_WEBHOOK_ID"], 
+            os.environ["LOGGER_WEBHOOK_TOKEN"],
             embed=embed
         )
 
