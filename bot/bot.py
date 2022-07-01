@@ -11,6 +11,7 @@ import yaml
 import logging
 from bot import manger, utils, database
 import os
+from datetime import datetime
 
 log = logging.getLogger("fdrbot")
 
@@ -21,12 +22,13 @@ class Bot(lightbulb.BotApp):
             "quran", "general", "admin",  "moshaf", "owner", "hadith", "events"
         ]
         self.config["bot"].get("debug", False) or self._extensions.append("errors")
-        if not self.config["bot"].get("token"):
+        token = os.environ.get("TOKEN", self.config["bot"].get("token"))
+        if not token:
             raise ValueError("Token is not configured")
         super().__init__(
             ignore_bots=True,
             owner_ids=self.config["bot"].get("owner_ids", []),
-            token=self.config["bot"]["token"],
+            token=token,
             banner=None,
             default_enabled_guilds=self.config["bot"].get("default_enabled_guilds", ()) if self.config["bot"].get("debug", False) else [],
             help_class=None,
@@ -34,9 +36,10 @@ class Bot(lightbulb.BotApp):
         self.print_banner("bot.banner", True, True)
         self.emojis = utils.Emojis(self.config.get("emojis", {}))
         self.footer = self.config["bot"].get("footer", "بوت فاذكروني لإحياء سنة ذكر الله")
-        if not os.environ.get("MONGODB_URI", self.config["bot"].get("mongo_url")):
+        mongo_url = os.environ.get("MONGO_URL", self.config["bot"].get("mongo_url"))
+        if not mongo_url:
             raise ValueError("MongoDB URI is not configured")
-        mongodb = pymongo.MongoClient(os.environ.get("MONGODB_URI", self.config["bot"]["mongo_url"]))
+        mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fdrbot"])
         self.lavalink: lavaplayer.LavalinkClient = None
         self.tasks = []
@@ -53,15 +56,15 @@ class Bot(lightbulb.BotApp):
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
 
-    async def make_tasks(self):
-        await asyncio.sleep(20)
-        timers = [1800, 3600, 7200, 21600, 43200, 86400]
-        for timer in timers:
-            task_manger = manger.Manger(timer)
-            task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=0, max_executions=None, pass_app=True, wait_before_execution=False)
-            self.tasks.append(task)
-            # this is for not to make the bot crash when the bot is restarted
-            await asyncio.sleep(timer / 8)
+    # async def make_tasks(self):
+    #     await asyncio.sleep(20)
+    #     timers = [1800, 3600, 7200, 21600, 43200, 86400]
+    #     for timer in timers:
+    #         task_manger = manger.Manger(timer)
+    #         task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=0, max_executions=None, pass_app=True, wait_before_execution=False)
+    #         self.tasks.append(task)
+    #         # this is for not to make the bot crash when the bot is restarted
+    #         await asyncio.sleep(timer / 8)
 
     async def create_lavalink_connection(self):
         if not self.config.get("lavalink"):
@@ -78,6 +81,16 @@ class Bot(lightbulb.BotApp):
 
     @classmethod
     @tasks.task(s=10, auto_start=True, pass_app=True)
+    async def azkar_sender_update(app: lightbulb.BotApp):
+        cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), app.cache.get_guilds_view().values())
+        db_guilds = app.db.fetch_guilds_with_datetime()
+        guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
+
+        task_manager = manger.Manger(app, guilds[:3])
+        await task_manager.start()
+
+    @classmethod
+    @tasks.task(s=10, auto_start=True, pass_app=True)
     async def stats_redis_update(app: lightbulb.BotApp):
         status = {
             "shards": app.shard_count,
@@ -90,7 +103,6 @@ class Bot(lightbulb.BotApp):
     async def on_ready(self, event: hikari.StartedEvent):
         log.info(self.get_me().username + " is ready")
         # self.status_redis_update.start()
-        self.create_task(self.make_tasks())
 
     async def on_shotdown(self, event: hikari.StoppedEvent):
         for key in self.redis.scan_iter(match="guild:*"):
