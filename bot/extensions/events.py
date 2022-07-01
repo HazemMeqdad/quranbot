@@ -101,18 +101,20 @@ async def track_end_event(event: lavaplayer.TrackEndEvent) -> None:
 
 # Redis cache events
 async def update_redis_cache(guild: hikari.Guild):
-    bot = events.bot
-    data = {
-        "id": guild.id.__str__(),
-        "name": guild.name,
-        "icon_url": guild.icon_url.url if guild.icon_url else None,
-        "member_count": guild.member_count.__str__(),
-        "description": guild.description,
-        "owner_id": guild.owner_id.__str__(),
-        "channels": [{"id": str(channel.id), "name": channel.name, "type": channel.type.value} for channel in guild.get_channels().values()],
-        "roles": [{"id": role.id.__str__(), "name": role.name} for role in guild.get_roles().values()],
-    }
-    await bot.redis.set(f"guild:{guild.id}", json.dumps(data))
+    try:
+        bot = events.bot
+        data = {
+            "id": guild.id.__str__(),
+            "name": guild.name,
+            "icon_url": guild.icon_url.url if guild.icon_url else None,
+            "member_count": guild.member_count.__str__(),
+            "description": guild.description,
+            "owner_id": guild.owner_id.__str__(),
+            "channels": [{"id": str(channel.id), "name": channel.name, "type": channel.type.value} for channel in guild.get_channels().values()],
+            "roles": [{"id": role.id.__str__(), "name": role.name} for role in guild.get_roles().values()],
+        }
+        await bot.redis.set(f"guild:{guild.id}", json.dumps(data))
+    except Exception: ...
 
 @events.listener(hikari.GuildAvailableEvent)
 async def guild_available(event: hikari.GuildAvailableEvent) -> None:
