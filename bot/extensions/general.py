@@ -10,8 +10,8 @@ from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
 from bot.database.objects import Guild
-from bot.manger.manger import Manger
 from bot.utils import Prayer
+import os
 
 
 general_plugin = Plugin("general")
@@ -180,7 +180,7 @@ async def bot(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - أصدار النسخة" % hashtag,
-        value="V3.0.4",
+        value="V%s" % os.environ.get("VERSION", "none"),
         inline=True
     )
     embed.add_field(
