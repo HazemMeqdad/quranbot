@@ -1,15 +1,10 @@
 pymongo[srv]
 hikari
 lavaplayer
-nest_asyncio
 beautifulsoup4
 hikari-lightbulb
 lxml
-waitress
-flask
-pyyaml
 requests
-flask_cors
 uvloop; sys_platform == "linux"
-redis
+aioredis
 Pillow
