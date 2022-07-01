@@ -9,6 +9,7 @@ import lightbulb
 from lightbulb.commands.slash import SlashCommandGroup
 from lightbulb.context.slash import SlashContext
 from bot.bot import Bot
+from bot.database.objects import Guild
 from bot.manger.manger import Manger
 from bot.utils import Prayer
 
@@ -67,7 +68,7 @@ async def support(ctx: SlashContext):
 @lightbulb.command("info", "طلب معلومات الخادم")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def info(ctx: SlashContext):
-    data = ctx.bot.db.fetch_guild(ctx.guild_id)
+    data: Guild = ctx.bot.db.fetch_guild(ctx.guild_id)
     times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
 
@@ -94,6 +95,11 @@ async def info(ctx: SlashContext):
     embed.add_field(
         name="%s - رتبة القرآن الكريم" % ctx.bot.emojis.hashtag,
         value=ctx.get_guild().get_role(data.role_id).mention if data.role_id else "لا يوجد",
+        inline=True
+    )
+    embed.add_field(
+        name="%s - أخر ذِكر تم أرساله:" % ctx.bot.emojis.hashtag,
+        value="<t:%d:R>" % int(data.next_zker.timestamp() - data.time),
         inline=True
     )
     embed.add_field(

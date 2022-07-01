@@ -1,18 +1,18 @@
-from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 import typing as t
-
+from datetime import datetime
 
 @dataclass
 class Guild:
     _id: int
     time: int
     embed: bool
+    next_zker: datetime
     channel_id: t.Optional[int] = None
     role_id: t.Optional[int] = None
     webhook: t.Optional[str] = None
-    color: str = None
+    color: t.Optional[str] = None
 
     @property
     def id(self) -> int:
@@ -39,3 +39,4 @@ class GuildUpdateType(Enum):
     embed = "embed"
     role_id = "role_id"
     webhook = "webhook"
+    next_zker = "next_zker"

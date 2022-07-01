@@ -4,7 +4,7 @@ from .objects import Guild, Azkar, GuildUpdateType
 import random
 from pymongo.database import Database
 import typing as t
-import threading
+from datetime import datetime
 
 class DB:
     def __init__(self, db_client: Database) -> None:
@@ -39,6 +39,11 @@ class DB:
     def delete_guild(self, guild_id: int):
         self.col_guilds.delete_one({"_id": guild_id})
 
+    def fetch_guilds_with_datetime(self) -> t.List[Guild]:
+        now = datetime.now()
+        data = self.col_guilds.find({"next_zker": {"$lt": now}})
+        return [Guild(**i) for i in list(data)]
+
     def insert(self, guild_id: int):
         data = {
             "_id": guild_id,
@@ -47,6 +52,7 @@ class DB:
             "embed": False,
             "role_id": None,
             "webhook": None,
+            "next_zker": datetime.now()
         }
 
         self.col_guilds.insert_one(data)
