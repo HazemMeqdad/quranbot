@@ -29,7 +29,7 @@ async def on_guild_join(event: hikari.GuildJoinEvent):
     embed.set_footer(text=event.get_guild().name, icon=event.get_guild().icon_url)
     embed.set_author(name=bot.get_me().username, icon=bot.get_me().avatar_url)
     await bot.rest.execute_webhook(
-        os.environ["LOGGER_WEBHOOK_ID"], 
+        int(os.environ["LOGGER_WEBHOOK_ID"]), 
         os.environ["LOGGER_WEBHOOK_TOKEN"],
         embed=embed
     )
@@ -55,7 +55,7 @@ async def on_guild_leave(event: hikari.GuildLeaveEvent):
         embed.set_footer(text=guild.name, icon=guild.icon_url)
         embed.set_author(name=bot.get_me().username, icon=bot.get_me().avatar_url)
         await bot.rest.execute_webhook(
-            os.environ["LOGGER_WEBHOOK_ID"], 
+            int(os.environ["LOGGER_WEBHOOK_ID"]), 
             os.environ["LOGGER_WEBHOOK_TOKEN"],
             embed=embed
         )
