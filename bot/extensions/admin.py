@@ -105,8 +105,12 @@ async def set_channel(ctx: SlashContext):
         embed.description = "لقد قمت بتحديد هذا الروم مسبقًا"
         await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
-
-    webhooks = await ctx.bot.rest.fetch_channel_webhooks(channel_id)
+    try:
+        webhooks = await ctx.bot.rest.fetch_channel_webhooks(channel_id)
+    except hikari.ForbiddenError:
+        embed.description = "البوت لا يمتلك صلاحيات كافية, تأكد من تفعيل خاصية `MANAGE_WEBHOOKS` في رتبة البوت"
+        await ctx.respond(embed=embed)
+        return
     bot_webhooks = list(filter(lambda webhook: webhook.author.id == ctx.bot.get_me().id, webhooks))
     if not bot_webhooks:
         webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
