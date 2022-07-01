@@ -5,6 +5,7 @@ import random
 from pymongo.database import Database
 import typing as t
 from datetime import datetime
+import os
 
 class DB:
     def __init__(self, db_client: Database) -> None:
@@ -14,7 +15,7 @@ class DB:
 
     def speed_test(self):
         time_start = time.monotonic()
-        [i for i in self.col_guilds.find({})]
+        [i for i in self.col_guilds.find_one({"_id": os.environ.get("SUPPORT_GUILD", 729526735749513267)})]
         time_end = time.monotonic()
         return round((time_end - time_start) * 1000)
     
