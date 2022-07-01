@@ -2,50 +2,47 @@ import asyncio
 import json
 import hikari
 from lightbulb.ext import tasks
-from lightbulb.ext.tasks import triggers
 import lightbulb
 import lavaplayer
 import pymongo
 import redis
-import yaml
 import logging
 from bot import manger, utils, database
 import os
-from datetime import datetime
+import json
 
 log = logging.getLogger("fdrbot")
 
 class Bot(lightbulb.BotApp):
     def __init__(self):
-        self.config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
         self._extensions = [  # plugins
             "quran", "general", "admin",  "moshaf", "owner", "hadith", "events"
         ]
-        self.config["bot"].get("debug", False) or self._extensions.append("errors")
-        token = os.environ.get("TOKEN", self.config["bot"].get("token"))
+        os.environ.get("DEBUG", False) or self._extensions.append("errors")
+        token = os.environ.get("TOKEN")
         if not token:
             raise ValueError("Token is not configured")
         super().__init__(
             ignore_bots=True,
-            owner_ids=self.config["bot"].get("owner_ids", []),
+            owner_ids=json.loads(os.environ.get("OWNER_IDS", "[]")),
             token=token,
             banner=None,
-            default_enabled_guilds=self.config["bot"].get("default_enabled_guilds", ()) if self.config["bot"].get("debug", False) else [],
+            default_enabled_guilds=os.environ.get("DEFAULT_ENABLED_GUILDS") if os.environ.get("DEBUG", False) else [],
             help_class=None,
         )
         self.print_banner("bot.banner", True, True)
-        self.emojis = utils.Emojis(self.config.get("emojis", {}))
-        self.footer = self.config["bot"].get("footer", "بوت فاذكروني لإحياء سنة ذكر الله")
-        mongo_url = os.environ.get("MONGO_URL", self.config["bot"].get("mongo_url"))
+        self.emojis = utils.Emojis()
+        self.footer = os.environ.get("FOOTER", "بوت فاذكروني لإحياء سنة ذكر الله")
+        mongo_url = os.environ.get("MONGO_URL")
         if not mongo_url:
             raise ValueError("MongoDB URI is not configured")
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fdrbot"])
         self.lavalink: lavaplayer.LavalinkClient = None
         self.tasks = []
-        if not self.config.get("redis"):
+        if not os.environ.get("REDIS_URL"):
             log.warn("[ Configuration ] redis is not configured")
-        self.redis = redis.Redis(**self.config["redis"])
+        self.redis = redis.Redis(os.environ["REDIS_URL"])
         try:
             self.loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -67,13 +64,13 @@ class Bot(lightbulb.BotApp):
     #         await asyncio.sleep(timer / 8)
 
     async def create_lavalink_connection(self):
-        if not self.config.get("lavalink"):
+        if not os.environ.get("LAVALINK_HOST") and not os.environ.get("LAVALINK_PORT") and not os.environ.get("LAVALINK_PASSWORD"):
             log.warning("[ Configuration ] lavalink is not configured")
             return
         self.lavalink = lavaplayer.LavalinkClient(
-            host=self.config["lavalink"]["host"],
-            password=self.config["lavalink"]["password"],
-            port=self.config["lavalink"]["port"],
+            host=os.environ["LAVALINK_HOST"],
+            password=os.environ["LAVALINK_PASSWORD"],
+            port=os.environ["LAVALINK_PORT"],
             user_id=self.get_me().id,
             num_shards=self.shard_count,
         )

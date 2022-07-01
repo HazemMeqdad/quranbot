@@ -4,14 +4,12 @@ from lightbulb import Plugin, commands
 from lightbulb.context import SlashContext
 import inspect
 import logging
-import yaml
 import os
 
 owner_plugin = Plugin("owner")
 
-config = yaml.load(open("configuration.yml", "r", encoding="utf-8"), Loader=yaml.FullLoader)
 
-guild_id = config["bot"].get("prived_guilds", [])
+guild_ids = os.environ.get("PRIVED_GUILDS", [])
 
 @owner_plugin.command()
 @lightbulb.add_checks(lightbulb.owner_only)
@@ -20,7 +18,7 @@ guild_id = config["bot"].get("prived_guilds", [])
     description="أدخل الكود المراد تشغيله",
     required=True
 )
-@lightbulb.command("eval", "eval command", guilds=guild_id, hidden=True)
+@lightbulb.command("eval", "eval command", guilds=guild_ids, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def _eval(ctx: SlashContext):
     code = ctx.options.code
@@ -45,7 +43,7 @@ async def _eval(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("load", "load command", guilds=guild_id, hidden=True)
+@lightbulb.command("load", "load command", guilds=guild_ids, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
@@ -64,7 +62,7 @@ async def load_extension(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("unload", "unload command", guilds=guild_id, hidden=True)
+@lightbulb.command("unload", "unload command", guilds=guild_ids, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
@@ -83,7 +81,7 @@ async def load_extension(ctx: SlashContext):
     description="None",
     required=True
 )
-@lightbulb.command("reload", "reload command", guilds=guild_id, hidden=True)
+@lightbulb.command("reload", "reload command", guilds=guild_ids, hidden=True)
 @lightbulb.implements(commands.SlashCommand)
 async def load_extension(ctx: SlashContext):
     extension = ctx.options.extension
