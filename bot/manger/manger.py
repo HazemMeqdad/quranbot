@@ -22,6 +22,8 @@ class Manger:
         if not data:
             self.db.insert(guild.id)
             return
+        if not data.webhook:
+            return
         if not data.channel_id or not self.bot.cache.get_guild_channel(data.channel_id) or not data.webhook:
             return
         try:
