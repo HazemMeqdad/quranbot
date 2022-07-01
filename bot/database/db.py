@@ -14,7 +14,7 @@ class DB:
 
     def speed_test(self):
         time_start = time.monotonic()
-        self.col_guilds.find({})
+        [i for i in self.col_guilds.find({})]
         time_end = time.monotonic()
         return round((time_end - time_start) * 1000)
     
