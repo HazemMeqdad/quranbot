@@ -1,3 +1,4 @@
+import json
 import lightbulb
 import hikari
 from lightbulb import Plugin, commands
@@ -9,7 +10,7 @@ import os
 owner_plugin = Plugin("owner")
 
 
-guild_ids = os.environ.get("PRIVED_GUILDS", [])
+guild_ids = json.loads(os.environ.get("PRIVED_GUILDS", "[]"))
 
 @owner_plugin.command()
 @lightbulb.add_checks(lightbulb.owner_only)
