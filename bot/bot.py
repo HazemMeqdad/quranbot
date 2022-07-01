@@ -82,7 +82,7 @@ class Bot(lightbulb.BotApp):
         self.lavalink.connect()
 
     @classmethod
-    @tasks.task(s=10, auto_start=True, pass_app=True)
+    @tasks.task(s=10, auto_start=True, pass_app=True, max_consecutive_failures=0)
     async def azkar_sender_update(app: lightbulb.BotApp):
         cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), app.cache.get_guilds_view().values())
         db_guilds = app.db.fetch_guilds_with_datetime()
