@@ -11,7 +11,7 @@ class Guild:
     next_zker: datetime
     channel_id: t.Optional[int] = None
     role_id: t.Optional[int] = None
-    webhook: t.Optional[str] = None
+    webhook: t.Optional[t.Dict[t.Any]] = None
     color: t.Optional[str] = None
 
     @property
