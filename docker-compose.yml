@@ -4,32 +4,63 @@ version: '3'
 services:
   fdrbot:
     build: .
-    volumes:
-      - ./configuration.yml:/opt/fdrbot/configuration.yml
-    ports:
-      - 8080:8080
     environment:
-      - MONGODB_URI=mongodb+srv://fdrbot:kncz2yeoMZ1rMoqL@cluster0.cruh9.mongodb.net/admin?authSource=admin&replicaSet=atlas-12nh4s-shard-0&readPreference=primary&ssl=true
-    links:
-      - db
-      - lavalink
+      - TOKEN=${TOKEN}
+      - MONGO_URL=${MONGO_URL}
+      - REDIS_URL=redis://redis:6379
 
+      - DEFAULT_ENABLED_GUILDS=${DEFAULT_ENABLED_GUILDS:-}
+      - PRIVED_GUILDS=${PRIVED_GUILDS:-}
+      - SUPPORT_GUILD=${SUPPORT_GUILD:-}
+      - SECUREKEY=${SECUREKEY:-}
+      - DEBUG=${DEBUG:-false}
+      - VERSION=${VERSION-none}
+
+      - LAVALINK_HOST=lavalink
+      - LAVALINK_PORT=2333
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD-}
+      
+      - LOGGER_WEBHOOK_ID=${LOGGER_WEBHOOK_ID-}
+      - LOGGER_WEBHOOK_TOKEN=${LOGGER_WEBHOOK_TOKEN-}
+      
+      - HASHTAG_EMOJI=${HASHTAG_EMOJI:-🔗}
+      - ON_EMOJI=${ON_EMOJI:-✅}
+      - OFF_EMOJI=${OFF_EMOJI:-❌}
+      - PING_EMOJI=${PING_EMOJI:-🏓}
+      - ERROR_EMOJI=${ERROR_EMOJI:-❌}
+      - LIKE_EMOJI=${LIKE_EMOJI:-👍}
+      - DISLIKE_EMOJI=${DISLIKE_EMOJI:-👎}
+    restart: always
+    container_name: fdrbot
+    depends_on:
+      - lavalink
+      - redis
+      # - db  # (if you want to use a database)
   lavalink:
     image: fredboat/lavalink:master
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
+      - ./logs:/opt/Lavalink/logs
     ports:
       - 2333:2333
-    restart: always
-    network_mode: host
+    hostname: lavalink
+    container_name: lavalink
 
-  db:
-    image: mongo
-    volumes:
-      - .\mongodb:/data/db
+  redis:
+    image: redis
+    container_name: redis
+    hostname: redis
     ports:
-      - 27019:27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root_password
-    network_mode: host
+      - 6379:6379
+    
+  # db:
+  #   image: mongo
+  #   volumes:
+  #     - $HOME/data/mongodb:/data/db
+  #   ports:
+  #     - 27019:27017
+  #   # network_mode: host
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: root_password

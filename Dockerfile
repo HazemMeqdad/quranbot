@@ -8,7 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY . /opt/fdrbot
 
-EXPOSE 8080
-
 CMD ["python", "-OO", "run.py"]
-
