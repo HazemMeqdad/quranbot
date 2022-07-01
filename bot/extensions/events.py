@@ -112,7 +112,7 @@ async def update_redis_cache(guild: hikari.Guild):
         "channels": [{"id": str(channel.id), "name": channel.name, "type": channel.type.value} for channel in guild.get_channels().values()],
         "roles": [{"id": role.id.__str__(), "name": role.name} for role in guild.get_roles().values()],
     }
-    bot.redis.set(f"guild:{guild.id}", json.dumps(data))
+    await bot.redis.set(f"guild:{guild.id}", json.dumps(data))
 
 @events.listener(hikari.GuildAvailableEvent)
 async def guild_available(event: hikari.GuildAvailableEvent) -> None:
@@ -121,7 +121,7 @@ async def guild_available(event: hikari.GuildAvailableEvent) -> None:
 @events.listener(hikari.GuildUnavailableEvent)
 async def guild_unavailable(event: hikari.GuildUnavailableEvent) -> None:
     bot = events.bot
-    bot.redis.delete(f"guild:{event.guild_id}")
+    await bot.redis.delete(f"guild:{event.guild_id}")
 
 @events.listener(hikari.GuildUpdateEvent)
 async def on_guild_update(event: hikari.GuildUpdateEvent) -> None:

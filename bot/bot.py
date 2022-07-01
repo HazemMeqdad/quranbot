@@ -1,15 +1,20 @@
 import asyncio
 import json
+import aioredis
 import hikari
 from lightbulb.ext import tasks
 import lightbulb
 import lavaplayer
 import pymongo
-import redis
 import logging
 from bot import manger, utils, database
 import os
 import json
+try:
+    import dotenv
+    dotenv.load_dotenv()
+except ImportError:
+    ...
 
 log = logging.getLogger("fdrbot")
 
@@ -27,7 +32,7 @@ class Bot(lightbulb.BotApp):
             owner_ids=json.loads(os.environ.get("OWNER_IDS", "[]")),
             token=token,
             banner=None,
-            default_enabled_guilds=os.environ.get("DEFAULT_ENABLED_GUILDS") if os.environ.get("DEBUG", False) else [],
+            default_enabled_guilds=json.loads(os.environ.get("DEFAULT_ENABLED_GUILDS", "[]")) if os.environ.get("DEBUG", False) else [],
             help_class=None,
         )
         self.print_banner("bot.banner", True, True)
@@ -42,7 +47,7 @@ class Bot(lightbulb.BotApp):
         self.tasks = []
         if not os.environ.get("REDIS_URL"):
             log.warn("[ Configuration ] redis is not configured")
-        self.redis = redis.Redis(os.environ["REDIS_URL"])
+        self.redis = aioredis.from_url(os.environ["REDIS_URL"], decode_responses=True)
         try:
             self.loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -95,19 +100,18 @@ class Bot(lightbulb.BotApp):
             "channels": len(app.cache.get_guild_channels_view().values()),
             "online": True
         }
-        app.redis.set("bot:stats", json.dumps(status))
+        await app.redis.set("bot:stats", json.dumps(status))
 
     async def on_ready(self, event: hikari.StartedEvent):
         log.info(self.get_me().username + " is ready")
-        # self.status_redis_update.start()
 
-    async def on_shotdown(self, event: hikari.StoppedEvent):
-        for key in self.redis.scan_iter(match="guild:*"):
-            self.redis.delete(key)
-        stats = json.loads(self.redis.get("bot:stats"))
-        stats["online"] = False
-        self.redis.set("bot:stats", json.dumps(stats))
-        log.info("[ Redis ] cache reset")
+    # async def on_shotdown(self, event: hikari.StoppedEvent): 
+    #     async for key in self.redis.scan_iter(match="guild:*"):
+    #         await self.redis.delete(key)
+    #     stats = json.loads(await self.redis.get("bot:stats"))
+    #     stats["online"] = False
+    #     await self.redis.set("bot:stats", json.dumps(stats))
+    #     log.info("[ Redis ] cache reset")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
@@ -117,7 +121,7 @@ class Bot(lightbulb.BotApp):
     def run(self):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
-        self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
+        # self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
 
         super().run(
