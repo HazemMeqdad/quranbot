@@ -42,7 +42,11 @@ class DB:
 
     def fetch_guilds_with_datetime(self) -> t.List[Guild]:
         now = datetime.now()
-        data = self.col_guilds.find({"next_zker": {"$lt": now}})
+        data = self.col_guilds.find({
+            "next_zker": {"$lt": now}, 
+            "channel_id": {"$ne": None}, 
+            "webhook": {"$ne": None}
+        })
         return [Guild(**i) for i in list(data)]
 
     def insert(self, guild_id: int):
