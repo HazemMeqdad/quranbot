@@ -54,7 +54,5 @@ class Manger:
         self.db.update_guild(data, GuildUpdateType.next_zker, next_zker)
 
     async def start(self) -> None:
-        print("[Manger] Starting...")
-        print(self.guilds)
         for guild in self.guilds:
             await self.make_task(guild)
