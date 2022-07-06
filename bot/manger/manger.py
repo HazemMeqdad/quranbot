@@ -19,23 +19,12 @@ class Manger:
 
     async def make_task(self, guild: hikari.Guild):
         data = self.db.fetch_guild(guild if isinstance(guild, int) else guild.id)
-        if not data:
+        if data:
             self.db.insert(guild.id)
             return
-        if not data.webhook:
-            return
         if not data.channel_id or not self.bot.cache.get_guild_channel(data.channel_id) or not data.webhook:
-            return
-        try:
-            webhook = await self.bot.rest.fetch_webhook(data.webhook["id"], token=data.webhook["token"])
-        except hikari.UnauthorizedError:
-            self.db.update_guild(data, GuildUpdateType.webhook, None)
             self.db.update_guild(data, GuildUpdateType.channel_id, None)
-            return
-        
-        if webhook.channel_id != data.channel_id:
             self.db.update_guild(data, GuildUpdateType.webhook, None)
-            self.db.update_guild(data, GuildUpdateType.channel_id, None)
             return
         zker = self.db.get_random_zker().content
         if data.embed:
@@ -47,17 +36,25 @@ class Manger:
                 .set_footer(self.bot.footer, icon=self.bot.get_me().avatar_url.url)
                 .set_thumbnail(self.bot.get_me().avatar_url.url)
             )
-        await self.rest.execute_webhook(
-            webhook=data.webhook["id"], 
-            token=data.webhook["token"],
-            username="فاذكروني",
-            avatar_url=self.bot.get_me().avatar_url.url,
-            **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
-        )
+        try:
+            await self.rest.execute_webhook(
+                webhook=data.webhook["id"], 
+                token=data.webhook["token"],
+                username="فاذكروني",
+                avatar_url=self.bot.get_me().avatar_url.url,
+                **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
+            )
+        except (hikari.NotFoundError, hikari.UnauthorizedError):
+            self.db.update_guild(data, GuildUpdateType.channel_id, None)
+            self.db.update_guild(data, GuildUpdateType.webhook, None)
+        except (hikari.RateLimitedError, hikari.RateLimitTooLongError):
+            return
+        
         next_zker = datetime.fromtimestamp(datetime.now().timestamp() + data.time)
         self.db.update_guild(data, GuildUpdateType.next_zker, next_zker)
-        return True
 
     async def start(self) -> None:
+        print("[Manger] Starting...")
+        print(self.guilds)
         for guild in self.guilds:
             await self.make_task(guild)

@@ -10,6 +10,7 @@ import logging
 from bot import manger, utils, database
 import os
 import json
+import typing as t
 try:
     import dotenv
     dotenv.load_dotenv()
@@ -44,7 +45,7 @@ class Bot(lightbulb.BotApp):
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fdrbot"])
         self.lavalink: lavaplayer.LavalinkClient = None
-        self.tasks = []
+        self.task: t.Optional[asyncio.Task] = None
         if not os.environ.get("REDIS_URL"):
             log.warn("[ Configuration ] redis is not configured")
         self.redis = aioredis.from_url(os.environ["REDIS_URL"], decode_responses=True)
@@ -57,16 +58,6 @@ class Bot(lightbulb.BotApp):
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
-
-    # async def make_tasks(self):
-    #     await asyncio.sleep(20)
-    #     timers = [1800, 3600, 7200, 21600, 43200, 86400]
-    #     for timer in timers:
-    #         task_manger = manger.Manger(timer)
-    #         task = tasks.Task(task_manger.start, triggers.UniformTrigger(timer), auto_start=True, max_consecutive_failures=0, max_executions=None, pass_app=True, wait_before_execution=False)
-    #         self.tasks.append(task)
-    #         # this is for not to make the bot crash when the bot is restarted
-    #         await asyncio.sleep(timer / 8)
 
     async def create_lavalink_connection(self):
         if not os.environ.get("LAVALINK_HOST") and not os.environ.get("LAVALINK_PORT") and not os.environ.get("LAVALINK_PASSWORD"):
@@ -81,15 +72,21 @@ class Bot(lightbulb.BotApp):
         )
         self.lavalink.connect()
 
-    @classmethod
-    @tasks.task(s=10, auto_start=True, pass_app=True, max_consecutive_failures=0)
-    async def azkar_sender_update(app: lightbulb.BotApp):
-        cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), app.cache.get_guilds_view().values())
-        db_guilds = app.db.fetch_guilds_with_datetime()
-        guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
+    async def on_ready(self, event: hikari.StartedEvent):
+        log.info(self.get_me().username + " is ready")
+        self.task = self.create_task(self.azkar_sender_update())
+        
 
-        task_manager = manger.Manger(app, guilds[:3])
-        await task_manager.start()
+    async def azkar_sender_update(self):
+        log.info("[ Azkar ] Azkar sender is starting")
+        while (self.task.done() is False):
+            cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
+            db_guilds = self.db.fetch_guilds_with_datetime()
+            guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
+            task_manager = manger.Manger(self, guilds[:3])
+            await task_manager.start()
+            await asyncio.sleep(10)
+        log.info("[ Azkar ] Azkar sender is stopped")
 
     @classmethod
     @tasks.task(s=10, auto_start=True, pass_app=True)
@@ -100,10 +97,7 @@ class Bot(lightbulb.BotApp):
             "channels": len(app.cache.get_guild_channels_view().values()),
             "online": True
         }
-        await app.redis.set("bot:stats", json.dumps(status))
-
-    async def on_ready(self, event: hikari.StartedEvent):
-        log.info(self.get_me().username + " is ready")
+        await app.redis.set("bot:stats", json.dumps(status))        
 
     # async def on_shotdown(self, event: hikari.StoppedEvent): 
     #     async for key in self.redis.scan_iter(match="guild:*"):
