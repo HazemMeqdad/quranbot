@@ -99,13 +99,13 @@ class Bot(lightbulb.BotApp):
         }
         await app.redis.set("bot:stats", json.dumps(status))        
 
-    # async def on_shotdown(self, event: hikari.StoppedEvent): 
-    #     async for key in self.redis.scan_iter(match="guild:*"):
-    #         await self.redis.delete(key)
-    #     stats = json.loads(await self.redis.get("bot:stats"))
-    #     stats["online"] = False
-    #     await self.redis.set("bot:stats", json.dumps(stats))
-    #     log.info("[ Redis ] cache reset")
+    async def on_shotdown(self, event: hikari.StoppedEvent): 
+        async for key in self.redis.scan_iter(match="guild:*"):
+            await self.redis.delete(key)
+        stats = json.loads(await self.redis.get("bot:stats"))
+        stats["online"] = False
+        await self.redis.set("bot:stats", json.dumps(stats))
+        log.info("[ Redis ] cache reset")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
         if event.shard.id == self.shard_count-1:
@@ -115,7 +115,7 @@ class Bot(lightbulb.BotApp):
     def run(self):
         self.setup()
         self.event_manager.subscribe(hikari.StartedEvent, self.on_ready)
-        # self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
+        self.event_manager.subscribe(hikari.StoppedEvent, self.on_shotdown)
         self.event_manager.subscribe(hikari.ShardReadyEvent, self.on_shard_ready)
 
         super().run(
