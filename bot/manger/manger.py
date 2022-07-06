@@ -22,7 +22,9 @@ class Manger:
         if data:
             self.db.insert(guild.id)
             return
-        if not data.channel_id or not self.bot.cache.get_guild_channel(data.channel_id) or not data.webhook:
+        next_zker = datetime.fromtimestamp(datetime.now().timestamp() + data.time)
+        self.db.update_guild(data, GuildUpdateType.next_zker, next_zker)
+        if not self.bot.cache.get_guild_channel(data.channel_id):
             self.db.update_guild(data, GuildUpdateType.channel_id, None)
             self.db.update_guild(data, GuildUpdateType.webhook, None)
             return
@@ -49,9 +51,6 @@ class Manger:
             self.db.update_guild(data, GuildUpdateType.webhook, None)
         except (hikari.RateLimitedError, hikari.RateLimitTooLongError):
             return
-        
-        next_zker = datetime.fromtimestamp(datetime.now().timestamp() + data.time)
-        self.db.update_guild(data, GuildUpdateType.next_zker, next_zker)
 
     async def start(self) -> None:
         for guild in self.guilds:
