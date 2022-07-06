@@ -44,7 +44,7 @@ class Bot(lightbulb.BotApp):
             raise ValueError("MongoDB URI is not configured")
         mongodb = pymongo.MongoClient(mongo_url)
         self.db: database.DB = database.DB(mongodb["fdrbot"])
-        self.lavalink: lavaplayer.LavalinkClient = None
+        self.lavalink: lavaplayer.Lavalink = None
         self.task: t.Optional[asyncio.Task] = None
         if not os.environ.get("REDIS_URL"):
             log.warn("[ Configuration ] redis is not configured")
@@ -63,7 +63,7 @@ class Bot(lightbulb.BotApp):
         if not os.environ.get("LAVALINK_HOST") and not os.environ.get("LAVALINK_PORT") and not os.environ.get("LAVALINK_PASSWORD"):
             log.warning("[ Configuration ] lavalink is not configured")
             return
-        self.lavalink = lavaplayer.LavalinkClient(
+        self.lavalink = lavaplayer.Lavalink(
             host=os.environ["LAVALINK_HOST"],
             password=os.environ["LAVALINK_PASSWORD"],
             port=os.environ["LAVALINK_PORT"],
