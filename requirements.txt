@@ -1,6 +1,6 @@
 pymongo[srv]
 hikari
-lavaplayer
+lavaplayer==1.0.10a0
 beautifulsoup4
 hikari-lightbulb
 lxml
