@@ -7,7 +7,7 @@ import lightbulb
 import lavaplayer
 import pymongo
 import logging
-from bot import manger, utils, database
+from bot import worker, utils, database
 import os
 import json
 import typing as t
@@ -83,7 +83,7 @@ class Bot(lightbulb.BotApp):
             cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
             db_guilds = self.db.fetch_guilds_with_datetime()
             guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
-            task_manager = manger.Manger(self, guilds[:3])
+            task_manager = worker.Manger(self, guilds[:3])
             await task_manager.start()
             await asyncio.sleep(10)
         log.info("[ Azkar ] Azkar sender is stopped")
