@@ -1,1 +1,1 @@
-from .worker import Manger
+from .worker import Worker
