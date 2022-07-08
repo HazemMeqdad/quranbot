@@ -22,7 +22,7 @@ log = logging.getLogger("fdrbot")
 class Bot(lightbulb.BotApp):
     def __init__(self):
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner", "hadith", "events"
+            "quran", "general", "admin",  "moshaf", "owner", "hadith", "events", "takbeerat"
         ]
         os.environ.get("DEBUG", False) or self._extensions.append("errors")
         token = os.environ.get("TOKEN")
@@ -63,6 +63,7 @@ class Bot(lightbulb.BotApp):
         if not os.environ.get("LAVALINK_HOST") and not os.environ.get("LAVALINK_PORT") and not os.environ.get("LAVALINK_PASSWORD"):
             log.warning("[ Configuration ] lavalink is not configured")
             return
+        log.info("[ Lavalink ] Lavalink is starting")
         self.lavalink = lavaplayer.Lavalink(
             host=os.environ["LAVALINK_HOST"],
             password=os.environ["LAVALINK_PASSWORD"],
@@ -75,7 +76,6 @@ class Bot(lightbulb.BotApp):
     async def on_ready(self, event: hikari.StartedEvent):
         log.info(self.get_me().username + " is ready")
         self.task = self.create_task(self.azkar_sender_update())
-        
 
     async def azkar_sender_update(self):
         log.info("[ Azkar ] Azkar sender is starting")
@@ -110,7 +110,8 @@ class Bot(lightbulb.BotApp):
         log.info("[ Redis ] cache reset")
 
     async def on_shard_ready(self, event: hikari.ShardReadyEvent):
-        if event.shard.id == self.shard_count-1:
+        log.info(f"[ Shard {event.shard.id} ] is ready")
+        if event.shard.id == self.shard_count:
             await self.create_lavalink_connection()
 
 
