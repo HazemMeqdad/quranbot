@@ -83,7 +83,8 @@ class Bot(lightbulb.BotApp):
             while True:
                 cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
                 db_guilds = self.db.fetch_guilds_with_datetime()
-                guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
+                guild_ids = [i.id for i in db_guilds]
+                guilds = list(filter(lambda x: x.id in guild_ids, list(cache_guilds)))
                 task_manager = worker.Worker(self, guilds[:3])
                 await task_manager.start()
                 await asyncio.sleep(10)
