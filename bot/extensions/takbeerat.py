@@ -19,7 +19,7 @@ async def takbeerat_command(ctx: lightbulb.SlashContext):
         await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
         return
 
-    await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, "https://youtu.be/TTzY36iM0ns", ctx.author)
+    await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, "https://youtu.be/IrfImfO4Pes", ctx.author)
     await ctx.bot.lavalink.repeat(ctx.guild_id, True)
     embed.description = "تم تشغيل تكبيرات العيد في روم <#%s>" % channel_id
     await ctx.respond(embed=embed)
