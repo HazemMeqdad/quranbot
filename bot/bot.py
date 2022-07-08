@@ -79,14 +79,16 @@ class Bot(lightbulb.BotApp):
 
     async def azkar_sender_update(self):
         log.info("[ Azkar ] Azkar sender is starting")
-        while (self.task.done() is False):
-            cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
-            db_guilds = self.db.fetch_guilds_with_datetime()
-            guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
-            task_manager = worker.Worker(self, guilds[:3])
-            await task_manager.start()
-            await asyncio.sleep(10)
-        log.info("[ Azkar ] Azkar sender is stopped")
+        try:
+            while True:
+                cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
+                db_guilds = self.db.fetch_guilds_with_datetime()
+                guilds = list(filter(lambda x: x.id in [i.id for i in db_guilds], list(cache_guilds)))
+                task_manager = worker.Worker(self, guilds[:3])
+                await task_manager.start()
+                await asyncio.sleep(10)
+        except KeyboardInterrupt:
+            log.info("[ Azkar ] Azkar sender is stopped")
 
     @classmethod
     @tasks.task(s=10, auto_start=True, pass_app=True)
