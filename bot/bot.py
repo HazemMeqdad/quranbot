@@ -22,7 +22,7 @@ log = logging.getLogger("fdrbot")
 class Bot(lightbulb.BotApp):
     def __init__(self):
         self._extensions = [  # plugins
-            "quran", "general", "admin",  "moshaf", "owner", "hadith", "events", "takbeerat"
+            "quran", "general", "admin",  "moshaf", "owner", "hadith", "events"
         ]
         os.environ.get("DEBUG", False) or self._extensions.append("errors")
         token = os.environ.get("TOKEN")
