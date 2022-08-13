@@ -47,7 +47,6 @@ class Worker:
                 avatar_url=self.bot.get_me().avatar_url.url,
                 **{"content": f"> {zker}"} if not data.embed else {"embed": embed}
             )
-            print(msg)
         except (hikari.NotFoundError, hikari.UnauthorizedError):
             self.db.update_guild(data, GuildUpdateType.channel_id, None)
             self.db.update_guild(data, GuildUpdateType.webhook, None)
