@@ -40,7 +40,7 @@ class Worker:
                 .set_thumbnail(self.bot.get_me().avatar_url.url)
             )
         try:
-            msg = await self.rest.execute_webhook(
+            await self.rest.execute_webhook(
                 webhook=data.webhook["id"], 
                 token=data.webhook["token"],
                 username="فاذكروني",
