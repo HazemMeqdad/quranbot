@@ -6,6 +6,7 @@ import lightbulb
 from bot import database
 from bot.database.objects import GuildUpdateType
 from datetime import datetime
+from dataclasses import dataclass
 
 
 logger = logging.getLogger("bot.manger.tasks")
@@ -19,7 +20,7 @@ class Worker:
 
     async def make_task(self, guild: hikari.Guild):
         data = self.db.fetch_guild(guild if isinstance(guild, int) else guild.id)
-        if data:
+        if not data:
             self.db.insert(guild.id)
             return
         next_zker = datetime.fromtimestamp(datetime.now().timestamp() + data.time)

@@ -113,7 +113,7 @@ async def set_channel(ctx: SlashContext):
         return
     bot_webhooks = list(filter(lambda webhook: webhook.author.id == ctx.bot.get_me().id, webhooks))
     if not bot_webhooks:
-        webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url.url)
+        webhook = await ctx.bot.rest.create_webhook(channel_id, "فاذكروني", avatar=ctx.bot.get_me().avatar_url)
     else:
         webhook = bot_webhooks[0]
 
