@@ -17,25 +17,19 @@ import os
 general_plugin = Plugin("general")
 
 @general_plugin.command()
-@lightbulb.command("ping", "سرعة اتصال البوت")
+@lightbulb.command("ping", "سرعة اتصال البوت 🏓")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def ping(ctx: SlashContext):
-    embed = hikari.Embed(color=0xffd430)
-    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-    embed.set_thumbnail(ctx.bot.get_me().avatar_url)
-    embed.description = "```\nping\n```"
     before = time.monotonic()
-    await ctx.respond(embed=embed)
+    await ctx.respond("```\nping\n```")
     ping = (time.monotonic() - before) * 1000
-
-    embed.description = "```python\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
+    await ctx.edit_last_response("```python\nTime: %s ms\nLatency: %s ms\nDatabase: %s ms\n```" % (
         int(ping), round(ctx.bot.heartbeat_latency * 1000),
         ctx.bot.db.speed_test()
-    )
-    await ctx.edit_last_response(embed=embed)
+    ))
 
 @general_plugin.command()
-@lightbulb.command("support", "طلب الدعم الفني")
+@lightbulb.command("support", "طلب الدعم الفني 💡")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def support(ctx: SlashContext):
     embed = hikari.Embed(
@@ -65,7 +59,7 @@ async def support(ctx: SlashContext):
     await ctx.respond(embed=embed, component=buttons)
 
 @general_plugin.command()
-@lightbulb.command("info", "طلب معلومات الخادم")
+@lightbulb.command("info", "طلب معلومات الخادم 📊")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def info(ctx: SlashContext):
     data: Guild = ctx.bot.db.fetch_guild(ctx.guild_id)
@@ -77,18 +71,18 @@ async def info(ctx: SlashContext):
         color=0xffd430
     )
     embed.add_field(
-        name="%s - روم الاذكار:" % ctx.bot.emojis.hashtag,
+        name="%s - قناة الأذكار:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.cache.get_guild_channel(
             data.channel_id).mention if data.channel_id else "لا يوجد",
         inline=True
     )
     embed.add_field(
-        name="%s - وقت ارسال الاذكار:" % ctx.bot.emojis.hashtag,
+        name="%s - وقت أرسال الأذكار:" % ctx.bot.emojis.hashtag,
         value=times.get(data.time),
         inline=True
     )
     embed.add_field(
-        name="%s - وضع الامبد:" % ctx.bot.emojis.hashtag,
+        name="%s - وضع الأمبد:" % ctx.bot.emojis.hashtag,
         value=ctx.bot.emojis.on if data.embed else ctx.bot.emojis.off,
         inline=True
     )
@@ -109,7 +103,7 @@ async def info(ctx: SlashContext):
     )
     embed.add_field(
         name="%s - سرعه الشارد:" % ctx.bot.emojis.hashtag,
-        value=f"{round(ctx.bot.shards.get(ctx.get_guild().shard_id) .heartbeat_latency * 1000)}ms",
+        value=f"{round(ctx.bot.shards.get(ctx.get_guild().shard_id).heartbeat_latency * 1000)}ms",
         inline=True
     )
     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
@@ -122,7 +116,7 @@ async def info(ctx: SlashContext):
     description="الدولة المراد معرفه وقت الصلاة بيها", 
     required=True
 )
-@lightbulb.command("azan", "معرفة وقت الأذان في المدينة الخاصه بك")
+@lightbulb.command("azan", "معرفة وقت الأذان في المنطقة الخاصه بك 🕒")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def azan(ctx: SlashContext):
     country = ctx.options.city_or_country
@@ -132,7 +126,7 @@ async def azan(ctx: SlashContext):
     if isinstance(x, dict):
         x = prayer.city()
         if isinstance(x, dict):
-            embed.description = "لم أستطع العثور على المدينة او الدولة المطلوبة"
+            embed.description = "لم يتم العثور على المنطقة المطلوبة"
             await ctx.respond(embed=embed)
             return
     embed.set_author(name=x.description, url=x.url)
@@ -151,7 +145,7 @@ async def azan(ctx: SlashContext):
         await ctx.respond(embed=embed)
 
 @general_plugin.command()
-@lightbulb.command("bot", "جلب معلومات البوت")
+@lightbulb.command("bot", "جلب معلومات البوت 📊")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def bot(ctx: SlashContext):
     hashtag = ctx.bot.emojis.hashtag
@@ -201,7 +195,7 @@ async def bot(ctx: SlashContext):
     await ctx.respond(embed=embed)
 
 @general_plugin.command()
-@lightbulb.command("invite", "أضافة البوت إلى خادمك")
+@lightbulb.command("invite", "أضافة البوت إلى خادمك ➕")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def invite(ctx: SlashContext):
     await ctx.respond(
@@ -210,7 +204,7 @@ async def invite(ctx: SlashContext):
     )
 
 @general_plugin.command()
-@lightbulb.command("zker", "أرسال ذكر عشوائي")
+@lightbulb.command("zker", "أرسال ذِكر عشوائي 🎲")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def zker(ctx: SlashContext):
     random_zker = ctx.bot.db.get_random_zker()
@@ -223,7 +217,7 @@ async def zker(ctx: SlashContext):
     await ctx.respond(embed=embed)
 
 @general_plugin.command()
-@lightbulb.command("help", "أرسل هذا الرسالة للحصول على مساعدة")
+@lightbulb.command("help", "أرسل هذا الرسالة للحصول على جميع الأوامر 📖")
 @lightbulb.implements(commands.SlashCommand, commands.PrefixCommand)
 async def help_command(ctx: SlashContext):
     category = {

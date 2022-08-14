@@ -46,7 +46,7 @@ async def hadith(ctx: lightbulb.SlashContext):
 
 
 @hadith.child()
-@lightbulb.command("random", "البحث عن حديث بشكل عشوائي")
+@lightbulb.command("random", "البحث عن حديث بشكل عشوائي 🔎")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def random_command(ctx: lightbulb.SlashContext):
     hadith = random.choice(hadiths)
@@ -59,41 +59,41 @@ async def random_command(ctx: lightbulb.SlashContext):
     await ctx.respond(embed=embed)
 
 
-@hadith.child()
-@lightbulb.option("book", "السورة", autocomplete=True, required=True)
-@lightbulb.command("book", "البحث عن حديث بشكل عشوائي")
-@lightbulb.implements(lightbulb.SlashSubCommand)
-async def book_command(ctx: lightbulb.SlashContext):
-    book = ctx.options.book
-    try:
-        chapter = [x for x in chapters if x["Book_ID"] == int(book)][0]
-    except IndexError:
-        embed = hikari.Embed(
-            title="خطأ",
-            description="عذراً هذا الكتاب غير موجود",
-            color=0xff0000
-        )
-        embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-        await ctx.respond(embed=embed)
-        return
-    embed = hikari.Embed(
-        title=chapter["Chapter_Name"].replace("1 - ", ""),
-        description=chapter["Chapter_Intro"],
-        color=0xffd430
-    )
-    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-    await ctx.respond(embed=embed)
+# @hadith.child()
+# @lightbulb.option("book", "السورة", autocomplete=True, required=True)
+# @lightbulb.command("book", "البحث عن حديث بشكل عشوائي")
+# @lightbulb.implements(lightbulb.SlashSubCommand)
+# async def book_command(ctx: lightbulb.SlashContext):
+#     book = ctx.options.book
+#     try:
+#         chapter = [x for x in chapters if x["Book_ID"] == int(book)][0]
+#     except IndexError:
+#         embed = hikari.Embed(
+#             title="خطأ",
+#             description="عذراً هذا الكتاب غير موجود",
+#             color=0xff0000
+#         )
+#         embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+#         await ctx.respond(embed=embed)
+#         return
+#     embed = hikari.Embed(
+#         title=chapter["Chapter_Name"].replace("1 - ", ""),
+#         description=chapter["Chapter_Intro"],
+#         color=0xffd430
+#     )
+#     embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
+#     await ctx.respond(embed=embed)
 
-@book_command.autocomplete("book")
-async def autocomplete_book(ctx: lightbulb.SlashContext, query: hikari.AutocompleteInteraction):
-    option = query.options[0].options[0].value
-    if not option:
-        return [hikari.CommandChoice(name=i[1], value=str(i[0])) for i in books.items()]
-    return [hikari.CommandChoice(name=i[1], value=str(i[0])) for i in list(books.items()) if option in i[1]]
+# @book_command.autocomplete("book")
+# async def autocomplete_book(ctx: lightbulb.SlashContext, query: hikari.AutocompleteInteraction):
+#     option = query.options[0].options[0].value
+#     if not option:
+#         return [hikari.CommandChoice(name=i[1], value=str(i[0])) for i in books.items()]
+#     return [hikari.CommandChoice(name=i[1], value=str(i[0])) for i in list(books.items()) if option in i[1]]
 
 @hadith.child()
 @lightbulb.option("query", "البحث عن حديث", required=True, autocomplete=True)
-@lightbulb.command("search", "البحث عن حديث")
+@lightbulb.command("search", "البحث عن حديث 🔎")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def search_command(ctx: lightbulb.SlashContext):
     query = ctx.options.query

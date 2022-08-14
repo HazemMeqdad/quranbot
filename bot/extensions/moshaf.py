@@ -49,7 +49,7 @@ async def moshaf(ctx: SlashContext):
 
 
 @moshaf.child()
-@lightbulb.command("pages", "عرض صفحات القرآن الكريم")
+@lightbulb.command("pages", "عرض صفحات القرآن الكريم 📚")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def moshaf_pages(ctx: SlashContext):    
     paginated = pag.EmbedPaginator(
@@ -79,7 +79,7 @@ async def moshaf_pages(ctx: SlashContext):
     type=int,
     required=True
 )
-@lightbulb.command("page", "عرض صفحه محدده من القرآن الكريم")
+@lightbulb.command("page", "عرض صفحه محدده من القرآن الكريم 📜")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def moshaf_page(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
@@ -94,7 +94,7 @@ async def moshaf_page(ctx: SlashContext):
     await ctx.respond(embed=embed)
 
 @moshaf.child()
-@lightbulb.command("surahs", "عرض جميع سور القرآن الكريم")
+@lightbulb.command("surahs", "عرض جميع سور القرآن الكريم 📖")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def moshaf_surahs(ctx: SlashContext):
     paginated = pag.EmbedPaginator(max_lines=25)
@@ -125,7 +125,7 @@ async def moshaf_surahs(ctx: SlashContext):
     type=int,
     required=True
 )
-@lightbulb.command("ayah", "عرض آية محددة القرآن الكريم")
+@lightbulb.command("ayah", "عرض آية محددة القرآن الكريم 📖")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def moshaf_ayah(ctx: SlashContext):
     embed = hikari.Embed(color=0xffd430)
@@ -170,7 +170,6 @@ async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteIntera
 
 @moshaf_plugin.listener(hikari.InteractionCreateEvent)
 async def moshaf_interaction_create(event: hikari.InteractionCreateEvent):
-    embed = hikari.Embed(color=0xffd430)
     if (
         event.interaction.type == InteractionType.MESSAGE_COMPONENT and \
         event.interaction.get_parent_message() and \
@@ -179,24 +178,22 @@ async def moshaf_interaction_create(event: hikari.InteractionCreateEvent):
     ):
         voice_state = await voice.join_voice_channel(moshaf_plugin.bot, event.interaction.guild_id, event.interaction.user)
         if not voice_state:
-            embed.description = "يجب عليك دخول قناة صوتيه"
             await event.app.rest.create_interaction_response(
                 interaction=event.interaction, 
                 token=event.interaction.token, 
                 response_type=ResponseType.MESSAGE_CREATE,
-                embed=embed,
+                content="يجب عليك دخول قناة صوتيه",
                 flags=MessageFlag.EPHEMERAL
             )
             return
         surah = event.interaction.custom_id.split("_")[0]
         ayah = event.interaction.custom_id.split("_")[1]
         audio = cloud_surahs[int(surah) - 1]["ayahs"][int(ayah) - 1]["audio"]
-        embed.description = f"تم تشغيل الآية رقم {ayah} من سورة {quran_surahs[surah]} بصوت القارئ **ياسر الدوسري**"
         await event.app.rest.create_interaction_response(
             interaction=event.interaction, 
             token=event.interaction.token, 
             response_type=ResponseType.MESSAGE_CREATE,
-            embed=embed,
+            content=f"تم تشغيل الآية رقم {ayah} من سورة {quran_surahs[surah]} بصوت القارئ **ياسر الدوسري**",
         )
         await voice.play_lavalink_source(
             lavalink=moshaf_plugin.bot.lavalink,

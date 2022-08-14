@@ -31,8 +31,7 @@ async def only_role(ctx: SlashContext):
     role = _guild.get_role(guild.role_id) if guild.role_id else None
     if not role or guild.role_id in [i.id for i in ctx.member.get_roles()] or check_permission(ctx, hikari.Permissions.MANAGE_GUILD):
         return True
-    embed = hikari.Embed(color=0xffd430, description="ليس لديك صلاحية لاستخدام هذا الأمر")
-    await ctx.respond(embed=embed, flags=hikari.MessageFlag.EPHEMERAL)
+    await ctx.respond("ليس لديك صلاحية لاستخدام هذا الأمر", flags=hikari.MessageFlag.EPHEMERAL)
     return False
 
 @quran_plugin.command()
@@ -56,11 +55,9 @@ async def quran(ctx: SlashContext):
     required=False,
     autocomplete=True
 )
-@lightbulb.command("play", "تشغيل القران الكريم")
+@lightbulb.command("play", "تشغيل القرآن الكريم بالصوت 🔊")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_play(ctx: SlashContext):
-    embed = hikari.Embed(color=0xffd430)
-    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
     stream_url = ctx.options.quran_reader
 
     name = [i["name"] for i in quran_reader if i["value"] == stream_url][0]
@@ -71,24 +68,20 @@ async def quran_play(ctx: SlashContext):
     channel = await voice.join_voice_channel(bot=ctx.bot, guild=ctx.guild_id, auther=ctx.author)
 
     if not channel:
-        embed.description = "يجب عليك دخول قناة صوتية"
-        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        await ctx.respond("يجب عليك دخول قناة صوتية", flags=MessageFlag.EPHEMERAL)
         return
 
     if surah_number and not surah_number.isdigit():
-        embed.description = "السورة المطلوبة غير موجودة"
-        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        await ctx.respond("السورة المطلوبة غير موجودة", flags=MessageFlag.EPHEMERAL)
         return
 
     if surah_number:
         if name == "حسن صالح" or name == "اسلام صبحي":
-            embed.description = "للأسف هاذ القارئ غير متاح في الوقت الحالي"
-            await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+            await ctx.respond("للأسف هاذ القارئ غير متاح في الوقت الحالي", flags=MessageFlag.EPHEMERAL)
             return
         
         if int(surah_number) > 114 or int(surah_number) < 1:
-            embed.description = "خطأ في أدخال رقم السورة يرجى العلم بان عدد سور القرآن الكريم 114 سورة"
-            await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+            await ctx.respond("خطأ في أدخال رقم السورة يرجى العلم بان عدد سور القرآن الكريم 114 سورة", flags=MessageFlag.EPHEMERAL)
             return
 
         surah = quran_surahs.get(str(surah_number))
@@ -100,14 +93,12 @@ async def quran_play(ctx: SlashContext):
                                             else stream_url+"00"+surah_number
 
         await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, stream_url+".mp3", ctx.author)
-        embed.description = "تم تشغيل سوره %s بصوت الشيخ: **%s**" % (surah, name)
-        await ctx.respond(embed=embed)
+        await ctx.respond("تم تشغيل سورة %s بصوت القارئ: **%s**" % (surah, name))
         return
 
     tracks = await ctx.bot.lavalink.get_tracks(stream_url)
     await ctx.bot.lavalink.play(ctx.guild_id, tracks[0], ctx.author.id)
-    embed.description = "تم تشغيل القرآن الكريم بصوت الشيخ: **%s**" % name
-    await ctx.respond(embed=embed)
+    await ctx.respond("تم تشغيل القرآن الكريم بصوت القارئ: **%s**" % name)
 
 
 @quran_play.autocomplete("surah")
@@ -124,11 +115,11 @@ async def quran_autocomplete(ctx: SlashContext, query: hikari.AutocompleteIntera
 @lightbulb.add_checks(only_role)
 @lightbulb.option(
     name="quran_reader",
-    description="أختر القارء المناسب",
+    description="أختر القارئ المناسب",
     required=False,
     choices=[CommandChoice(name=i["name"], value=i["value"]) for i in quran_stream_readers]
 )
-@lightbulb.command("radio", "تشغيل اذاعه القران الكريم")
+@lightbulb.command("radio", "تشغيل أذاعة القرآن الكريم 📻")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_radio(ctx: SlashContext):
     
@@ -136,30 +127,24 @@ async def quran_radio(ctx: SlashContext):
     
     channel = await voice.join_voice_channel(bot=ctx.bot, guild=ctx.guild_id, auther=ctx.author)
 
-    embed = hikari.Embed(color=0xffd430)
-    embed.set_footer(text=ctx.bot.footer, icon=ctx.bot.get_me().avatar_url)
-
     if not channel:
-        embed.description = "يجب عليك دخول قناة صوتية"
-        await ctx.respond(embed=embed, flags=MessageFlag.EPHEMERAL)
+        await ctx.respond("يجب عليك دخول قناة صوتية", flags=MessageFlag.EPHEMERAL)
         return
     stream_url = ctx.options.quran_reader
     if stream_url:
         name = [i["name"] for i in quran_stream_readers if i["value"] == stream_url][0]
         await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, stream_url, ctx.author)
-        embed.description = "تم تشغيل أذاعة القران الكريم الخاص بالقارئ %s في روم <#%s>" % (
-            name, channel)
-        await ctx.respond(embed=embed)
+        await ctx.respond("تم تشغيل أذاعة القرآن الكريم الخاصة بالقارئ %s في القناة <#%s>" % (
+            name, channel))
         return
 
     await voice.play_lavalink_source(ctx.bot.lavalink, ctx.guild_id, "https://qurango.net/radio/tarateel", ctx.author)
-    embed.description = "تم تشغيل أذاعة القران الكريم المتنوعه في روم <#%s>" % channel
-    await ctx.respond(embed=embed)
+    await ctx.respond("تم تشغيل أذاعة القرآن الكريم المتنوعة في القناة <#%s>" % channel)
 
 
 @quran.child()
 @lightbulb.add_checks(only_role)
-@lightbulb.command("stop", "إيقاف تشغيل القران الكريم")
+@lightbulb.command("stop", "إيقاف تشغيل القرآن الكريم 🛑")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_stop(ctx: SlashContext):
     data = await voice.leave_and_stop(ctx.bot, ctx.guild_id)
@@ -180,7 +165,7 @@ async def quran_stop(ctx: SlashContext):
     type=int,
     required=True,
 )
-@lightbulb.command("volume", "تغير مستوى الصوت للقرآن الكريم")
+@lightbulb.command("volume", "تغير مستوى الصوت للقرآن الكريم 🔊")
 @lightbulb.implements(commands.SlashSubCommand, commands.PrefixSubCommand)
 async def quran_volume(ctx: SlashContext):
     vol = ctx.raw_options.get("المتسوى")
