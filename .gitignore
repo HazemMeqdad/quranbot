@@ -144,3 +144,4 @@ bot/config
 test*.py
 configuration.yml
 errors.json
+Lavalink.jar
