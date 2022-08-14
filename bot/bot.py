@@ -33,7 +33,7 @@ class Bot(lightbulb.BotApp):
             owner_ids=json.loads(os.environ.get("OWNER_IDS", "[]")),
             token=token,
             banner=None,
-            # default_enabled_guilds=json.loads(os.environ.get("DEFAULT_ENABLED_GUILDS", "[]")) if os.environ.get("DEBUG", False) else [],
+            default_enabled_guilds=json.loads(os.environ.get("DEFAULT_ENABLED_GUILDS", "[]")) if os.environ.get("DEBUG", False) else [],
             help_class=None,
         )
         self.print_banner("bot.banner", True, True)
