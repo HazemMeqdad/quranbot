@@ -47,7 +47,7 @@ class DB:
             "channel_id": {"$ne": None}, 
             "webhook": {"$ne": None}
         })
-        return [Guild(**i) for i in list(data)]
+        return [Guild(**i) for i in list(data) if i.get("channel_id") is not None and i.get("webhook") is not None]
 
     def insert(self, guild_id: int):
         data = {
