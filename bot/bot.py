@@ -7,7 +7,7 @@ import lightbulb
 import lavaplayer
 import pymongo
 import logging
-from bot import worker, utils, database
+from bot import utils, database
 import os
 import json
 import typing as t
@@ -56,7 +56,6 @@ class Bot(lightbulb.BotApp):
             asyncio.set_event_loop(self.loop)
         tasks.load(self)
 
-        
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
 
@@ -76,7 +75,6 @@ class Bot(lightbulb.BotApp):
 
     async def on_ready(self, event: hikari.StartedEvent):
         log.info(self.get_me().username + " is ready")
-        self.task = self.create_task(self.azkar_sender_update())
 
     async def on_shotdown(self, event: hikari.StoppedEvent): 
         async for key in self.redis.scan_iter(match="guild:*"):
@@ -90,6 +88,7 @@ class Bot(lightbulb.BotApp):
         log.info(f"[ Shard {event.shard.id} ] is ready")
         if event.shard.id == self.shard_count:
             await self.create_lavalink_connection()
+            self.load_extensions("bot.worker.worker")
 
     def run(self):
         self.setup()
