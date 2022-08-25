@@ -15,6 +15,7 @@ _LOGGER = logging.getLogger("bot.worker.worker")
 
 @tasks.task(s=10, max_consecutive_failures=0, pass_app=True, cls=Task)
 async def worker(bot: "Bot") -> None:
+    await tasks.wait_until_started()
     cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), bot.cache.get_guilds_view().values())
     db_guilds = bot.db.fetch_guilds_with_datetime()
     guild_ids = [i.id for i in db_guilds]
