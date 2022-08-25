@@ -7,6 +7,7 @@ from bot.database.objects import GuildUpdateType
 from datetime import datetime
 from lightbulb.ext import tasks
 from .task import Task
+import json
 if t.TYPE_CHECKING:
     from bot.bot import Bot
 
@@ -22,6 +23,17 @@ async def worker(bot: "Bot") -> None:
     guilds = list(filter(lambda x: x.id in guild_ids, list(cache_guilds)))
     worker_ = Worker(bot, guilds[:3])
     await worker_.run()
+
+
+@tasks.task(s=10, pass_app=True, cls=Task)
+async def stats_redis_update(app: lightbulb.BotApp):
+    status = {
+        "shards": app.shard_count,
+        "guilds": len(app.cache.get_available_guilds_view().values()),
+        "channels": len(app.cache.get_guild_channels_view().values()),
+        "online": True
+    }
+    await app.redis.set("bot:stats", json.dumps(status))  
 
 
 class Worker:
@@ -74,7 +86,9 @@ class Worker:
 def load(bot: lightbulb.BotApp) -> None:
     _LOGGER.info("[ Worker ] worker has been starting")
     worker.start()
+    stats_redis_update.start()
     
 def unload(bot: lightbulb.BotApp) -> None:
     _LOGGER.info("[ Worker ] worker has been stopping")
     worker.cancel()
+    stats_redis_update.cancel()
