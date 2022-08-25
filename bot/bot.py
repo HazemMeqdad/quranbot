@@ -55,7 +55,7 @@ class Bot(lightbulb.BotApp):
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
         tasks.load(self)
-        self.queue_tasks: t.List[database.Guild] = []
+
         
     def setup(self):
         self.load_extensions(*[f"bot.extensions.{i}" for i in self._extensions])
@@ -78,42 +78,6 @@ class Bot(lightbulb.BotApp):
         log.info(self.get_me().username + " is ready")
         self.task = self.create_task(self.azkar_sender_update())
 
-    async def azkar_sender_update(self):
-        log.info("[ Azkar ] Azkar sender is starting")
-        try:
-            while True:
-                cache_guilds = filter(lambda guild: isinstance(guild, hikari.Guild), self.cache.get_guilds_view().values())
-                db_guilds = self.db.fetch_guilds_with_datetime()
-                guild_ids = [i.id for i in db_guilds]
-                guilds_ = list(filter(lambda x: x.id in guild_ids, list(cache_guilds)))
-                guilds = list(filter(lambda x: x.id not in self.queue_tasks, guilds_))
-                for guild in guilds[:3]:
-                    o = [i for i in db_guilds if i.id == guild.id][0]
-                    self.queue_tasks.append(o)
-                await asyncio.sleep(10)
-        except KeyboardInterrupt:
-            log.info("[ Azkar ] Azkar sender is stopped")
-
-    @classmethod
-    @tasks.task(s=10, auto_start=True, pass_app=True)
-    async def azkar_sender(app: lightbulb.BotApp):
-        guilds = app.queue_tasks
-        worker_task = worker.Worker(app, guilds[:3])
-        await worker_task.start()
-        for guild in guilds[:3]:
-            app.queue_tasks.remove(guild)
-
-    @classmethod
-    @tasks.task(s=10, auto_start=True, pass_app=True)
-    async def stats_redis_update(app: lightbulb.BotApp):
-        status = {
-            "shards": app.shard_count,
-            "guilds": len(app.cache.get_available_guilds_view().values()),
-            "channels": len(app.cache.get_guild_channels_view().values()),
-            "online": True
-        }
-        await app.redis.set("bot:stats", json.dumps(status))        
-
     async def on_shotdown(self, event: hikari.StoppedEvent): 
         async for key in self.redis.scan_iter(match="guild:*"):
             await self.redis.delete(key)
@@ -126,7 +90,6 @@ class Bot(lightbulb.BotApp):
         log.info(f"[ Shard {event.shard.id} ] is ready")
         if event.shard.id == self.shard_count:
             await self.create_lavalink_connection()
-
 
     def run(self):
         self.setup()
@@ -142,4 +105,3 @@ class Bot(lightbulb.BotApp):
             status=hikari.Status.DO_NOT_DISTURB,
             asyncio_debug=False
         )
-
