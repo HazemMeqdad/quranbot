@@ -80,7 +80,7 @@ async def set_channel(ctx: SlashContext):
             return
         ctx.bot.db.update_guild(guild, GuildUpdateType.channel_id, None)
         ctx.bot.db.update_guild(guild, GuildUpdateType.webhook, None)
-        await ctx.respond("تم إيقاف أرسال الأذكار في قناة <#%s>" % guild.channel_idd)
+        await ctx.respond("تم إيقاف أرسال الأذكار في قناة <#%s>" % guild.channel_id)
 
     channel = ctx.bot.cache.get_guild_channel(channel_id)
 
