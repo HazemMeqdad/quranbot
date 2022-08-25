@@ -94,6 +94,27 @@ async def load_extension(ctx: SlashContext):
         await ctx.respond(error.__str__)
 
 
+@owner_plugin.command()
+@lightbulb.add_checks(lightbulb.owner_only)
+@lightbulb.option(
+    name="func",
+    description="None",
+    required=True,
+    choices=["load", "unload", "reload", "info"]
+)
+@lightbulb.command("worker", "the daemon for prayes sender", guilds=guild_ids, hidden=True)
+@lightbulb.implements(commands.SlashCommand)
+async def worker_command(ctx: SlashContext):
+    func = ctx.options.func
+    if func == "info":
+        await ctx.respond(f"worker is {'running' if 'bot.worker.worker' in ctx.bot.extensions else 'not running'}")
+        return
+    try:
+        getattr(ctx.bot, func + "_extensions", "bot.worker.worker")
+        await ctx.respond(f"{func}ed worker")
+    except Exception as error:
+        await ctx.respond(error.__str__)
+
 def load(bot):
     bot.add_plugin(owner_plugin)
 
