@@ -62,7 +62,7 @@ class Tasks(commands.Cog):
             avatar_url=self.bot.user.avatar.url
         )
         
-    @tasks.loop(seconds=24)
+    @tasks.loop(minutes=24)
     async def pray_checker(self):
         await self.bot.wait_until_ready()
         db = Database()
