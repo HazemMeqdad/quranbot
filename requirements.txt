@@ -1,10 +1,5 @@
 pymongo[srv]
-git+https://github.com/davfsa/hikari@task/new-lifetime
-lavaplayer==1.0.10a0
-beautifulsoup4
-hikari-lightbulb
-lxml
-requests
-uvloop; sys_platform == "linux"
+discord.py
+lavalink==4.0.1
+hijri-converter
 aioredis
-Pillow
