@@ -1,7 +1,10 @@
+from asyncio.log import logger
+import logging
 import os
 import discord
 from discord.app_commands import CommandTree
 from discord.ext import commands
+import aioredis
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -47,21 +50,24 @@ class Bot(commands.Bot):
         )
         self.add_view(OpenMoshafView())
         self.add_view(ZkaatView())
+        if os.getenv("REDIS_URL"):
+            self.redis = aioredis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
         for cog in cogs:
             await self.load_extension(cog)
         if os.getenv("DEBUG_GUILD"):
             self.tree.copy_global_to(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
             await self.tree.sync(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
+        else:
+            await self.tree.sync()
 
     async def on_ready(self):
-
-        print('Logged in as')
-        print(self.user.name)
-        print(self.user.id)
-        print('------')
+        logger.info("Bot is ready")
     
     def run(self):
-        super().run(os.getenv("TOKEN"))
+        super().run(
+            os.getenv("TOKEN"), 
+            log_handler=logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'),
+        )
 
 
 bot = Bot()
