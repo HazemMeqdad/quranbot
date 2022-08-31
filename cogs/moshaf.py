@@ -44,10 +44,16 @@ class Moshaf(commands.GroupCog, name="moshaf"):
     )
     async def page(self, interaction: discord.Interaction, moshaf_type: int, page: int) -> None:
         moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
+        if page > moshafs[str(moshaf['value'])]["page_end"] or page < 1:
+            await interaction.response.send_message(f"الصفحة غير موجودة", ephemeral=True)
+            return
         embed = discord.Embed(title=moshaf["name"], color=0xffd430)
         embed.set_image(url=f"http://www.islamicbook.ws/{moshaf_type}/{page}.{moshafs[str(moshaf['value'])]['type']}")
         embed.set_footer(text=f"الصفحة {page}/{moshafs[str(moshaf['value'])]['page_end']}")
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(
+            embed=embed, 
+            view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
+        )
 
     @app_commands.command(name="setup", description="تعين لوحة للقرآن الكريم 📚")
     @app_commands.choices(moshaf_type=[app_commands.Choice(name=i["name"], value=i["value"]) for i in moshaf_types])
