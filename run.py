@@ -59,7 +59,7 @@ class Bot(commands.Bot):
             self.tree.copy_global_to(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
             await self.tree.sync(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
         else:
-            await self.tree.sync()
+            self.app_commands = await self.tree.sync()
 
     async def on_ready(self):
         logger.info("Bot is ready")

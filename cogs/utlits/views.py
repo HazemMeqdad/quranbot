@@ -6,6 +6,7 @@ from .database import Database, SavesDatabase
 from . import convert_number_to_000, HELP_DATA
 from discord.ext import commands
 import typing as t
+from discord.app_commands import AppCommand
 
 class SupportButtons(View):
     def __init__(self, timeout: t.Optional[int] = None):
@@ -280,7 +281,7 @@ class HelpView(SupportButtons, View):
             discord.SelectOption(label="أوامر تفسير المصحف الشريف", value="tafsir"),
         ]
     )
-    async def readme(self, interaction: discord.Interaction, select: discord.ui.Select):
+    async def help_menu(self, interaction: discord.Interaction, select: discord.ui.Select):
         if not self.user_id or interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         values = interaction.data["values"]
@@ -301,10 +302,13 @@ class HelpView(SupportButtons, View):
             else:
                 cog_commands = cog.walk_app_commands()
                 normal_commands = [i.name for i in cog.get_app_commands()]
+                app_commands: t.List[AppCommand] = self.bot.app_commands
                 for command in cog_commands:
                     if command.name in normal_commands:
-                        embed.description += f"`/{command.name}` -  {command.description}\n"
+                        command_id = discord.utils.get(app_commands, name=command.name).id
+                        embed.description += f"</{command.name}:{command_id}> -  {command.description}\n"
                     else:
-                        embed.description += f"`/{cog.qualified_name} {command.name}` -  {command.description}\n"
+                        command_id = discord.utils.get(app_commands, name=command.parent.name).id
+                        embed.description += f"</{command.parent.name} {command.name}:{command_id}> -  {command.description}\n"
 
         await interaction.response.edit_message(embed=embed)
