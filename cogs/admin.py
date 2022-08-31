@@ -7,8 +7,6 @@ from .utlits import times
 import aiohttp
 from datetime import datetime
 import typing as t
-from io import BytesIO
-from requests import get
 
 
 class Admin(commands.GroupCog, name="set"):
