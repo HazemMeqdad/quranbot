@@ -82,11 +82,11 @@ class MoshafView(View):
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         db = SavesDatabase()
         data = db.find_one(f"moshaf_{self.user_id}")
-        await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
         if not data:
-            db.insert_user(self.user_id, self.moshaf_type, self.postion)
-            return
-        db.update(f"moshaf_{self.user_id}", data={"moshaf_type": self.moshaf_type, "page_number": self.postion})
+            db.insert(f"moshaf_{self.user_id}", {"moshaf_type": self.moshaf_type, "page_number": self.postion})
+        else:
+            db.update(f"moshaf_{self.user_id}", data={"moshaf_type": self.moshaf_type, "page_number": self.postion})
+        await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
 
     def get_page(self) -> discord.Embed:
         moshaf = [i for i in moshaf_types if int(i["value"]) == self.moshaf_type][0]
@@ -104,12 +104,13 @@ class OpenMoshafView(View):
     @discord.ui.button(label="📖", style=ButtonStyle.grey, custom_id="moshaf:open")
     async def open_moshaf(self, interaction: discord.Interaction, button: discord.Button):
         db = SavesDatabase()
-        data = db.find_one(f"moshaf_{interaction.user.id}")
+        db_data = db.find_one(f"moshaf_{interaction.user.id}")
+        data = db_data.data if db_data else None
         guild_data = Database().find_guild(interaction.guild.id)
         moshaf_type = guild_data.moshaf_type if guild_data.moshaf_type else 1
         page_number = 1
-        if data is not None or data.moshaf_type == moshaf_type:
-            page_number = data.page_number
+        if data is not None and data.moshaf_type == moshaf_type:
+            page_number = data["page_number"]
 
         moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
 

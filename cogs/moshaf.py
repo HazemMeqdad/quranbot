@@ -20,10 +20,11 @@ class Moshaf(commands.GroupCog, name="moshaf"):
     )
     async def open(self, interaction: discord.Interaction, moshaf_type: int, page: t.Optional[int] = None, hide: bool = False) -> None:
         db = SavesDatabase()
-        data = db.find_one("moshaf_"+interaction.user.id)
+        db_data = db.find_one(f"moshaf_{interaction.user.id}")
+        data = db_data.data if db_data else None
         page_number = page if page else 1
-        if (data is not None or data.moshaf_type == moshaf_type) and page is None:
-            page_number = data.page_number
+        if (data is not None and data["moshaf_type"] == moshaf_type) and page is None:
+            page_number = data["page_number"]
         moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
 
         embed = discord.Embed(title=moshaf["name"], color=0xffd430)
