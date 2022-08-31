@@ -67,7 +67,7 @@ class Tasks(commands.Cog):
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
             db.update_guild(data._id, channel_id=None, webhook=None)
         
-    @tasks.loop(minutes=24)
+    @tasks.loop(minutes=15)
     async def pray_checker(self):
         await self.bot.wait_until_ready()
         db = Database()
@@ -85,6 +85,8 @@ class Tasks(commands.Cog):
         db = AzanDatabase()
         guild = self.bot.get_guild(data._id)
         channel = self.bot.get_channel(data.channel_id)
+        if await self.redis.exists(f"azan:guild:{guild.id}"):
+            return
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
             db.delete(data._id)
             return
@@ -106,6 +108,7 @@ class Tasks(commands.Cog):
                     avatar_url=self.bot.user.avatar.url,
                     allowed_mentions=discord.AllowedMentions.all(),
                 )
+                await self.redis.set(f"azan:guild:{guild.id}", "1", expire=60*60*2)
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
             db.delete(data._id)
 
@@ -113,7 +116,7 @@ class Tasks(commands.Cog):
         for key, value in timings.items():
             h = int(value.split(":")[0])
             m = int(value.split(":")[1])
-            if h == now.hour and between_two_numbers(m, now.minute-4, now.minute+4):
+            if h == now.hour and between_two_numbers(m, now.minute-3, now.minute+3):
                 return key, value
         return None
 
@@ -129,7 +132,6 @@ class Tasks(commands.Cog):
                 await self.redis.set(f"azan:{address}", json.dumps(data), ex=3600)
             now = datetime.now(tz=pytz.timezone(data["meta"]["timezone"]))
             close_azan = self.get_colser_azan(data["timings"], now)
-            print(close_azan)
             if not close_azan:
                 continue
             await self.process_azan(azan, close_azan)
