@@ -68,7 +68,15 @@ class Admin(commands.GroupCog, name="set"):
                 res = await resp.json()
                 if res["code"] != 200:
                     return await interaction.response.send_message("لم يتم العثور على العنوان المدخل", ephemeral=True)
-        azan_db.insert(interaction.guild.id, channel_id=channel.id, address=address, role_id=role.id if role else None)
+        hooks = await channel.webhooks()
+        hook = discord.utils.get(hooks, name="فاذكروني")
+        if not hook:
+            hook = await channel.create_webhook(name="فاذكروني")
+        azan_db.insert(
+            interaction.guild.id, channel_id=channel.id, 
+            address=address, role_id=role.id if role else None,
+            webhook_url=hook.url
+        )
         await interaction.response.send_message(f"تم تحديد القناة الخاصة بالأذكار بنجاح ✅")
         data = res["data"]
         embed = discord.Embed(
