@@ -30,6 +30,7 @@ class Azan:
     channel_id: int
     address: str
     role_id: t.Optional[int] = None
+    webhook_url: t.Optional[str] = None
 
 class BaseDatabase:
     def __init__(self) -> None:
@@ -127,19 +128,21 @@ class AzanDatabase(BaseDatabase):
         data = self.col.find({})
         return [Azan(**i) for i in list(data)]
 
-    def insert(self, _id: int, channel_id: int, address: str, role_id: t.Optional[int] = None) -> None:
+    def insert(self, _id: int, channel_id: int, address: str, webhook_url: str, role_id: t.Optional[int] = None, ) -> None:
         self.col.insert_one({
             "_id": _id,
             "channel_id": channel_id,
             "address": address,
-            "role_id": role_id
+            "role_id": role_id,
+            "webhook_url": webhook_url
         })
 
-    def update(self, _id: int, channel_id: int, address: str, role_id: t.Optional[int] = None) -> None:
+    def update(self, _id: int, channel_id: int, address: str, webhook_url: str, role_id: t.Optional[int] = None) -> None:
         self.col.update_one({"_id": _id}, {"$set": {
             "channel_id": channel_id,
             "address": address,
-            "role_id": role_id
+            "role_id": role_id,
+            "webhook_url": webhook_url
         }})
 
     def delete(self, _id: int) -> None:
