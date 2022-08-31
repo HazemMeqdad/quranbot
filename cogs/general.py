@@ -7,7 +7,7 @@ from discord import app_commands
 import time
 from cogs.utlits.db import Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
-from .utlits import times, HELP_DATA
+from .utlits import times, HELP_DATA, format_time_str
 import platform
 import aiohttp
 
@@ -71,12 +71,12 @@ class General(commands.Cog):
             color=0xffd430,
             timestamp=datetime.fromtimestamp(int(data["date"]["timestamp"]))
         )
-        embed.add_field(name="صلاة الفجْر:", value=data["timings"]["Fajr"])
-        embed.add_field(name="الشروق:", value=data["timings"]["Sunrise"])
-        embed.add_field(name="صلاة الظُّهْر:", value=data["timings"]["Dhuhr"])
-        embed.add_field(name="صلاة العَصر:", value=data["timings"]["Asr"])
-        embed.add_field(name="صلاة المَغرب:", value=data["timings"]["Maghrib"])
-        embed.add_field(name="صلاة العِشاء:", value=data["timings"]["Isha"])
+        embed.add_field(name="صلاة الفجْر:", value=format_time_str(data["timings"]["Fajr"]))
+        embed.add_field(name="الشروق:", value=format_time_str(data["timings"]["Sunrise"]))
+        embed.add_field(name="صلاة الظُّهْر:", value=format_time_str(data["timings"]["Dhuhr"]))
+        embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
+        embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
+        embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="info", description="معلومات عن البوت 🤖")

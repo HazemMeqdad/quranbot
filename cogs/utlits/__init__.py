@@ -131,3 +131,10 @@ def get_next_azan(azan: str) -> str:
     azan_index = azan_list.index(azan)
     next_azan = azan_list[azan_index + 1] if azan_index + 1 < len(azan_list) else azan_list[0]
     return next_azan
+
+def format_time_str(time: str):
+    h, m = int(time.split(":")[0]), int(time.split(":")[1])
+    if h>12:
+        h -= 12
+        return "%02d:%02d PM" % (h, m)
+    return "%02d:%02d AM" % (h, m)
