@@ -6,7 +6,7 @@ from .utlits.database import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import aioredis
-from .utlits import between_two_numbers
+from .utlits import AZAN_DATA, between_two_numbers, get_next_azan
 import typing as t
 import pytz
 
@@ -81,7 +81,7 @@ class Tasks(commands.Cog):
                 data = await resp.json()
                 return data["data"]
 
-    async def process_azan(self, data: Azan, close_azan: t.Tuple[str, datetime]):
+    async def process_azan(self, data: Azan, azan: t.Tuple[str, str], addres_data: dict):
         db = AzanDatabase()
         guild = self.bot.get_guild(data._id)
         channel = self.bot.get_channel(data.channel_id)
@@ -93,34 +93,54 @@ class Tasks(commands.Cog):
         try:
             async with aiohttp.ClientSession() as session:
                 hook = discord.Webhook.from_url(data.webhook_url, session=session)
-
+                date = datetime.now(pytz.timezone(addres_data["meta"]["timezone"]))
+                azan_data  = AZAN_DATA[azan[0]]
+                next_azan = get_next_azan(azan[0])
+                data_next_azan = addres_data["timings"][next_azan]
+                next_azan_date = datetime.fromtimestamp(datetime(date.year, date.month, date.day).timestamp() + (int(data_next_azan.split(":")[0]) * 3600) + (int(data_next_azan.split(":")[1]) * 60))
                 embed = discord.Embed(
-                    title=close_azan[0],
-                    description=f"الآن يوجد صلاة {close_azan[0]}",
+                    title=f"**حان الآن وقت صلاة {azan_data['name']} بتوقيت {data.address}**",
+                    description=f"**يوم {date.strftime('%d/%m/%Y')}م الموافق {addres_data['date']['hijri']['weekday']['ar']} {addres_data['date']['hijri']['date'].replace('-', '/')}هـ**",
                     color=0xffd430
                 )
-                embed.set_thumbnail(url=self.bot.user.avatar.url)
+                embed.set_author(name="مواقيت الصلاة")
+                embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/451230075875504128/ZRTmO08X.jpeg")
                 embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
+                sunau_before = f"**{azan_data['sunna_before']}** ركعات" if azan_data['sunna_before'] != 0 else "**لايوجد**"
+                sunau_after = f"**{azan_data['sunna_after']}** ركعات" if azan_data['sunna_after'] != 0 else "**لايوجد**"
+                embed.add_field(
+                    name=f"صلاة {azan_data['name']}", 
+                    value=f"عدد ركعاتها: **{azan_data['rakats']}** ركعات\n"
+                        f"سنن قبل الصلاة: {sunau_before}\n" 
+                        f"سنن بعد الصلاة: {sunau_after}",
+                    inline=False
+                )
+                embed.add_field(
+                    name=f"وقت الصلاة التالي {AZAN_DATA[next_azan]['name']} بعد:",
+                    value=f"<t:{int(next_azan_date.timestamp())}:R>"
+                )
                 await hook.send(
-                    content="<@%d>" % data.role_id if data.role_id else None,
+                    content=("<@&%d>" % data.role_id) if data.role_id else "",
                     embed=embed, 
                     username=self.bot.user.name,
                     avatar_url=self.bot.user.avatar.url,
                     allowed_mentions=discord.AllowedMentions.all(),
                 )
-                await self.redis.set(f"azan:guild:{guild.id}", "1", expire=60*60*2)
+                await self.redis.set(f"azan:guild:{guild.id}", "1", ex=60*60*2)
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
             db.delete(data._id)
 
     def get_colser_azan(self, timings: dict, now: datetime) -> t.Tuple[str, datetime]:
         for key, value in timings.items():
+            if key not in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+                continue
             h = int(value.split(":")[0])
             m = int(value.split(":")[1])
-            if h == now.hour and between_two_numbers(m, now.minute-3, now.minute+3):
+            if h == now.hour and between_two_numbers(m, now.minute-2, now.minute+2):
                 return key, value
         return None
 
-    @tasks.loop(minutes=4)
+    @tasks.loop(minutes=5)
     async def azan_checker(self):
         db = AzanDatabase()
         for azan in db.find_all():
@@ -134,7 +154,7 @@ class Tasks(commands.Cog):
             close_azan = self.get_colser_azan(data["timings"], now)
             if not close_azan:
                 continue
-            await self.process_azan(azan, close_azan)
+            await self.process_azan(azan, close_azan, data)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tasks(bot))
