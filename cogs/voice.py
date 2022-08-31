@@ -1,13 +1,12 @@
 import discord
 import lavalink
-import os
 from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-
 from cogs.utlits.views import DownloadSurahView
 from .utlits.voice_client import LavalinkVoiceClient
+
 
 surahs_cache = []
 cdn_surah_audio_cache = []

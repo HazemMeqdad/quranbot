@@ -10,7 +10,7 @@ try:
     load_dotenv()
 except ImportError:
     ...
-from cogs.utlits.views import AzanView, HelpView, OpenMoshafView, ZkaatView
+from cogs.utlits.views import HelpView, OpenMoshafView, ZkaatView
 import lavalink
 
 

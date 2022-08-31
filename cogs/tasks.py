@@ -2,7 +2,6 @@ import json
 from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
-from cogs.utlits.views import AzanView
 from .utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
@@ -10,6 +9,7 @@ import aioredis
 from .utlits import AZAN_DATA, between_two_numbers, get_next_azan
 import typing as t
 import pytz
+
 
 class Tasks(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
