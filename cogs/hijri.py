@@ -24,7 +24,7 @@ class HijriCog(commands.GroupCog, name="hijri"):
         embed.set_footer(text="عدد أيام الشهر %d يوم" % hijri.month_length())
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="convert", description="التوحيل من التاريخ الميلادي الى الهجري")
+    @app_commands.command(name="convert", description="التحويل من التاريخ الميلادي الى الهجري")
     @app_commands.describe(
         day="ادخل اليوم",
         month="ادخل الشهر",

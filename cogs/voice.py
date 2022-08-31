@@ -107,7 +107,7 @@ class Player(commands.GroupCog, name="quran"):
             return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache)][:25]
         return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
 
-    @app_commands.command(name="play")
+    @app_commands.command(name="play", description="تشغيل القرآن الكريم بالصوت")
     @app_commands.autocomplete(quran_reader=reader_autocomplete, surah=surah_autocomplete)
     @app_commands.describe(
         quran_reader="أختر القارئ",
