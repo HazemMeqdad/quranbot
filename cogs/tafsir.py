@@ -1,26 +1,22 @@
+import json
 import discord 
 from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
 from cogs.utlits.db import SavesDatabase
-from cogs.utlits.views import TafsirView
+from cogs.utlits.views import TafsirView, TafsirAyahView
 from .utlits import convert_number_to_000
 
-surahs_cache = []
 
+surahs_cache = []
+tafsir_cache = {}
+surah_text_cache = {}
 
 class Tafsir(commands.GroupCog, name="tafsir"):
     def __init__(self, bot: commands.Bot) -> None:
         super().__init__()
         self.bot = bot
-    
-    @app_commands.command(name="word", description="الحصول على التفسير للكلمة المدخلة")
-    @app_commands.describe(
-        word="ادخل الكلمة المراد التفسير عنها"
-    )
-    async def tafsir(self, interaction: discord.Interaction, word: str):
-        await interaction.response.send_message("التفسير للكلمة %s: %s" % (word, self.bot.tafsir.tafsir(word)))
     
     async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
         global surahs_cache
@@ -32,6 +28,45 @@ class Tafsir(commands.GroupCog, name="tafsir"):
             return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache)][:25]
         return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
 
+    @app_commands.command(name="ayah", description="الحصول على نفسير الآية")
+    @app_commands.describe(
+        surah="ادخل السورة المراد التفسير عنها",
+        ayah="ادخل رقم للآية المراد التفسير عنها",
+    )
+    @app_commands.autocomplete(surah=surah_autocomplete)
+    async def tafsir(self, interaction: discord.Interaction, surah: int, ayah: int = 1):
+        global tafsir_cache, surah_text_cache
+        if surah > 114:
+            return await interaction.response.send_message("السورة غير موجودة", ephemeral=True)
+        query = f"{surah}:{ayah}"
+        data = tafsir_cache.get(query)
+        if not data:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://raw.githubusercontent.com/semarketir/quranjson/master/source/translation/ar/ar_translation_{surah}.json") as resp:
+                    tafsir_cache[query] = json.loads(await resp.text())
+                    data = tafsir_cache.get(query)
+        surah_text = surah_text_cache.get(query)
+        if not surah_text:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://raw.githubusercontent.com/semarketir/quranjson/master/source/surah/surah_{surah}.json") as resp:
+                    surah_text_cache[query] = json.loads(await resp.text())
+                    surah_text = surah_text_cache.get(query)
+
+        if ayah > data["count"]:
+            return await interaction.response.send_message("الآية المطلوبة غير موجودة", ephemeral=True)
+        surah_name = surahs_cache[data["index"]-1]["titleAr"]
+        embed = discord.Embed(
+            title=f"سورة {surah_name} الآية {ayah} حسب التفسير المیسر", 
+            description=f"قال الله تعالى ({surah_text['verse'][f'verse_' + str(ayah)]})\n\n"
+                        "-------------------------\n\n"
+                        f"{data['verse'][f'verse_' + str(ayah)]}",
+            color=0xffd430
+        )
+        embed.set_footer(text=f"{ayah}/{data['count']}")
+        await interaction.response.send_message(
+            embed=embed, 
+            view=TafsirAyahView(data, surah_text, ayah, interaction.user.id)
+        )
 
     @app_commands.command(name="surah", description="الحصول على التفسير للسورة المدخلة")
     @app_commands.describe(

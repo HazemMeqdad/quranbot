@@ -7,6 +7,9 @@ from . import convert_number_to_000, HELP_DATA
 from discord.ext import commands
 import typing as t
 from discord.app_commands import AppCommand
+import aiohttp
+
+surahs_cache = []
 
 class SupportButtons(View):
     def __init__(self, timeout: t.Optional[int] = None):
@@ -312,3 +315,70 @@ class HelpView(SupportButtons, View):
                         embed.description += f"</{command.parent.name} {command.name}:{command_id}> -  {command.description}\n"
 
         await interaction.response.edit_message(embed=embed)
+
+class TafsirAyahView(View):
+    def __init__(self, tafsir_data: dict, surah_text: dict, postion: int, user_id: int) -> None:
+        super().__init__(timeout=3600)
+        self.tafsir_data = tafsir_data
+        self.surah_text = surah_text
+        self.postion = postion
+        self.user_id = user_id
+
+    @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="tafsir:ayah:first")
+    async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.edit_message()
+        self.postion = 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="tafsir:ayah:prev")
+    async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.send_message(content="لا يمكنك الرجوع للصفحة السابقة", ephemeral=True)
+        self.postion -= 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="tafsir:ayah:close")
+    async def close(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.edit_message(view=None)
+
+    @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="tafsir:ayah:next")
+    async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == self.tafsir_data["count"]:
+            return await interaction.response.send_message(content="لا يمكنك التقدم للصفحة التالية", ephemeral=True)
+        self.postion += 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="tafsir:ayah:last")
+    async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == self.tafsir_data["count"]:
+            return await interaction.response.edit_message()
+        self.postion = self.tafsir_data["count"]
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    async def get_page(self) -> discord.Embed:
+        global surahs_cache
+        if not surahs_cache:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://cdn.fdrbot.com/reciters/surah.json") as resp:
+                    surahs_cache = await resp.json()
+        surah_name = surahs_cache[self.tafsir_data["index"]-1]["titleAr"]
+        embed = discord.Embed(
+            title=f"سورة {surah_name} الآية {self.postion} حسب التفسير المیسر", 
+            description=f"قال الله تعالى ({self.surah_text['verse'][f'verse_' + str(self.postion)]})\n\n"
+                        "-------------------------\n\n"
+                        f"{self.tafsir_data['verse'][f'verse_' + str(self.postion)]}",
+            color=0xffd430
+        )
+        embed.set_footer(text=f"{self.postion}/{self.tafsir_data['count']}")
+        return embed
