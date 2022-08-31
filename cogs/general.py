@@ -6,8 +6,8 @@ from discord.ext import commands
 from discord import app_commands
 import time
 from cogs.utlits.database import Database
-from .utlits.views import MsbahaView, SupportButtons, ZkaatView
-from .utlits import times
+from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
+from .utlits import times, HELP_DATA
 import platform
 import aiohttp
 
@@ -135,7 +135,7 @@ class General(commands.Cog):
             "والعام الماضي في مثل هذا اليوم كان رصيدك 70 الف فان الزكاة واجبة على المبلغ 70 الف.")
         await interaction.response.send_message(embed=embed, view=ZkaatView(), ephemeral=hide)
 
-    @app_commands.command(name="msbaha", description="حساب زكاة الأموال 💰")
+    @app_commands.command(name="msbaha", description="فتح مسحبة عداد المسبحة للحسنات و الحسنه بعشر أمثالها")
     @app_commands.describe(
         type="حدد نوع المسبحة المراد",
         hide="جعل الرسالة بينك و بين البوت فقط, True(أخفاء الرسالة)/False(أضهار الرسالة)"
@@ -151,15 +151,17 @@ class General(commands.Cog):
         await interaction.response.send_message(embed=embed, view=MsbahaView(msbaha), ephemeral=hide)
 
     @app_commands.command(name="help", description="أرسل هذا الرسالة للحصول على جميع الأوامر 📖")
-    async def help_command(self, interaction: discord.Interaction, is_hidden: bool = False):
+    async def help_command(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="أوامر البوت",
-            description="أرسل هذا الرسالة للحصول على جميع الأوامر 📖",
+            title=HELP_DATA["main"]["title"],
+            description=HELP_DATA["main"]["description"],
             color=0xffd430
         )
-        embed.add_field(name="الأوامر العامة:", value="`pray`, `azan`, `info`, `invite`, `help`")
-        embed.add_field(name="الأوامر الخاصة:", value="`pray`, `azan`, `info`, `invite`, `help`")
-        await interaction.response.send_message(embed=embed, ephemeral=is_hidden)
+        embed.set_author(name="لوحة أوامر بوت فاذكروني", icon_url=self.bot.user.avatar.url)
+        await interaction.response.send_message(
+            embed=embed, 
+            view=HelpView(self.bot, interaction.user.id),
+        )
 
 
 async def setup(bot: commands.Bot) -> None:

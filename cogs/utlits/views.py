@@ -1,18 +1,19 @@
 from discord import ButtonStyle
 from discord.ui import View, Button
-import os
 import discord
 from .msohaf_data import moshaf_types, moshafs
 from .database import Database, SavesDatabase
-from . import convert_number_to_000
+from . import convert_number_to_000, HELP_DATA
+from discord.ext import commands
+import typing as t
 
 class SupportButtons(View):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timeout: t.Optional[int] = None):
+        super().__init__(timeout=timeout)
         self.add_item(Button(
             style=ButtonStyle.url,
             label="إضافة البوت",
-            url=f"https://discord.com/oauth2/authorize?client_id={os.environ['CLIENT_ID']}&permissions=8&scope=bot%20applications.commands"
+            url=f"https://discord.com/oauth2/authorize?client_id=728782652454469662&permissions=8&scope=bot%20applications.commands"
         ))
         self.add_item(Button(
             style=ButtonStyle.url,
@@ -258,3 +259,52 @@ class TafsirView(View):
         embed.set_image(url=f"https://raw.githubusercontent.com/rn0x/albitaqat_quran/main/images/{convert_number_to_000(self.postion)}.jpg")
         embed.set_footer(text=f"البطاقة الحالية: {self.postion}/114")
         return embed
+
+class HelpView(SupportButtons, View):
+    def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None):
+        super().__init__(timeout=None)
+        self.bot = bot
+        self.user_id = user_id
+
+    @discord.ui.select(
+        placeholder="أختر فئة الأوامر التي تريد الحصول على معلوماتها", 
+        custom_id="help:menu", 
+        options=[
+            discord.SelectOption(label="الصفحة الرئيسية", value="main"),
+            discord.SelectOption(label="أوامر العامة", value="general"),
+            discord.SelectOption(label="أوامر المصحف الشريف", value="moshaf"),
+            discord.SelectOption(label="أوامر التاريخ الهجري", value="hijri"),
+            discord.SelectOption(label="أوامر القرآن الكريم الصوتية", value="quran_voice"),
+            discord.SelectOption(label="أوامر مشرفي السيرفر", value="admin"),
+            discord.SelectOption(label="أوامر الحديث النبوي الشريف", value="hadith"),
+            discord.SelectOption(label="أوامر تفسير المصحف الشريف", value="tafsir"),
+        ]
+    )
+    async def readme(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if not self.user_id or interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        values = interaction.data["values"]
+        if not values:
+            return await interaction.response.edit_message()
+        value = values[0]
+        data = HELP_DATA[value]
+        embed = discord.Embed(
+            title=data["title"],
+            description=data["description"] + "\n\n",
+            color=0xffd430
+        )
+        if data["cog"]:
+            cogs = {k.lower(): v for k, v in self.bot.cogs.items()}
+            cog = cogs.get(data["cog"].lower())
+            if not cog:
+                ...
+            else:
+                cog_commands = cog.walk_app_commands()
+                normal_commands = [i.name for i in cog.get_app_commands()]
+                for command in cog_commands:
+                    if command.name in normal_commands:
+                        embed.description += f"`/{command.name}` -  {command.description}\n"
+                    else:
+                        embed.description += f"`/{cog.qualified_name} {command.name}` -  {command.description}\n"
+
+        await interaction.response.edit_message(embed=embed)
