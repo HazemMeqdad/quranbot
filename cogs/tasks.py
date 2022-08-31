@@ -2,6 +2,7 @@ import json
 from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
+from cogs.utlits.views import AzanView
 from .utlits.database import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
@@ -140,7 +141,7 @@ class Tasks(commands.Cog):
                 return key, value
         return None
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=2)
     async def azan_checker(self):
         db = AzanDatabase()
         for azan in db.find_all():
