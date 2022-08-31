@@ -5,7 +5,9 @@ from .utlits.db import Database, SavesDatabase
 from .utlits.views import MoshafView, OpenMoshafView
 from .utlits.msohaf_data import moshaf_types, moshafs
 import typing as t
+import aiohttp
 
+surahs_cache = []
 
 class Moshaf(commands.GroupCog, name="moshaf"):
     def __init__(self, bot: commands.Bot) -> None:
@@ -54,6 +56,37 @@ class Moshaf(commands.GroupCog, name="moshaf"):
             embed=embed, 
             view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
         )
+
+    # async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
+    #     global surahs_cache
+    #     if not surahs_cache:
+    #         async with aiohttp.ClientSession() as session:
+    #             async with session.get(f"https://cdn.fdrbot.com/reciters/surah.json") as resp:
+    #                 surahs_cache = await resp.json()
+    #     if not current:
+    #         return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache)][:25]
+    #     return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
+
+    # @app_commands.command(name="surah", description="عرض سورة معينة من القرآن الكريم")
+    # @app_commands.autocomplete(surah=surah_autocomplete)
+    # @app_commands.describe(
+    #     moshaf_type="نوع القرآن الكريم",
+    #     surah="رقم السورة",
+    # )
+    # @app_commands.choices(moshaf_type=[app_commands.Choice(name=i["name"], value=i["value"]) for i in moshaf_types])
+    # async def surah_command(self, interaction: discord.Interaction, moshaf_type: int, surah: int) -> None:
+    #     moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
+    #     if surah > 114 or surah < 1:
+    #         await interaction.response.send_message(f"السورة غير موجودة", ephemeral=True)
+    #         return
+    #     page = int(surahs_cache[surah-1]["pages"])
+    #     embed = discord.Embed(title=moshaf["name"], color=0xffd430)
+    #     embed.set_image(url=f"http://www.islamicbook.ws/{moshaf_type}/{page}.{moshafs[str(moshaf['value'])]['type']}")
+    #     embed.set_footer(text=f"الصفحة {page}/{moshafs[str(moshaf['value'])]['page_end']}")
+    #     await interaction.response.send_message(
+    #         embed=embed, 
+    #         view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
+    #     )
 
     @app_commands.command(name="setup", description="تعين لوحة للقرآن الكريم 📚")
     @app_commands.choices(moshaf_type=[app_commands.Choice(name=i["name"], value=i["value"]) for i in moshaf_types])
