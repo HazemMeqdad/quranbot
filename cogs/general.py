@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
-from cogs.utlits.database import Database
+from cogs.utlits.db import Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
 from .utlits import times, HELP_DATA
 import platform

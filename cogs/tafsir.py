@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-from cogs.utlits.database import SavesDatabase
+from cogs.utlits.db import SavesDatabase
 from cogs.utlits.views import TafsirView
 from .utlits import convert_number_to_000
 

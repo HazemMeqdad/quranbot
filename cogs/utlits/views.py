@@ -2,7 +2,7 @@ from discord import ButtonStyle
 from discord.ui import View, Button
 import discord
 from .msohaf_data import moshaf_types, moshafs
-from .database import Database, SavesDatabase
+from .db import Database, SavesDatabase
 from . import convert_number_to_000, HELP_DATA
 from discord.ext import commands
 import typing as t
