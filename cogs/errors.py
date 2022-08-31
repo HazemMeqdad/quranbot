@@ -23,6 +23,10 @@ class Errors(commands.Cog):
         await interaction.response.send_message(f"An error occured: {error}", ephemeral=True)
         raise error
 
+    # Igrone commands prefix errors
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        return 
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Errors(bot))
