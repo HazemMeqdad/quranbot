@@ -145,3 +145,4 @@ test*.py
 configuration.yml
 errors.json
 Lavalink.jar
+discord.log
