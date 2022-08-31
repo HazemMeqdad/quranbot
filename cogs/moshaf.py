@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from .utlits.database import Database, SavesDatabase
+from .utlits.db import Database, SavesDatabase
 from .utlits.views import MoshafView, OpenMoshafView
 from .utlits.msohaf_data import moshaf_types, moshafs
 import typing as t

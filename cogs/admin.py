@@ -2,7 +2,7 @@ import io
 import discord
 from discord.ext import commands
 from discord import app_commands
-from .utlits.database import AzanDatabase, Database
+from .utlits.db import AzanDatabase, Database
 from .utlits import times
 import aiohttp
 from datetime import datetime

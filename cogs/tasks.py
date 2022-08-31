@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
 from cogs.utlits.views import AzanView
-from .utlits.database import Azan, AzanDatabase, Database, DbGuild
+from .utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import aioredis
