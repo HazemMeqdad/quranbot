@@ -33,7 +33,7 @@ class Tafsir(commands.GroupCog, name="tafsir"):
         return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
 
 
-    @app_commands.command(name="surah", description="الحصول على التفسير للسورةالمدخلة")
+    @app_commands.command(name="surah", description="الحصول على التفسير للسورة المدخلة")
     @app_commands.describe(
         surah="ادخل رقم السورة المراد التفسير عنها"
     )
