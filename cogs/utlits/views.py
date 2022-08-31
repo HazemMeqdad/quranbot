@@ -109,7 +109,7 @@ class OpenMoshafView(View):
         guild_data = Database().find_guild(interaction.guild.id)
         moshaf_type = guild_data.moshaf_type if guild_data.moshaf_type else 1
         page_number = 1
-        if data is not None and data.moshaf_type == moshaf_type:
+        if data is not None and data["moshaf_type"] == moshaf_type:
             page_number = data["page_number"]
 
         moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
