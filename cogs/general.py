@@ -84,7 +84,7 @@ class General(commands.Cog):
         embed = discord.Embed(
             color=0xffd430,
             description="بوت فاذكروني لإحياء سنة ذِكر الله",
-            url=f"<https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot%20applications.commands>"
+            url=f"https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot%20applications.commands"
         )
         embed.add_field(name="خوادم البوت:", value=len(self.bot.guilds).__str__())
         embed.add_field(name="سرعة الأتصال:", value=f"{round(self.bot.latency * 1000)}ms")
