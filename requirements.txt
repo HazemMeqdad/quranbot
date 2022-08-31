@@ -3,3 +3,4 @@ discord.py
 lavalink==4.0.1
 hijri-converter
 aioredis
+pytz
