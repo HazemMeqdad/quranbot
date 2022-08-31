@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY . /opt/fdrbot
 
-CMD ["python", "-OO", "run.py"]
+CMD ["python", "run.py"]

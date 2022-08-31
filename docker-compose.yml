@@ -8,28 +8,13 @@ services:
       - TOKEN=${TOKEN}
       - MONGO_URL=${MONGO_URL}
       - REDIS_URL=redis://redis:6379
+      - OWNER_IDS=${OWNER_IDS:-}
 
-      - DEFAULT_ENABLED_GUILDS=${DEFAULT_ENABLED_GUILDS:-}
-      - PRIVED_GUILDS=${PRIVED_GUILDS:-}
-      - SUPPORT_GUILD=${SUPPORT_GUILD:-}
-      - SECUREKEY=${SECUREKEY:-}
-      - DEBUG=${DEBUG:-false}
-      - VERSION=${VERSION-none}
+      - CDN_URL=${CDN_URL:-"http://cdn.fdrbot.com"}
 
-      - LAVALINK_HOST=lavalink
-      - LAVALINK_PORT=2333
-      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD-}
-      
-      - LOGGER_WEBHOOK_ID=${LOGGER_WEBHOOK_ID-}
-      - LOGGER_WEBHOOK_TOKEN=${LOGGER_WEBHOOK_TOKEN-}
-      
-      - HASHTAG_EMOJI=${HASHTAG_EMOJI:-🔗}
-      - ON_EMOJI=${ON_EMOJI:-✅}
-      - OFF_EMOJI=${OFF_EMOJI:-❌}
-      - PING_EMOJI=${PING_EMOJI:-🏓}
-      - ERROR_EMOJI=${ERROR_EMOJI:-❌}
-      - LIKE_EMOJI=${LIKE_EMOJI:-👍}
-      - DISLIKE_EMOJI=${DISLIKE_EMOJI:-👎}
+      - LAVALINK_NODE_IP=lavalink
+      - LAVALINK_NODE_PORT=2333
+      - LAVALINK_NODE_PASSWORD=${LAVALINK_NODE_PASSWORD:-}
     restart: always
     container_name: fdrbot
     depends_on:
