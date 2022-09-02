@@ -163,7 +163,9 @@ class General(commands.Cog):
             description=msbaha["value"] if msbaha["value"] else None,
             color=0xffd430
         )
-        await interaction.response.send_message(embed=embed, view=MsbahaView(msbaha, message=await interaction.original_response()), ephemeral=hide)
+        view = MsbahaView(msbaha)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=hide)
+        view.message = await interaction.original_response()
 
     @app_commands.command(name="help", description="أرسل هذا الرسالة للحصول على جميع الأوامر 📖")
     async def help_command(self, interaction: discord.Interaction):
@@ -173,10 +175,12 @@ class General(commands.Cog):
             color=0xffd430
         )
         embed.set_author(name="لوحة أوامر بوت فاذكروني", icon_url=self.bot.user.avatar.url)
+        view = HelpView(self.bot, interaction.user.id)
         await interaction.response.send_message(
             embed=embed, 
-            view=HelpView(self.bot, interaction.user.id, message=await interaction.original_response()),
+            view=view,
         )
+        view.message = await interaction.original_response()
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -63,10 +63,12 @@ class Tafsir(commands.GroupCog, name="tafsir"):
             color=0xffd430
         )
         embed.set_footer(text=f"{ayah}/{data['count']}")
+        view = TafsirAyahView(data, surah_text, ayah, interaction.user.id)
         await interaction.response.send_message(
             embed=embed, 
-            view=TafsirAyahView(data, surah_text, ayah, interaction.user.id, message=await interaction.original_response())
+            view=view
         )
+        view.message = await interaction.original_response()
 
     @app_commands.command(name="surah", description="الحصول على التفسير للسورة المدخلة")
     @app_commands.describe(
@@ -86,7 +88,9 @@ class Tafsir(commands.GroupCog, name="tafsir"):
         )
         embed.set_image(url=f"https://raw.githubusercontent.com/rn0x/albitaqat_quran/main/images/{postion}.jpg")
         embed.set_footer(text=f"البطاقة الحالية: {surah}/114")
-        await interaction.response.send_message(embed=embed, view=TafsirView(int(surah), interaction.user.id, message=await interaction.original_response()))
+        view = TafsirView(int(surah), interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
 
     @app_commands.command(name="browser", description="فتح قائمة بطاقات القرآن الكريم")
     async def browser(self, interaction: discord.Interaction):
@@ -101,8 +105,10 @@ class Tafsir(commands.GroupCog, name="tafsir"):
         )
         embed.set_image(url=f"https://raw.githubusercontent.com/rn0x/albitaqat_quran/main/images/{convert_number_to_000(postion)}.jpg")
         embed.set_footer(text=f"البطاقة الحالية: {postion}/114")
-        await interaction.response.send_message(embed=embed, view=TafsirView(postion, interaction.user.id, message=await interaction.original_response()))
-
+        view = TafsirView(postion, interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
+        
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Tafsir(bot))

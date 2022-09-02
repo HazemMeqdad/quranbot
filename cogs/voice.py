@@ -120,7 +120,7 @@ class Player(commands.GroupCog, name="quran"):
             await interaction.response.send_message("يجب عليك إيقاف المشغل حاليا حتى تستطيع أستخدام الأمر", ephemeral=True)
             return
         reader_name = [i for i in cdn_surah_audio_cache if i["identifier"] == quran_reader][0]["name"]
-
+        view = VoiceView(player, interaction.user.id, reader_name)
         if surah is not None:
             if surah > 114:
                 return await interaction.response.send_message("السورة غير موجودة يرجى التأكد من أختبار احد الخيارت المتاحة", ephemeral=True)
@@ -132,8 +132,9 @@ class Player(commands.GroupCog, name="quran"):
             embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
             await interaction.response.send_message(
                 embed=embed,
-                view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response())
+                view=view
             )
+            view.message = await interaction.original_response()
             if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
             self.control_panels[interaction.guild.id].append(await interaction.original_response())
@@ -144,8 +145,9 @@ class Player(commands.GroupCog, name="quran"):
         
         await interaction.response.send_message(
             embed=embed, 
-            view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response())
+            view=view
         )
+        view.message = await interaction.original_response()
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
         self.control_panels[interaction.guild.id].append(await interaction.original_response())
@@ -185,10 +187,12 @@ class Player(commands.GroupCog, name="quran"):
         if not player.is_playing:
             await player.play()
         embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
-        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response()))
+        view = VoiceView(player, interaction.user.id, reader_name)
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
-        self.control_panels[interaction.guild.id].append(await interaction.original_response())
+        self.control_panels[interaction.guild.id].append(view.message)
 
     @app_commands.command(name="stop", description="إيقاف تشغيل القرآن الكريم.")
     async def quran_stop(self, interaction: discord.Interaction):
@@ -206,10 +210,12 @@ class Player(commands.GroupCog, name="quran"):
         if not player or not player.is_playing:
             return await interaction.response.send_message("لا يوجد أي قرآن مشغل حاليا", ephemeral=True)
         embed = get_quran_embed(player, user_id=interaction.user.id)
-        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, message=await interaction.original_response()))
+        view = VoiceView(player, interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
-        self.control_panels[interaction.guild.id].append(await interaction.original_response())
+        self.control_panels[interaction.guild.id].append(view.message)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Player(bot))

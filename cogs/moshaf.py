@@ -32,11 +32,13 @@ class Moshaf(commands.GroupCog, name="moshaf"):
         embed = discord.Embed(title=moshaf["name"], color=0xffd430)
         embed.set_image(url=f"http://www.islamicbook.ws/{moshaf_type}/{page_number}.{moshafs[str(moshaf['value'])]['type']}")
         embed.set_footer(text=f"الصفحة {page_number}/{moshafs[str(moshaf['value'])]['page_end']}")
+        view = MoshafView(moshaf_type, page_number, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
         await interaction.response.send_message(
             embed=embed, 
-            view=MoshafView(moshaf_type, page_number, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id, message=await interaction.original_response()),
+            view=view,
             ephemeral=hide
         )
+        view.message = await interaction.original_response()
 
     @app_commands.command(name="page", description="عرض صفحة معينة من القرآن الكريم 📚")
     @app_commands.choices(moshaf_type=[app_commands.Choice(name=i["name"], value=i["value"]) for i in moshaf_types])
@@ -52,10 +54,12 @@ class Moshaf(commands.GroupCog, name="moshaf"):
         embed = discord.Embed(title=moshaf["name"], color=0xffd430)
         embed.set_image(url=f"http://www.islamicbook.ws/{moshaf_type}/{page}.{moshafs[str(moshaf['value'])]['type']}")
         embed.set_footer(text=f"الصفحة {page}/{moshafs[str(moshaf['value'])]['page_end']}")
+        view = MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
         await interaction.response.send_message(
             embed=embed, 
-            view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id, message=await interaction.original_response())
+            view=view
         )
+        view.message = await interaction.original_response()
 
     # async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
     #     global surahs_cache

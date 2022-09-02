@@ -10,7 +10,7 @@ try:
     load_dotenv()
 except ImportError:
     ...
-from cogs.utlits.views import HelpView, OpenMoshafView, ZkaatView
+from cogs.utlits.views import OpenMoshafView, ZkaatView
 import lavalink
 
 
@@ -24,7 +24,8 @@ cogs = [
     "cogs.errors",
     "cogs.hijri",
     "cogs.tafsir",
-    "cogs.tasks"
+    "cogs.tasks",
+    "cogs.premium",
 ]
 
 class Bot(commands.Bot):

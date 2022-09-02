@@ -14,13 +14,13 @@ surahs_cache = []
 
 class BaseView(View):
     async def on_timeout(self) -> None:
-        if not hasattr(self, "message") or self.mesaage is None:
+        if not hasattr(self, "message") or self.message is None:
             return
         for index, item in enumerate(self.children):
             if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):
                 continue
             self.children[index].disabled = True
-        await self.mesaage.edit(view=self)
+        await self.message.edit(view=self)
 
 class MoveModule(discord.ui.Modal, title="أنتقال إلى صفحة محددة"):
     position = discord.ui.TextInput(
@@ -74,7 +74,6 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="moshaf:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == 1:
@@ -84,7 +83,6 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="moshaf:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == 1:
@@ -94,14 +92,12 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="moshaf:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="moshaf:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == self.page_end:
@@ -111,7 +107,6 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="moshaf:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == self.page_end:
@@ -121,7 +116,6 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="📌", style=ButtonStyle.green, custom_id="moshaf:save")
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         db = SavesDatabase()
@@ -134,7 +128,6 @@ class MoshafView(BaseView):
 
     @discord.ui.button(label="🔢", style=ButtonStyle.grey, custom_id="moshaf:page")
     async def page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.send_modal(MoveModule(self, self.page_end))
@@ -228,14 +221,12 @@ class MsbahaView(BaseView):
     async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
         self.count += 1
         button.label = f"{self.count}"
-        self.mesaage = interaction.message
         await interaction.response.edit_message(view=self)
     
     @discord.ui.button(label="تصفير", style=ButtonStyle.red, custom_id="msbaha:reset")
     async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
         self.count = 0
         self.children[0].label = "0"
-        self.mesaage = interaction.message
         await interaction.response.edit_message(view=self)
 
 class TafsirView(BaseView):
@@ -250,7 +241,6 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="tafsir:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -260,7 +250,6 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="tafsir:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -270,14 +259,12 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="tafsir:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="tafsir:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 114:
@@ -287,7 +274,6 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="tafsir:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 114:
@@ -297,7 +283,6 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="📌", style=ButtonStyle.green, custom_id="tafsir:save")
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         db = SavesDatabase()
@@ -310,7 +295,6 @@ class TafsirView(BaseView):
 
     @discord.ui.button(label="🔢", style=ButtonStyle.grey, custom_id="tafsir:page")
     async def page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.send_modal(MoveModule(self, 114))
@@ -326,7 +310,7 @@ class TafsirView(BaseView):
 
 class HelpView(SupportButtons, BaseView):
     def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None, message: t.Optional[discord.Message] = None):
-        super().__init__(timeout=60 * 5)
+        super().__init__(timeout=15)
         self.bot = bot
         self.user_id = user_id
         self.message = message
@@ -346,7 +330,6 @@ class HelpView(SupportButtons, BaseView):
         ]
     )
     async def help_menu(self, interaction: discord.Interaction, select: discord.ui.Select):
-        self.message = interaction.message
         if not self.user_id or interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         values = interaction.data["values"]
@@ -392,7 +375,6 @@ class TafsirAyahView(BaseView):
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="tafsir:ayah:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -402,7 +384,6 @@ class TafsirAyahView(BaseView):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="tafsir:ayah:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -412,14 +393,12 @@ class TafsirAyahView(BaseView):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="tafsir:ayah:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="tafsir:ayah:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == self.tafsir_data["count"]:
@@ -429,7 +408,6 @@ class TafsirAyahView(BaseView):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="tafsir:ayah:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == self.tafsir_data["count"]:
@@ -439,7 +417,6 @@ class TafsirAyahView(BaseView):
 
     @discord.ui.button(label="🔢", style=ButtonStyle.grey, custom_id="tafsir:ayah:page")
     async def page(self, interaction: discord.Interaction, button: discord.Button):
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.send_modal(MoveModule(self, self.tafsir_data["count"]))
@@ -483,7 +460,6 @@ class VoiceView(BaseView):
     async def pause(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.paused:
@@ -497,7 +473,6 @@ class VoiceView(BaseView):
     async def stop(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         self.player.queue.clear()
@@ -517,7 +492,6 @@ class VoiceView(BaseView):
     async def next(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.is_playing:
@@ -531,7 +505,6 @@ class VoiceView(BaseView):
     async def down_volume(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.is_playing:
@@ -542,7 +515,6 @@ class VoiceView(BaseView):
     async def up_volume(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.is_playing:
@@ -553,7 +525,6 @@ class VoiceView(BaseView):
     async def repeat(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.is_playing:
@@ -567,7 +538,6 @@ class VoiceView(BaseView):
     async def repeat_all(self, interaction: discord.Interaction, button: discord.Button):
         if not self.player or not self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.player.is_playing:
