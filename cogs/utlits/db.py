@@ -15,7 +15,7 @@ class DbGuild:
     time: int
     embed: bool
     role_id: t.Optional[int]
-    webhook: t.Dict[str, t.Union[str, int]]
+    webhook_url: t.Dict[str, t.Union[str, int]]
     next_zker: datetime
     moshaf_type: t.Optional[int] = None
 
@@ -65,7 +65,7 @@ class Database(BaseDatabase):
         data = self.col.find({
             "next_zker": {"$lt": now}, 
             "channel_id": {"$ne": None}, 
-            "webhook": {"$ne": None}
+            "webhook_url": {"$ne": None}
         })
         return [DbGuild(**i) for i in list(data) if i.get("channel_id") is not None and i.get("webhook") is not None]
 
@@ -76,7 +76,7 @@ class Database(BaseDatabase):
             "time": 3600,
             "embed": False,
             "role_id": None,
-            "webhook": None,
+            "webhook_url": None,
             "next_zker": datetime.now(),
             "moshaf_type": None
         })

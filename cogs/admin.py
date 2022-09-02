@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from .utlits.db import AzanDatabase, Database
-from .utlits import times
+from .utlits import AZAN_DATA, format_time_str, get_next_azan_time, times
 import aiohttp
 from .utlits.msohaf_data import moshafs, moshaf_types
 from datetime import datetime
@@ -66,28 +66,33 @@ class Admin(commands.GroupCog, name="set"):
                 res = await resp.json()
                 if res["code"] != 200:
                     return await interaction.response.send_message("لم يتم العثور على العنوان المدخل", ephemeral=True)
-        hooks = await channel.webhooks()
-        hook = discord.utils.get(hooks, name="فاذكروني")
-        if not hook:
+        channel_hooks = await self.bot.http.channel_webhooks(channel.id)
+        hooks = list(filter(lambda x: x["user"]["id"] == str(self.bot.user.id) and x["type"] == 1, channel_hooks))
+        if hooks:
+            hook = hooks[0]
+        else:
             hook = await channel.create_webhook(name="فاذكروني")
         azan_db.insert(
             interaction.guild.id, channel_id=channel.id, 
             address=address, role_id=role.id if role else None,
-            webhook_url=hook.url
+            webhook_url=hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
         )
         await interaction.response.send_message(f"تم تحديد القناة الخاصة بالأذكار بنجاح ✅")
         data = res["data"]
+        next_azan = get_next_azan_time(data["timings"], data["meta"]["timezone"])
         embed = discord.Embed(
             title="أوقات الصلاة في %s" % address + " ليوم %s" % datetime.fromtimestamp(int(data["date"]["timestamp"])).strftime("%d/%m/%Y"),
             color=0xffd430,
             timestamp=datetime.fromtimestamp(int(data["date"]["timestamp"]))
         )
-        embed.add_field(name="صلاة الفجْر:", value=data["timings"]["Fajr"])
-        embed.add_field(name="الشروق:", value=data["timings"]["Sunrise"])
-        embed.add_field(name="صلاة الظُّهْر:", value=data["timings"]["Dhuhr"])
-        embed.add_field(name="صلاة العَصر:", value=data["timings"]["Asr"])
-        embed.add_field(name="صلاة المَغرب:", value=data["timings"]["Maghrib"])
-        embed.add_field(name="صلاة العِشاء:", value=data["timings"]["Isha"])
+        embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/451230075875504128/ZRTmO08X.jpeg")
+        embed.add_field(name="صلاة الفجْر:", value=format_time_str(data["timings"]["Fajr"]))
+        embed.add_field(name="الشروق:", value=format_time_str(data["timings"]["Sunrise"]))
+        embed.add_field(name="صلاة الظُّهْر:", value=format_time_str(data["timings"]["Dhuhr"]))
+        embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
+        embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
+        embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
+        embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
         await interaction.channel.send(embed=embed)
 
     @app_commands.command(name="pray", description="تعين قناة أرسال الأذكار و الأدعية 📌")
@@ -99,12 +104,17 @@ class Admin(commands.GroupCog, name="set"):
             db.insert_guild(interaction.guild.id)
         if not interaction.guild.me.guild_permissions.manage_webhooks:
             return await interaction.response.send_message("البوت لا يمتلك صلاحات التحكم بالويب هوك\n`MANAGE_WEBHOOKS`", ephemeral=True)
-        hook = await channel.create_webhook(
-            name="فاذكروني", 
-            avatar=(await self.bot.user.avatar.read()),
-            reason="لإحياء سنة ذِكر الله"
+        channel_hooks = await self.bot.http.channel_webhooks(channel.id)
+        hooks = list(filter(lambda x: x["user"]["id"] == str(self.bot.user.id) and x["type"] == 1, channel_hooks))
+        if hooks:
+            hook = hooks[0]
+        else:
+            hook = await channel.create_webhook(name="فاذكروني")
+        db.update_guild(
+            interaction.guild.id, 
+            channel_id=channel.id, 
+            webhook_url=hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
         )
-        db.update_guild(interaction.guild.id, channel_id=channel.id, webhook={"id": hook.id, "token": hook.token})
         await interaction.response.send_message(f"تم تعين قناة الأذكار و الأدعية إلى {channel.mention} بنجاح ✅")
 
     @app_commands.command(name="moshaf", description="تعين لوحة للقرآن الكريم 📚")
