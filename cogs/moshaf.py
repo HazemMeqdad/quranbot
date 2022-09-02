@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from .utlits.db import Database, SavesDatabase
-from .utlits.views import MoshafView, OpenMoshafView
+from .utlits.db import SavesDatabase
+from .utlits.views import MoshafView
 from .utlits.msohaf_data import moshaf_types, moshafs
 import typing as t
 import aiohttp
@@ -88,24 +88,7 @@ class Moshaf(commands.GroupCog, name="moshaf"):
     #         view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
     #     )
 
-    @app_commands.command(name="setup", description="تعين لوحة للقرآن الكريم 📚")
-    @app_commands.choices(moshaf_type=[app_commands.Choice(name=i["name"], value=i["value"]) for i in moshaf_types])
-    @app_commands.describe(moshaf_type="نوع القرآن الكريم")
-    @app_commands.default_permissions(manage_guild=True)
-    async def setup(self, interaction: discord.Interaction, moshaf_type: int) -> None:
-        db = Database()
-        if not db.find_guild(interaction.guild.id):
-            db.insert_guild(interaction.guild.id)
-            
-        moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
 
-        embed = discord.Embed(title=moshaf["name"], color=0xffd430)
-        embed.set_image(url=moshafs[str(moshaf["value"])]["cover"])
-        embed.set_footer(text="أضغط على الزر الموجود أسفل لفتح المصحف")
-
-        db.update_guild(interaction.guild.id, moshaf_type=moshaf_type)
-        await interaction.response.send_message("تم تعيين لوحة القرآن الكريم بنجاح", ephemeral=True)
-        await interaction.channel.send(embed=embed, view=OpenMoshafView())
 
 
 async def setup(bot: commands.Bot) -> None:
