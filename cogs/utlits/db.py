@@ -15,8 +15,8 @@ class DbGuild:
     time: int
     embed: bool
     role_id: t.Optional[int]
-    webhook_url: t.Dict[str, t.Union[str, int]]
     next_zker: datetime
+    webhook_url: t.Optional[int] = None
     moshaf_type: t.Optional[int] = None
 
     def __init__(self, **kwargs):
