@@ -211,20 +211,25 @@ class ZkaatView(BaseView):
         )
 
 class MsbahaView(BaseView):
-    def __init__(self, msbaha, message: t.Optional[discord.Message] = None):
+    def __init__(self, msbaha, user_id: int, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=60 * 5)
         self.msbaha = msbaha
         self.count = 0
         self.message = message
+        self.user_id = user_id
     
     @discord.ui.button(label="0", emoji="👆", style=ButtonStyle.grey, custom_id="msbaha:click")
     async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
+        if self.user_id != interaction.author.id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
         self.count += 1
         button.label = f"{self.count}"
         await interaction.response.edit_message(view=self)
     
     @discord.ui.button(label="تصفير", style=ButtonStyle.red, custom_id="msbaha:reset")
     async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
+        if self.user_id != interaction.author.id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
         self.count = 0
         self.children[0].label = "0"
         await interaction.response.edit_message(view=self)
