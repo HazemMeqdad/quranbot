@@ -41,9 +41,7 @@ class Tasks(commands.Cog):
             return
         try:
             async with aiohttp.ClientSession() as session:
-                webhook_url = "https://discord.com/api/webhooks/%s/%s" % (data.webhook["id"], data.webhook["token"])
-                hook = discord.Webhook.from_url(webhook_url, session=session)
-
+                hook = discord.Webhook.from_url(data.webhook_url, session=session)
                 embed = discord.Embed(
                     title=pray["id"],
                     description=pray["text"],
