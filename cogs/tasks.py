@@ -6,7 +6,7 @@ from .utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import aioredis
-from .utlits import AZAN_DATA, between_two_numbers, get_next_azan
+from .utlits import AZAN_DATA, get_colser_azan, get_next_azan, get_next_azan_time
 import typing as t
 import pytz
 
@@ -96,9 +96,7 @@ class Tasks(commands.Cog):
                 hook = discord.Webhook.from_url(data.webhook_url, session=session)
                 date = datetime.now(pytz.timezone(addres_data["meta"]["timezone"]))
                 azan_data  = AZAN_DATA[azan[0]]
-                next_azan = get_next_azan(azan[0])
-                data_next_azan = addres_data["timings"][next_azan]
-                next_azan_date = datetime.fromtimestamp(datetime(date.year, date.month, date.day).timestamp() + (int(data_next_azan.split(":")[0]) * 3600) + (int(data_next_azan.split(":")[1]) * 60))
+                next_azan = get_next_azan_time(addres_data["timings"], addres_data["meta"]["timezone"])
                 embed = discord.Embed(
                     title=f"**حان الآن وقت صلاة {azan_data['name']} بتوقيت {data.address}**",
                     description=f"**يوم {date.strftime('%d/%m/%Y')}م الموافق {addres_data['date']['hijri']['weekday']['ar']} {addres_data['date']['hijri']['date'].replace('-', '/')}هـ**",
@@ -117,8 +115,8 @@ class Tasks(commands.Cog):
                     inline=False
                 )
                 embed.add_field(
-                    name=f"وقت الصلاة التالي {AZAN_DATA[next_azan]['name']} بعد:",
-                    value=f"<t:{int(next_azan_date.timestamp())}:R>"
+                    name=f"وقت الصلاة التالي {AZAN_DATA[next_azan[0]]['name']} بعد:",
+                    value=discord.utils.format_dt(next_azan[1], "R")
                 )
                 await hook.send(
                     content=("<@&%d>" % data.role_id) if data.role_id else "",
@@ -131,16 +129,6 @@ class Tasks(commands.Cog):
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
             db.delete(data._id)
 
-    def get_colser_azan(self, timings: dict, now: datetime) -> t.Tuple[str, datetime]:
-        for key, value in timings.items():
-            if key not in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
-                continue
-            h = int(value.split(":")[0])
-            m = int(value.split(":")[1])
-            if h == now.hour and between_two_numbers(m, now.minute-2, now.minute+2):
-                return key, value
-        return None
-
     @tasks.loop(minutes=2)
     async def azan_checker(self):
         db = AzanDatabase()
@@ -152,7 +140,7 @@ class Tasks(commands.Cog):
                 data = await self.get_prayertimes_by_address(address)
                 await self.redis.set(f"azan:{address}", json.dumps(data), ex=3600)
             now = datetime.now(tz=pytz.timezone(data["meta"]["timezone"]))
-            close_azan = self.get_colser_azan(data["timings"], now)
+            close_azan = get_colser_azan(data["timings"], now)
             if not close_azan:
                 continue
             await self.process_azan(azan, close_azan, data)

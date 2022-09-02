@@ -7,9 +7,10 @@ from discord import app_commands
 import time
 from cogs.utlits.db import Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
-from .utlits import times, HELP_DATA, format_time_str
+from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
 import platform
 import aiohttp
+
 
 with open("json/msbaha.json", "r", encoding="utf-8") as f:
     msbaha_types = json.load(f)
@@ -66,17 +67,20 @@ class General(commands.Cog):
                 if res["code"] != 200:
                     return await interaction.response.send_message("لم يتم العثور على العنوان المدخل", ephemeral=True)
         data = res["data"]
+        next_azan = get_next_azan_time(data["timings"], data["meta"]["timezone"])
         embed = discord.Embed(
             title="أوقات الصلاة في %s" % address + " ليوم %s" % datetime.fromtimestamp(int(data["date"]["timestamp"])).strftime("%d/%m/%Y"),
             color=0xffd430,
             timestamp=datetime.fromtimestamp(int(data["date"]["timestamp"]))
         )
+        embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/451230075875504128/ZRTmO08X.jpeg")
         embed.add_field(name="صلاة الفجْر:", value=format_time_str(data["timings"]["Fajr"]))
         embed.add_field(name="الشروق:", value=format_time_str(data["timings"]["Sunrise"]))
         embed.add_field(name="صلاة الظُّهْر:", value=format_time_str(data["timings"]["Dhuhr"]))
         embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
         embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
         embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
+        embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="info", description="معلومات عن البوت 🤖")

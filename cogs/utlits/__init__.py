@@ -1,3 +1,6 @@
+import typing as t
+from datetime import datetime
+import pytz
 
 times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
@@ -138,3 +141,26 @@ def format_time_str(time: str):
         h -= 12
         return "%02d:%02d PM" % (h, m)
     return "%02d:%02d AM" % (h, m)
+
+def get_colser_azan(timings: dict, now: datetime) -> t.Tuple[str, datetime]:
+    for key, value in timings.items():
+        if key not in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+            continue
+        h = int(value.split(":")[0])
+        m = int(value.split(":")[1])
+        if h == now.hour and between_two_numbers(m, now.minute-2, now.minute+2):
+            return key, value
+    return None
+
+def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[str, datetime]:
+    now = datetime.now(pytz.timezone(timezone))
+    data = {}
+    for key, value in timings.items():
+        if key not in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+            continue
+        h = int(value.split(":")[0])
+        m = int(value.split(":")[1])
+        if int(value.split(":")[0]) >= now.hour and int(value.split(":")[1]) > now.minute:
+            data[key] = value
+            return key, datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (h * 3600) + (m * 60))
+
