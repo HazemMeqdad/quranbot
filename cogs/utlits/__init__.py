@@ -167,9 +167,11 @@ def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[str,
             continue
         h = int(value.split(":")[0])
         m = int(value.split(":")[1])
-        if int(value.split(":")[0]) >= now.hour and int(value.split(":")[1]) > now.minute:
+        if h >= now.hour and m > now.minute:
             data[key] = value
             return key, datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (h * 3600) + (m * 60))
+    if not data:
+        return "Fajr", datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (int(timings["Fajr"].split(":")[0]) * 3600) + (int(timings["Fajr"].split(":")[1]) * 60))
 
 
 def get_quran_embed(player: lavalink.DefaultPlayer, audio_track: t.Optional[lavalink.AudioTrack] = None, *, reader: t.Optional[str] = None, user_id: int) -> discord.Embed:
