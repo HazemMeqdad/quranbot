@@ -15,6 +15,7 @@ cdn_surah_audio_cache = []
 cdn_radio_cache = []
 
 
+@app_commands.guild_only()
 class Player(commands.GroupCog, name="quran"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot

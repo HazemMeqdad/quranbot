@@ -8,13 +8,13 @@ import aiohttp
 from datetime import datetime
 import typing as t
 
-
+@app_commands.default_permissions(administrator=True)
+@app_commands.guild_only()
 class Admin(commands.GroupCog, name="set"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @app_commands.command(name="embed", description="تغير خاصية أرسال الأذكار و الأدعية إلى أمبد 📋")
-    @app_commands.default_permissions(manage_guild=True)
     @app_commands.describe(mode="تحديد الوضع True(تفعيل)/False(إيقاف)")
     async def set_embed_command(self, interaction: discord.Interaction, mode: bool) -> None:
         db = Database()
@@ -29,7 +29,6 @@ class Admin(commands.GroupCog, name="set"):
             await interaction.response.send_message("تم إيقاف خاصية الأمبد بنجاح ✅")
 
     @app_commands.command(name="time", description="تغير وقت الأذكار و الأدعية 🕒")
-    @app_commands.default_permissions(manage_guild=True)
     @app_commands.describe(time="وقت الأذكار و الأدعية")
     @app_commands.choices(
         time=[app_commands.Choice(name=times.get(i), value=i) for i in list(times.keys())]
@@ -48,7 +47,6 @@ class Admin(commands.GroupCog, name="set"):
         await interaction.response.send_message(f"تم تغير وقت الأذكار و الأدعية إلى {times.get(time)} بنجاح ✅")
 
     @app_commands.command(name="azan", description="تعين قناة أرسال الصلاة 📌")
-    @app_commands.default_permissions(manage_guild=True)
     @app_commands.describe(
         channel="القناة التي سيتم أرسال الصلاة فيها", 
         address="العنوان الذي سيتم أرسال حساب أوقات الصلاة فية",
@@ -91,7 +89,6 @@ class Admin(commands.GroupCog, name="set"):
         await interaction.channel.send(embed=embed)
 
     @app_commands.command(name="pray", description="تعين قناة أرسال الأذكار و الأدعية 📌")
-    @app_commands.default_permissions(manage_guild=True)
     @app_commands.describe(channel="القناة التي سيتم أرسال الأذكار و الأدعية فيها")
     async def set_pray_command(self, interaction: discord.Interaction, channel: discord.TextChannel):
         db = Database()

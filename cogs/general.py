@@ -38,6 +38,7 @@ class General(commands.Cog):
         await interaction.response.send_message(embed=embed, view=SupportButtons())
 
     @app_commands.command(name="server", description="معلومات عن السيرفر 📊")
+    @app_commands.guild_only()
     async def server_command(self, interaction: discord.Interaction):
         db, azan_db = Database(), AzanDatabase()
         data = db.find_guild(interaction.guild.id)
