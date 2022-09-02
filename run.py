@@ -62,7 +62,7 @@ class Bot(commands.Bot):
             self.app_commands = await self.tree.sync()
 
     async def on_ready(self):
-        logger.info("Bot is ready")
+        print("Bot is ready")
     
     def run(self):
         super().run(
