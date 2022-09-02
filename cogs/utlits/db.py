@@ -1,6 +1,6 @@
 import pymongo
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 import typing as t
 from datetime import datetime
 import pymongo.collection
@@ -8,7 +8,7 @@ import pymongo.collection
 coon = pymongo.MongoClient(os.environ["MONGO_URL"])
 db = coon.get_database("fdrbot")
 
-@dataclass
+@dataclass(init=True)
 class DbGuild:
     _id: int
     channel_id: t.Optional[int]
@@ -19,18 +19,36 @@ class DbGuild:
     next_zker: datetime
     moshaf_type: t.Optional[int] = None
 
-@dataclass
+    def __init__(self, **kwargs):
+        names = set([f.name for f in fields(self)])
+        for k, v in kwargs.items():
+            if k in names:
+                setattr(self, k, v)
+
+@dataclass(init=True)
 class Saves:
     _id: str
     data: t.Dict[t.Any, t.Any]
 
-@dataclass
+    def __init__(self, **kwargs):
+        names = set([f.name for f in fields(self)])
+        for k, v in kwargs.items():
+            if k in names:
+                setattr(self, k, v)
+
+@dataclass(init=True)
 class Azan:
     _id: int
     channel_id: int
     address: str
     role_id: t.Optional[int] = None
     webhook_url: t.Optional[str] = None
+
+    def __init__(self, **kwargs):
+        names = set([f.name for f in fields(self)])
+        for k, v in kwargs.items():
+            if k in names:
+                setattr(self, k, v)
 
 class BaseDatabase:
     def __init__(self) -> None:
