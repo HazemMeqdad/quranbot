@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
-from cogs.utlits.db import Database
+from cogs.utlits.db import AzanDatabase, Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
 from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
 import platform
@@ -39,8 +39,9 @@ class General(commands.Cog):
 
     @app_commands.command(name="server", description="معلومات عن السيرفر 📊")
     async def server_command(self, interaction: discord.Interaction):
-        db = Database()
+        db, azan_db = Database(), AzanDatabase()
         data = db.find_guild(interaction.guild.id)
+        azan_data = azan_db.find_guild(interaction.guild.id)
         if not data:
             db.insert_guild(interaction.guild.id)
             data = db.find_guild(interaction.guild.id)
@@ -48,13 +49,17 @@ class General(commands.Cog):
             description="إعدادات الخادم: %s" % interaction.guild.name,
             color=0xffd430
         )
-        embed.add_field(name="قناة الأذكار:", value="<#%s>" % data.channel_id if data.channel_id else "لم يتم تحديد قناة")
-        embed.add_field(name="وقت أرسال الأذكار:", value=times.get(data.time))
+        embed.add_field(name="قناة الأذكار و الأدعية:", value="<#%s>" % data.channel_id if data.channel_id else "لم يتم تحديد قناة")
+        embed.add_field(name="وقت أرسال الأذكار و الأدعية:", value=times.get(data.time))
         embed.add_field(name="وضع الأمبد:", value="مفعل" if data.embed else "معطل")
         embed.add_field(name="رتبة القرآن الكريم:", value="<@&%s>" % data.role_id if data.role_id else "لم يتم تحديد رتبة")
-        embed.add_field(name="أخر ذِكر تم أرساله:", value="<t:%d:R>" % int(data.next_zker.timestamp() - data.time))
-        embed.add_field(name="اوقات الصلاة:", value="مفعل")
-        embed.add_field(name="الادعية:", value="مفعل")
+        if data.channel_id:
+            embed.add_field(name="أخر ذِكر تم أرساله:", value="<t:%d:R>" % int(data.next_zker.timestamp() - data.time))
+        embed.add_field(
+            name="اوقات الصلاة:", 
+            value=f"مفعل في <#{azan_data.channel_id}> حسب توقيت **{azan_data.address}**" if azan_data is not None else "معطل",
+            inline=False
+        )
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="azan", description="معرفة وقت الأذان في المنطقة الخاصه بك 🕌")
