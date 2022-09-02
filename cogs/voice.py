@@ -1,4 +1,3 @@
-import asyncio
 import discord
 import lavalink
 from discord.ext import commands
@@ -133,7 +132,7 @@ class Player(commands.GroupCog, name="quran"):
             embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
             await interaction.response.send_message(
                 embed=embed,
-                view=VoiceView(player, interaction.user.id, reader_name)
+                view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response())
             )
             if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
@@ -145,7 +144,7 @@ class Player(commands.GroupCog, name="quran"):
         
         await interaction.response.send_message(
             embed=embed, 
-            view=VoiceView(player, interaction.user.id, reader_name)
+            view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response())
         )
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
@@ -186,7 +185,7 @@ class Player(commands.GroupCog, name="quran"):
         if not player.is_playing:
             await player.play()
         embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
-        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, reader_name))
+        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, reader_name, message=await interaction.original_response()))
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
         self.control_panels[interaction.guild.id].append(await interaction.original_response())
@@ -207,7 +206,7 @@ class Player(commands.GroupCog, name="quran"):
         if not player or not player.is_playing:
             return await interaction.response.send_message("لا يوجد أي قرآن مشغل حاليا", ephemeral=True)
         embed = get_quran_embed(player, user_id=interaction.user.id)
-        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id))
+        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, message=await interaction.original_response()))
         if not self.control_panels.get(interaction.guild.id):
                 self.control_panels[interaction.guild.id] = []
         self.control_panels[interaction.guild.id].append(await interaction.original_response())

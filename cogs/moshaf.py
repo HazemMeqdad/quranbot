@@ -34,7 +34,7 @@ class Moshaf(commands.GroupCog, name="moshaf"):
         embed.set_footer(text=f"الصفحة {page_number}/{moshafs[str(moshaf['value'])]['page_end']}")
         await interaction.response.send_message(
             embed=embed, 
-            view=MoshafView(moshaf_type, page_number, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id),
+            view=MoshafView(moshaf_type, page_number, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id, message=await interaction.original_response()),
             ephemeral=hide
         )
 
@@ -54,7 +54,7 @@ class Moshaf(commands.GroupCog, name="moshaf"):
         embed.set_footer(text=f"الصفحة {page}/{moshafs[str(moshaf['value'])]['page_end']}")
         await interaction.response.send_message(
             embed=embed, 
-            view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id)
+            view=MoshafView(moshaf_type, page, moshafs[str(moshaf['value'])]["page_end"], interaction.user.id, message=await interaction.original_response())
         )
 
     # async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
