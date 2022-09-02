@@ -50,7 +50,6 @@ class Bot(commands.Bot):
         )
         self.add_view(OpenMoshafView())
         self.add_view(ZkaatView())
-        self.add_view(HelpView(self))
         if os.getenv("REDIS_URL"):
             self.redis = aioredis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
         for cog in cogs:

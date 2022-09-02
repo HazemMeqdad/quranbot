@@ -11,7 +11,17 @@ import aiohttp
 
 surahs_cache = []
 
-class SupportButtons(View):
+class BaseView(View):
+    async def on_timeout(self) -> None:
+        if not hasattr(self, "message") or self.mesaage is None:
+            return
+        for index, item in enumerate(self.children):
+            if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):
+                continue
+            self.children[index].disabled = True
+        await self.mesaage.edit(view=self)
+
+class SupportButtons(BaseView):
     def __init__(self, timeout: t.Optional[int] = None):
         super().__init__(timeout=timeout)
         self.add_item(Button(
@@ -31,9 +41,9 @@ class SupportButtons(View):
         ))
 
 
-class MoshafView(View):
+class MoshafView(BaseView):
     def __init__(self, moshaf_type: int, page_number: int, page_end: int, user_id: int):
-        super().__init__(timeout=None)
+        super().__init__(timeout=60 * 5)
         self.moshaf_type = moshaf_type
         self.postion = page_number
         self.page_end = page_end
@@ -41,6 +51,7 @@ class MoshafView(View):
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="moshaf:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == 1:
@@ -50,6 +61,7 @@ class MoshafView(View):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="moshaf:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == 1:
@@ -59,12 +71,14 @@ class MoshafView(View):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="moshaf:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="moshaf:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == self.page_end:
@@ -74,6 +88,7 @@ class MoshafView(View):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="moshaf:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         if self.postion == self.page_end:
@@ -83,6 +98,7 @@ class MoshafView(View):
 
     @discord.ui.button(label="📌", style=ButtonStyle.green, custom_id="moshaf:save")
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
         db = SavesDatabase()
@@ -102,7 +118,7 @@ class MoshafView(View):
         
         return embed
 
-class OpenMoshafView(View):
+class OpenMoshafView(BaseView):
     def __init__(self):
         super().__init__(timeout=None)
     
@@ -128,7 +144,7 @@ class OpenMoshafView(View):
             ephemeral=True
         )
 
-class DownloadSurahView(View):
+class DownloadSurahView(BaseView):
     def __init__(self, link: str):
         super().__init__(timeout=None)
         self.add_item(Button(
@@ -138,7 +154,7 @@ class DownloadSurahView(View):
         ))
 
 
-class ZkaatView(View):
+class ZkaatView(BaseView):
     def __init__(self):
         super().__init__(timeout=None)
     
@@ -171,38 +187,35 @@ class ZkaatView(View):
             ephemeral=True
         )
 
-class MsbahaView(View):
+class MsbahaView(BaseView):
     def __init__(self, msbaha):
         super().__init__(timeout=60 * 5)
         self.msbaha = msbaha
         self.count = 0
-        self.mesaage: discord.Message = None
     
     @discord.ui.button(label="0", emoji="👆", style=ButtonStyle.grey, custom_id="msbaha:click")
     async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
         self.count += 1
         button.label = f"{self.count}"
-        self.mesaage = await interaction.response.edit_message(view=self)
+        self.mesaage = interaction.message
+        await interaction.response.edit_message(view=self)
     
     @discord.ui.button(label="تصفير", style=ButtonStyle.red, custom_id="msbaha:reset")
     async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
         self.count = 0
         self.children[0].label = "0"
+        self.mesaage = interaction.message
         await interaction.response.edit_message(view=self)
 
-    async def on_timeout(self) -> None:
-        self.clear_items()
-        await self.mesaage.edit(view=self)
-
-
-class TafsirView(View):
+class TafsirView(BaseView):
     def __init__(self, postion: int, user_id: int):
-        super().__init__(timeout=None)
+        super().__init__(timeout=60 * 5)
         self.user_id = user_id
         self.postion = postion
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="tafsir:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -212,6 +225,7 @@ class TafsirView(View):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="tafsir:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -221,12 +235,14 @@ class TafsirView(View):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="tafsir:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="tafsir:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 114:
@@ -236,6 +252,7 @@ class TafsirView(View):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="tafsir:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 114:
@@ -245,6 +262,7 @@ class TafsirView(View):
 
     @discord.ui.button(label="📌", style=ButtonStyle.green, custom_id="tafsir:save")
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         db = SavesDatabase()
@@ -264,9 +282,9 @@ class TafsirView(View):
         embed.set_footer(text=f"البطاقة الحالية: {self.postion}/114")
         return embed
 
-class HelpView(SupportButtons, View):
+class HelpView(SupportButtons, BaseView):
     def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None):
-        super().__init__(timeout=None)
+        super().__init__(timeout=60 * 5)
         self.bot = bot
         self.user_id = user_id
 
@@ -285,6 +303,7 @@ class HelpView(SupportButtons, View):
         ]
     )
     async def help_menu(self, interaction: discord.Interaction, select: discord.ui.Select):
+        self.message = interaction.message
         if not self.user_id or interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         values = interaction.data["values"]
@@ -316,7 +335,7 @@ class HelpView(SupportButtons, View):
 
         await interaction.response.edit_message(embed=embed)
 
-class TafsirAyahView(View):
+class TafsirAyahView(BaseView):
     def __init__(self, tafsir_data: dict, surah_text: dict, postion: int, user_id: int) -> None:
         super().__init__(timeout=3600)
         self.tafsir_data = tafsir_data
@@ -326,6 +345,7 @@ class TafsirAyahView(View):
 
     @discord.ui.button(label="⏮️", style=ButtonStyle.grey, custom_id="tafsir:ayah:first")
     async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -335,6 +355,7 @@ class TafsirAyahView(View):
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="tafsir:ayah:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == 1:
@@ -344,12 +365,14 @@ class TafsirAyahView(View):
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="tafsir:ayah:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         await interaction.response.edit_message(view=None)
 
     @discord.ui.button(label="▶️", style=ButtonStyle.grey, custom_id="tafsir:ayah:next")
     async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == self.tafsir_data["count"]:
@@ -359,6 +382,7 @@ class TafsirAyahView(View):
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="tafsir:ayah:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        self.message = interaction.message
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if self.postion == self.tafsir_data["count"]:
@@ -374,7 +398,7 @@ class TafsirAyahView(View):
                     surahs_cache = await resp.json()
         surah_name = surahs_cache[self.tafsir_data["index"]-1]["titleAr"]
         embed = discord.Embed(
-            title=f"سورة {surah_name} الآية {self.postion} حسب التفسير المیسر", 
+            title=f"سورة {surah_name} الآية رقم {self.postion} حسب التفسير المیسر", 
             description=f"قال الله تعالى ({self.surah_text['verse'][f'verse_' + str(self.postion)]})\n\n"
                         "-------------------------\n\n"
                         f"{self.tafsir_data['verse'][f'verse_' + str(self.postion)]}",
