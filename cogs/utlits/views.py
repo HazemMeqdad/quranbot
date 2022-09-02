@@ -22,7 +22,7 @@ class BaseView(View):
             self.children[index].disabled = True
         await self.mesaage.edit(view=self)
 
-class MoveModule(discord.ui.Modal, title="أنتقال إلى صفحة محددة اكتب رقم الصفحة"):
+class MoveModule(discord.ui.Modal, title="أنتقال إلى صفحة محددة"):
     position = discord.ui.TextInput(
         label="الصفحة", 
         style=discord.ui.text_input.TextStyle.short,
@@ -61,12 +61,13 @@ class SupportButtons(BaseView):
 
 
 class MoshafView(BaseView):
-    def __init__(self, moshaf_type: int, page_number: int, page_end: int, user_id: int):
+    def __init__(self, moshaf_type: int, page_number: int, page_end: int, user_id: int, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=60 * 5)
         self.moshaf_type = moshaf_type
         self.postion = page_number
         self.page_end = page_end
         self.user_id = user_id
+        self.message = message
 
     def set_position(self, position: int) -> None:
         self.postion = position
@@ -217,10 +218,11 @@ class ZkaatView(BaseView):
         )
 
 class MsbahaView(BaseView):
-    def __init__(self, msbaha):
+    def __init__(self, msbaha, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=60 * 5)
         self.msbaha = msbaha
         self.count = 0
+        self.message = message
     
     @discord.ui.button(label="0", emoji="👆", style=ButtonStyle.grey, custom_id="msbaha:click")
     async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
@@ -237,10 +239,11 @@ class MsbahaView(BaseView):
         await interaction.response.edit_message(view=self)
 
 class TafsirView(BaseView):
-    def __init__(self, postion: int, user_id: int):
+    def __init__(self, postion: int, user_id: int, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=60 * 5)
         self.user_id = user_id
         self.postion = postion
+        self.message = message
 
     def set_position(self, position: int) -> None:
         self.postion = position
@@ -322,10 +325,11 @@ class TafsirView(BaseView):
         return embed
 
 class HelpView(SupportButtons, BaseView):
-    def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None):
+    def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=60 * 5)
         self.bot = bot
         self.user_id = user_id
+        self.message = message
 
     @discord.ui.select(
         placeholder="أختر فئة الأوامر التي تريد الحصول على معلوماتها", 
@@ -375,12 +379,13 @@ class HelpView(SupportButtons, BaseView):
         await interaction.response.edit_message(embed=embed)
 
 class TafsirAyahView(BaseView):
-    def __init__(self, tafsir_data: dict, surah_text: dict, postion: int, user_id: int) -> None:
+    def __init__(self, tafsir_data: dict, surah_text: dict, postion: int, user_id: int, message: t.Optional[discord.Message] = None) -> None:
         super().__init__(timeout=3600)
         self.tafsir_data = tafsir_data
         self.surah_text = surah_text
         self.postion = postion
         self.user_id = user_id
+        self.message = message
 
     def set_position(self, position: int) -> None:
         self.postion = position
@@ -457,13 +462,14 @@ class TafsirAyahView(BaseView):
         return embed
 
 class VoiceView(BaseView):
-    def __init__(self, player: lavalink.DefaultPlayer = None, user_id: int = None, reader: str = None, disabled: bool = False):
+    def __init__(self, player: lavalink.DefaultPlayer = None, user_id: int = None, reader: str = None, disabled: bool = False, message: t.Optional[discord.Message] = None):
         super().__init__(timeout=None)
         self.player = player
         self.user_id = user_id
         self.message = None
         self.postion = 1
         self.reader = reader
+        self.message = message
         if disabled:
             for index, item in enumerate(self.children):
                 if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):

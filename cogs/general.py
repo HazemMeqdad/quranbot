@@ -50,6 +50,9 @@ class General(commands.Cog):
             description="إعدادات الخادم: %s" % interaction.guild.name,
             color=0xffd430
         )
+        if interaction.guild.icon:
+            embed.set_thumbnail(url=interaction.guild.icon.url)
+        embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
         embed.add_field(name="قناة الأذكار و الأدعية:", value="<#%s>" % data.channel_id if data.channel_id else "لم يتم تحديد قناة")
         embed.add_field(name="وقت أرسال الأذكار و الأدعية:", value=times.get(data.time))
         embed.add_field(name="وضع الأمبد:", value="مفعل" if data.embed else "معطل")
@@ -93,7 +96,7 @@ class General(commands.Cog):
     async def info_command(self, interaction: discord.Interaction):
         embed = discord.Embed(
             color=0xffd430,
-            description="بوت فاذكروني لإحياء سنة ذِكر الله",
+            description="\n".join(HELP_DATA["main"]["description"].split("\n\n")[:1]),
             url=f"https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot%20applications.commands"
         )
         embed.add_field(name="خوادم البوت:", value=len(self.bot.guilds).__str__())
@@ -102,7 +105,9 @@ class General(commands.Cog):
         embed.add_field(name="الشاردات:", value=str(self.bot.shard_count))
         embed.add_field(name="أصدار المكتبة:", value=discord.__version__)
         embed.add_field(name="أصدار البايثون:", value=platform.python_version())
-        await interaction.response.send_message(embed=embed)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
+        await interaction.response.send_message(embed=embed, view=SupportButtons())
 
     @app_commands.command(name="invite", description="إنقر للدعوة 🔗")
     async def invite_command(self, interaction: discord.Interaction):
@@ -158,7 +163,7 @@ class General(commands.Cog):
             description=msbaha["value"] if msbaha["value"] else None,
             color=0xffd430
         )
-        await interaction.response.send_message(embed=embed, view=MsbahaView(msbaha), ephemeral=hide)
+        await interaction.response.send_message(embed=embed, view=MsbahaView(msbaha, message=await interaction.original_response()), ephemeral=hide)
 
     @app_commands.command(name="help", description="أرسل هذا الرسالة للحصول على جميع الأوامر 📖")
     async def help_command(self, interaction: discord.Interaction):
@@ -170,7 +175,7 @@ class General(commands.Cog):
         embed.set_author(name="لوحة أوامر بوت فاذكروني", icon_url=self.bot.user.avatar.url)
         await interaction.response.send_message(
             embed=embed, 
-            view=HelpView(self.bot, interaction.user.id),
+            view=HelpView(self.bot, interaction.user.id, message=await interaction.original_response()),
         )
 
 
