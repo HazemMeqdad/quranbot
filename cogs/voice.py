@@ -1,12 +1,14 @@
+import asyncio
 import discord
 import lavalink
 from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-from cogs.utlits.views import DownloadSurahView
+from cogs.utlits.views import VoiceView
 from .utlits.voice_client import LavalinkVoiceClient
-
+from .utlits import get_quran_embed
+from discord.ui import View
 
 surahs_cache = []
 cdn_surah_audio_cache = []
@@ -17,22 +19,13 @@ class Player(commands.GroupCog, name="quran"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.lavalink: lavalink.Client = self.bot.lavalink
-        self.lavalink.add_event_hook(self.track_hook)
+        self.control_panels: t.Dict[int, t.List[discord.Message]] = {}
 
     def cog_unload(self) -> None:
         self.lavalink._event_hooks.clear()
 
-    async def cog_before_invoke(self, ctx):
-        """ Command before-invoke handler. """
-        guild_check = ctx.guild is not None
-        #  This is essentially the same as `@commands.guild_only()`
-        #  except it saves us repeating ourselves (and also a few lines).
-
-        if guild_check:
-            await self.ensure_voice(ctx)
-            #  Ensure that the bot and command author share a mutual voicechannel.
-
-        return guild_check
+    def cog_load(self) -> None:
+        self.lavalink.add_event_hook(self.track_hook)
 
     async def ensure_voice(self, interaction: discord.Interaction) -> None:
         """ This check ensures that the bot and command author are in the same voicechannel. """
@@ -64,7 +57,7 @@ class Player(commands.GroupCog, name="quran"):
             await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient, self_deaf=True)
         else:
             if v_client.channel.id != interaction.user.voice.channel.id:
-                raise commands.CommandInvokeError("يجب عليك أن تكون الروم الصوت الذي يوجد به البوت")
+                raise commands.CommandInvokeError("يجب عليك أن تكون في الروم الصوت الذي يوجد به البوت")
 
     async def ensure_connected(self, interaction: discord.Interaction) -> None:
         """ This check ensures that the bot is in a voicechannel. """
@@ -83,6 +76,14 @@ class Player(commands.GroupCog, name="quran"):
             guild_id = event.player.guild_id
             guild = self.bot.get_guild(guild_id)
             await guild.voice_client.disconnect(force=True)
+            messages = self.control_panels.get(guild_id, [])
+            for message in messages:
+                if message is None:
+                    continue
+                view = View.from_message(message)
+                for index, item in enumerate(view.children):
+                    item.disabled = True
+                await message.edit(view=view)
 
     async def reader_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
         """Autocomplete for reader selection."""
@@ -119,6 +120,7 @@ class Player(commands.GroupCog, name="quran"):
             await interaction.response.send_message("يجب عليك إيقاف المشغل حاليا حتى تستطيع أستخدام الأمر", ephemeral=True)
             return
         reader_name = [i for i in cdn_surah_audio_cache if i["identifier"] == quran_reader][0]["name"]
+
         if surah is not None:
             if surah > 114:
                 return await interaction.response.send_message("السورة غير موجودة يرجى التأكد من أختبار احد الخيارت المتاحة", ephemeral=True)
@@ -127,10 +129,26 @@ class Player(commands.GroupCog, name="quran"):
             player.add(results.tracks[0])
             if not player.is_playing:
                 await player.play()
-            await interaction.response.send_message(f"تم تشغيل سورة **{surah_name}** بوت الشيخ **{reader_name}**")
+            embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
+            await interaction.response.send_message(
+                embed=embed,
+                view=VoiceView(player, interaction.user.id, reader_name)
+            )
+            if not self.control_panels.get(interaction.guild.id):
+                self.control_panels[interaction.guild.id] = []
+            self.control_panels[interaction.guild.id].append(await interaction.original_response())
             return
         urls = [f"https://cdn.islamic.network/quran/audio-surah/128/{quran_reader}/{i}.mp3" for i in range(1, 115)]
-        await interaction.response.send_message(f"تم تشغيل القرآن الكريم كامل بصوت الشيخ **{reader_name}**")
+        track = (await self.lavalink.get_tracks(urls[0])).tracks[0]
+        embed = get_quran_embed(player, track, reader=reader_name, user_id=interaction.user.id)
+        
+        await interaction.response.send_message(
+            embed=embed, 
+            view=VoiceView(player, interaction.user.id, reader_name)
+        )
+        if not self.control_panels.get(interaction.guild.id):
+                self.control_panels[interaction.guild.id] = []
+        self.control_panels[interaction.guild.id].append(await interaction.original_response())
         for url in urls:
             results = await self.lavalink.get_tracks(url)
             if not results.tracks:
@@ -166,7 +184,11 @@ class Player(commands.GroupCog, name="quran"):
         player.add(results.tracks[0])
         if not player.is_playing:
             await player.play()
-        await interaction.response.send_message(f"تم تشغيل أذاعة القرآن الكريم بصوت الشيخ **{reader_name}**")
+        embed = get_quran_embed(player, reader=reader_name, user_id=interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id, reader_name))
+        if not self.control_panels.get(interaction.guild.id):
+                self.control_panels[interaction.guild.id] = []
+        self.control_panels[interaction.guild.id].append(await interaction.original_response())
 
     @app_commands.command(name="stop", description="إيقاف تشغيل القرآن الكريم.")
     async def quran_stop(self, interaction: discord.Interaction):
@@ -178,49 +200,16 @@ class Player(commands.GroupCog, name="quran"):
         await interaction.guild.voice_client.disconnect(force=True)
         await interaction.response.send_message("تم إيقاف تشغيل القرآن الكريم")
 
-    @app_commands.command(name="pause", description="إيقاف مؤقت لتشغيل القرآن الكريم.")
-    async def quran_pause(self, interaction: discord.Interaction):
-        await self.ensure_connected(interaction)
-        player = self.lavalink.player_manager.get(interaction.guild.id)
-        if player.is_playing:
-            await player.set_pause(True)
-        await interaction.response.send_message("تم إيقاف القرآن الكريم بشكل مؤقت, يمكنك استخدام الأمر `quran resume` للمتابعة")
-    
-    @app_commands.command(name="resume", description="مواصلة تشغيل القرآن الكريم.")
-    async def quran_resume(self, interaction: discord.Interaction):
-        await self.ensure_connected(interaction)
-        player = self.lavalink.player_manager.get(interaction.guild.id)
-        if player.is_playing:
-            await player.set_pause(False)
-        await interaction.response.send_message("تم مواصلة تشغيل القرآن الكريم")
-
-    @app_commands.command(name="volume", description="تغيير مستوى الصوت.")
-    @commands.before_invoke(ensure_connected)
-    async def quran_volume(self, interaction: discord.Interaction, volume: int):
-        player = self.lavalink.player_manager.get(interaction.guild.id)
-        if volume > 100:
-            return await interaction.response.send_message("لا يمكن تغيير مستوى الصوت لأكثر من 100", ephemeral=True)
-        await player.set_volume(volume)
-        await interaction.response.send_message(f"تم تغيير مستوى الصوت إلى **{volume}**")
-
-    @app_commands.command(name="details", description="عرض تفاصيل القرآن الكريم المشغل حاليا")
+    @app_commands.command(name="control", description="عرض تفاصيل القرآن الكريم المشغل حاليا")
     async def quran_info_command(self, interaction: discord.Interaction):
         player = self.lavalink.player_manager.get(interaction.guild.id)
         if not player or not player.is_playing:
             return await interaction.response.send_message("لا يوجد أي قرآن مشغل حاليا", ephemeral=True)
-        track = player.current
-        embed = discord.Embed(
-            title="القرآن الكريم",
-            color=0xffd430
-        )
-        embed.add_field(name="القارئ:", value=track.author)
-        embed.add_field(name="السورة:", value=track.title)
-        embed.add_field(name="المستوى:", value=player.volume)
-        embed.add_field(name="الحالة:", value="متوقف" if player.paused else "مشغل")
-        if len(player.queue) > 1:
-            embed.add_field(name="القادم:", value=f"{player.queue[1].title}")
-            embed.add_field(name="عدد السور المتبقية بالقراءة:", value=f"{len(player.queue)}")
-        await interaction.response.send_message(embed=embed, view=DownloadSurahView(track.uri))
+        embed = get_quran_embed(player, user_id=interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=VoiceView(player, interaction.user.id))
+        if not self.control_panels.get(interaction.guild.id):
+                self.control_panels[interaction.guild.id] = []
+        self.control_panels[interaction.guild.id].append(await interaction.original_response())
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Player(bot))
