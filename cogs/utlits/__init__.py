@@ -174,7 +174,8 @@ def get_quran_embed(player: lavalink.DefaultPlayer, audio_track: t.Optional[lava
         color=0xffd430
     )
     embed.add_field(name="القارئ:", value=reader or track.author)
-    embed.add_field(name="السورة:", value=track.title)
+    if not track.title.lower().startswith("http"):
+        embed.add_field(name="السورة:", value=track.title)
     embed.add_field(name="المستوى:", value=player.volume)
     embed.add_field(name="الحالة:", value="متوقف" if player.paused else "مشغل")
     if len(player.queue) > 1:
