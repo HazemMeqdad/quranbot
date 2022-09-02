@@ -187,7 +187,7 @@ class MsbahaView(View):
     @discord.ui.button(label="تصفير", style=ButtonStyle.red, custom_id="msbaha:reset")
     async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
         self.count = 0
-        interaction.message.components[0].children[0].label = "0"
+        self.children[0].label = "0"
         await interaction.response.edit_message(view=self)
 
     async def on_timeout(self) -> None:
