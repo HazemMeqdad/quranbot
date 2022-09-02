@@ -3,11 +3,12 @@ from discord.ui import View, Button
 import discord
 from .msohaf_data import moshaf_types, moshafs
 from .db import Database, SavesDatabase
-from . import convert_number_to_000, HELP_DATA
+from . import convert_number_to_000, HELP_DATA, get_quran_embed
 from discord.ext import commands
 import typing as t
 from discord.app_commands import AppCommand
 import aiohttp
+import lavalink
 
 surahs_cache = []
 
@@ -455,3 +456,117 @@ class TafsirAyahView(BaseView):
         embed.set_footer(text=f"{self.postion}/{self.tafsir_data['count']}")
         return embed
 
+class VoiceView(BaseView):
+    def __init__(self, player: lavalink.DefaultPlayer = None, user_id: int = None, reader: str = None, disabled: bool = False):
+        super().__init__(timeout=None)
+        self.player = player
+        self.user_id = user_id
+        self.message = None
+        self.postion = 1
+        self.reader = reader
+        if disabled:
+            for index, item in enumerate(self.children):
+                if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):
+                    continue
+                self.children[index].disabled = True
+    
+    def set_postion(self, postion: int):
+        self.postion = postion
+    
+    @discord.ui.button(label="⏯️", style=ButtonStyle.grey, custom_id="voice:pause")
+    async def pause(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.paused:
+            await self.player.set_pause(False)
+            await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+        else:
+            await self.player.set_pause(True)
+            await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+
+    @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="voice:stop")
+    async def stop(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.player.queue.clear()
+        if self.player.is_playing:
+            await self.player.stop()
+        await interaction.guild.voice_client.disconnect(force=True)
+        for index, item in enumerate(self.children):
+            if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):
+                continue
+            self.children[index].disabled = True
+        embed = interaction.message.embeds[0]
+        state_field = list(filter(lambda x: x.name == "الحالة:", embed.fields))[0]
+        embed.set_field_at(embed.fields.index(state_field), name="الحالة:", value="متوقف")
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="voice:next")
+    async def next(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.is_playing:
+            await self.player.skip()
+        if len(self.player.queue) == 0:
+            return await interaction.response.edit_message()
+        
+        await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+    
+    @discord.ui.button(label="🔉", style=ButtonStyle.grey, custom_id="voice:volume:down")
+    async def down_volume(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.is_playing:
+            await self.player.set_volume(self.player.volume - 10)
+            await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+
+    @discord.ui.button(label="🔊", style=ButtonStyle.grey, custom_id="voice:volume:up")
+    async def up_volume(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.is_playing:
+            await self.player.set_volume(self.player.volume + 10)
+            await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+
+    @discord.ui.button(label="🔂", style=ButtonStyle.grey, custom_id="voice:repeat:surah")
+    async def repeat(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.is_playing:
+            if self.player.loop == 1:
+                self.player.set_loop(0)
+            else:
+                self.player.set_loop(1)
+        await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+
+    @discord.ui.button(label="🔁", style=ButtonStyle.grey, custom_id="voice:repaet:all")
+    async def repeat_all(self, interaction: discord.Interaction, button: discord.Button):
+        if not self.player or not self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        self.message = interaction.message
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.player.is_playing:
+            if self.player.loop == 2:
+                self.player.set_loop(0)
+            else:
+                self.player.set_loop(2)
+        await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))   

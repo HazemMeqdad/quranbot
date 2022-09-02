@@ -1,6 +1,8 @@
 import typing as t
 from datetime import datetime
 import pytz
+import discord
+import lavalink
 
 times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
@@ -164,3 +166,23 @@ def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[str,
             data[key] = value
             return key, datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (h * 3600) + (m * 60))
 
+
+def get_quran_embed(player: lavalink.DefaultPlayer, audio_track: t.Optional[lavalink.AudioTrack] = None, *, reader: t.Optional[str] = None, user_id: int) -> discord.Embed:
+    track = player.current or audio_track
+    embed = discord.Embed(
+        title="القرآن الكريم",
+        color=0xffd430
+    )
+    embed.add_field(name="القارئ:", value=reader or track.author)
+    embed.add_field(name="السورة:", value=track.title)
+    embed.add_field(name="المستوى:", value=player.volume)
+    embed.add_field(name="الحالة:", value="متوقف" if player.paused else "مشغل")
+    if len(player.queue) > 1:
+        embed.add_field(name="القادم:", value=f"{player.queue[1].title}")
+        embed.add_field(name="عدد السور المتبقية بالقراءة:", value=f"{len(player.queue)}")
+    if track:
+        embed.add_field(name="مشغل من:", value="اذاعة القرآن الكريم" if track.uri.lower().startswith("https://qurango.net/radio") else "القرآن الكريم")
+    embed.add_field(name="المستخدم:", value=f"<@{user_id}>")
+    loop = ["غير مفعل", "السورة فقط", "القرآن الكريم كامل"]
+    embed.add_field(name="حالة التكرار", value=loop[player.loop])
+    return embed
