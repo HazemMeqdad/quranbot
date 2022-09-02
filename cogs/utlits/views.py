@@ -315,7 +315,7 @@ class TafsirView(BaseView):
 
 class HelpView(SupportButtons, BaseView):
     def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None, message: t.Optional[discord.Message] = None):
-        super().__init__(timeout=15)
+        super().__init__(timeout=60 * 5)
         self.bot = bot
         self.user_id = user_id
         self.message = message
