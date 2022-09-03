@@ -26,6 +26,7 @@ cogs = [
     "cogs.tafsir",
     "cogs.tasks",
     "cogs.premium",
+    "cogs.pray"
 ]
 
 class Bot(commands.Bot):

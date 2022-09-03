@@ -77,6 +77,11 @@ HELP_DATA = {
         "title": "أوامر البريميوم",
         "description": "أوامر البريمبوم التي يقدمها بوت  فاذكروني",
         "cog": "premium"
+    },
+    "pray": {
+        "title": "أوامر الأذكار",
+        "description": "يمكن ل أوامر الأذكار فتح صفحات أذكار الصباح و المساء و غيرها من الأمور",
+        "cog": "pray"
     }
 }
 
@@ -210,3 +215,19 @@ def get_pray():
             pray_list =list (filter(lambda x: x["category"] == "أذكار المساء", prays))
         return random.choice(pray_list)
     return random.choice(data[random_type])
+
+def prosses_pray_embed(pray: t.Dict[str, t.Any], user_avatar: str) -> discord.Embed:
+    embed = discord.Embed(
+        title=pray["category"],
+        description=pray["zekr"],
+        color=0xffd430,
+    )
+    embed.set_thumbnail(url=user_avatar)
+    embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=user_avatar)
+    if pray.get("description") and pray.get("description").get("arabic"):
+        embed.add_field(name="وصف", value=pray["description"]["arabic"], inline=False)
+    if pray.get("reference") != False:
+        embed.add_field(name="المرجعي", value=pray["reference"])
+    if pray.get("number") != False:
+        embed.add_field(name="تكرار", value=pray["number"])
+    return embed
