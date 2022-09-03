@@ -335,6 +335,8 @@ class HelpView(SupportButtons, BaseView):
             discord.SelectOption(label="أوامر مشرفي السيرفر", value="admin"),
             discord.SelectOption(label="أوامر الحديث النبوي الشريف", value="hadith"),
             discord.SelectOption(label="أوامر تفسير المصحف الشريف", value="tafsir"),
+            discord.SelectOption(label="أوامر البريميوم", value="premium"),
+            discord.SelectOption(label="أوامر الأذكار", value="pray"),
         ]
     )
     async def help_menu(self, interaction: discord.Interaction, select: discord.ui.Select):
