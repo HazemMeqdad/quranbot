@@ -7,7 +7,7 @@ from discord import app_commands
 import time
 from cogs.utlits.db import AzanDatabase, Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
-from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
+from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time, get_pray
 import platform
 import aiohttp
 
@@ -118,15 +118,21 @@ class General(commands.Cog):
     
     @app_commands.command(name="pray", description="أرسال ذِكر عشوائي 🎲")
     async def pray_command(self, interaction: discord.Interaction):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{os.environ['CDN_URL']}/pray/random") as resp:
-                data = (await resp.json())
+        pray = get_pray()
         embed = discord.Embed(
-            title="ذِكر عشوائي - %d" % data["id"],
-            description=data["text"],
-            color=0xffd430
+            title=pray["category"],
+            description=pray["zekr"],
+            color=0xffd430,
+            timestamp=datetime.now()
         )
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
+        if pray.get("description") and pray.get("description").get("arabic"):
+            embed.add_field(name="وصف", value=pray["description"]["arabic"], inline=False)
+        if pray.get("reference") != False:
+            embed.add_field(name="المرجعي", value=pray["reference"])
+        if pray.get("number") != False:
+            embed.add_field(name="تكرار", value=pray["number"])
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="zkaat", description="حساب زكاة الأموال 💰")

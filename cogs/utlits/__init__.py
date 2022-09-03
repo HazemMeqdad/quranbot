@@ -3,6 +3,8 @@ from datetime import datetime
 import pytz
 import discord
 import lavalink
+import json
+import random
 
 times = {1800: "30m", 3600: "1h", 7200: "2h",
              21600: "6h", 43200: "12h", 86400: "24h"}
@@ -194,3 +196,17 @@ def get_quran_embed(player: lavalink.DefaultPlayer, audio_track: t.Optional[lava
     loop = ["غير مفعل", "السورة فقط", "القرآن الكريم كامل"]
     embed.add_field(name="حالة التكرار", value=loop[player.loop])
     return embed
+
+def get_pray():
+    with open("json/prays.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    random_type = random.choice(list(data.keys()))
+    prays = data[random_type]
+    date = datetime.now()
+    if random_type == "azkar":
+        if date.hour <= 10:
+            pray_list = list(filter(lambda x: x["category"] == "أذكار الصباح", prays))
+        if date.hour >= 18:
+            pray_list =list (filter(lambda x: x["category"] == "أذكار المساء", prays))
+        return random.choice(pray_list)
+    return random.choice(data[random_type])
