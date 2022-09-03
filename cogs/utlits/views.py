@@ -37,6 +37,9 @@ class MoveModule(discord.ui.Modal, title="أنتقال إلى صفحة محدد�
         self.position.max_value = max_value
     
     async def on_submit(self, interaction: discord.Interaction) -> None:
+        if int(self.position.value) > self.position.max_value or int(self.position.value) < 1:
+            await interaction.response.send_message("الصفحة المحددة غير موجودة", ephemeral=True)
+            return
         self.view.set_position(int(self.position.value))
         await interaction.response.edit_message(embed=await self.view.get_page())
 
@@ -573,7 +576,7 @@ class PrayView(BaseView):
         if self.postion == 1:
             return await interaction.response.edit_message()
         self.postion = 1
-        await interaction.response.edit_message(embed=await self.get_embed())
+        await interaction.response.edit_message(embed=await self.get_page())
 
     @discord.ui.button(label="◀️", style=ButtonStyle.grey, custom_id="pray:prev")
     async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
@@ -582,7 +585,7 @@ class PrayView(BaseView):
         if self.postion == 1:
             return await interaction.response.send_message(content="لا يمكنك الرجوع للذِكر السابق", ephemeral=True)
         self.postion -= 1
-        await interaction.response.edit_message(embed=await self.get_embed())
+        await interaction.response.edit_message(embed=await self.get_page())
 
     @discord.ui.button(label="⏹️", style=ButtonStyle.red, custom_id="pray:close")
     async def close(self, interaction: discord.Interaction, button: discord.Button):
@@ -597,7 +600,7 @@ class PrayView(BaseView):
         if self.postion == len(self.prays):
             return await interaction.response.send_message(content="لا يمكنك التقدم للذِكر التالي", ephemeral=True)
         self.postion += 1
-        await interaction.response.edit_message(embed=await self.get_embed())
+        await interaction.response.edit_message(embed=await self.get_page())
 
     @discord.ui.button(label="⏭️", style=ButtonStyle.grey, custom_id="pray:last")
     async def last_page(self, interaction: discord.Interaction, button: discord.Button):
@@ -606,7 +609,7 @@ class PrayView(BaseView):
         if self.postion == len(self.prays):
             return await interaction.response.edit_message()
         self.postion = len(self.prays)
-        await interaction.response.edit_message(embed=await self.get_embed())
+        await interaction.response.edit_message(embed=await self.get_page())
 
     @discord.ui.button(label="🔢", style=ButtonStyle.grey, custom_id="pray:page")
     async def page(self, interaction: discord.Interaction, button: discord.Button):
@@ -614,7 +617,7 @@ class PrayView(BaseView):
             return await interaction.response.send_message("لا يمكنك أستخدام قائمة الذكِر فهي لشخص أخر", ephemeral=True)
         await interaction.response.send_modal(MoveModule(self, len(self.prays)))
     
-    async def get_embed(self) -> discord.Embed:
+    async def get_page(self) -> discord.Embed:
         embed = prosses_pray_embed(self.prays[self.postion - 1], self.bot.user.avatar.url)
         embed.set_footer(text=f"{self.postion}/{len(self.prays)}")
         return embed
