@@ -483,7 +483,8 @@ class VoiceView(BaseView):
         self.player.queue.clear()
         if self.player.is_playing:
             await self.player.stop()
-        await interaction.guild.voice_client.disconnect(force=True)
+        if interaction.guild.voice_client:
+            await interaction.guild.voice_client.disconnect(force=True)
         for index, item in enumerate(self.children):
             if isinstance(item, discord.ui.TextInput) or (isinstance(item, discord.ui.Button) and item.style == ButtonStyle.link):
                 continue
