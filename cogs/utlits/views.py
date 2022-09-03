@@ -522,9 +522,9 @@ class VoiceView(BaseView):
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        if self.player.is_playing:
+        if self.player.is_playing and self.player.volume < 100:
             await self.player.set_volume(self.player.volume + 10)
-            await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
+        await interaction.response.edit_message(embed=get_quran_embed(self.player, reader=self.reader, user_id=self.user_id))
 
     @discord.ui.button(label="🔂", style=ButtonStyle.grey, custom_id="voice:repeat:surah")
     async def repeat(self, interaction: discord.Interaction, button: discord.Button):
