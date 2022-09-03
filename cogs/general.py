@@ -115,25 +115,6 @@ class General(commands.Cog):
             f"<https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot%20applications.commands>", 
             ephemeral=True
         )
-    
-    @app_commands.command(name="pray", description="أرسال ذِكر عشوائي 🎲")
-    async def pray_command(self, interaction: discord.Interaction):
-        pray = get_pray()
-        embed = discord.Embed(
-            title=pray["category"],
-            description=pray["zekr"],
-            color=0xffd430,
-            timestamp=datetime.now()
-        )
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
-        embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
-        if pray.get("description") and pray.get("description").get("arabic"):
-            embed.add_field(name="وصف", value=pray["description"]["arabic"], inline=False)
-        if pray.get("reference") != False:
-            embed.add_field(name="المرجعي", value=pray["reference"])
-        if pray.get("number") != False:
-            embed.add_field(name="تكرار", value=pray["number"])
-        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="zkaat", description="حساب زكاة الأموال 💰")
     @app_commands.describe(
