@@ -1,4 +1,3 @@
-import json
 from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
@@ -6,9 +5,11 @@ from .utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import aioredis
-from .utlits import AZAN_DATA, get_colser_azan, get_next_azan, get_next_azan_time
+from .utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
 import typing as t
 import pytz
+import json
+import random
 
 
 class Tasks(commands.Cog):
@@ -25,17 +26,11 @@ class Tasks(commands.Cog):
         self.pray_checker.cancel()
         self.azan_checker.cancel()
 
-    async def get_pray(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://cdn.fdrbot.com/pray/random") as resp:
-                data = await resp.json()
-                return data
-
     async def process_guild(self, data: DbGuild):
         db = Database()
         channel = self.bot.get_channel(data.channel_id)
         guild = self.bot.get_guild(data._id)
-        pray = await self.get_pray()
+        pray = get_pray()
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
             db.update_guild(data._id, channel_id=None, webhook=None)
             return
@@ -43,12 +38,19 @@ class Tasks(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 hook = discord.Webhook.from_url(data.webhook_url, session=session)
                 embed = discord.Embed(
-                    title=pray["id"],
-                    description=pray["text"],
-                    color=0xffd430
+                    title=pray["category"],
+                    description=pray["zekr"],
+                    color=0xffd430,
+                    timestamp=datetime.now()
                 )
                 embed.set_thumbnail(url=self.bot.user.avatar.url)
                 embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
+                if pray.get("description") and pray.get("description").get("arabic"):
+                    embed.add_field(name="وصف", value=pray["description"]["arabic"], inline=False)
+                if pray.get("reference") != False:
+                    embed.add_field(name="المرجعي", value=pray["reference"])
+                if pray.get("number") != False:
+                    embed.add_field(name="تكرار", value=pray["number"])
                 new_datetime = datetime.now().timestamp() + data.time
                 db.update_guild(data._id, next_zker=datetime.fromtimestamp(new_datetime))
                 if data.embed:
@@ -57,9 +59,9 @@ class Tasks(commands.Cog):
                         username=self.bot.user.name,
                         avatar_url=self.bot.user.avatar.url
                     )
-                    return  
+                    return
                 await hook.send(
-                    f"> {pray['text']}", 
+                    f"**{pray['category']}**\n> {pray['text']}", 
                     username=self.bot.user.name,
                     avatar_url=self.bot.user.avatar.url
                 )
