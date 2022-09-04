@@ -66,6 +66,7 @@ class General(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="azan", description="معرفة وقت الأذان في المنطقة الخاصه بك 🕌")
+    @app_commands.describe(address="المنطقة التي تريد معرفة وقت الأذان فيها")
     async def azan_command(self, interaction: discord.Interaction, address: str):
         async with aiohttp.ClientSession() as session:
             async with session.get("http://api.aladhan.com/v1/timingsByAddress?address=%s&method=5" % (
