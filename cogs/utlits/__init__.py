@@ -166,19 +166,17 @@ def get_colser_azan(timings: dict, now: datetime) -> t.Tuple[str, datetime]:
             return key, value
     return None
 
-def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[str, datetime]:
-    now = datetime.now(pytz.timezone(timezone))
-    data = {}
-    for key, value in timings.items():
-        if key not in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
-            continue
-        h = int(value.split(":")[0])
-        m = int(value.split(":")[1])
-        if h >= now.hour and m > now.minute:
-            data[key] = value
-            return key, datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (h * 3600) + (m * 60))
-    if not data:
-        return "Fajr", datetime.fromtimestamp(datetime(now.year, now.month, now.day).timestamp() + (int(timings["Fajr"].split(":")[0]) * 3600) + (int(timings["Fajr"].split(":")[1]) * 60))
+def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[t.Optional[str], t.Optional[datetime]]:
+    close_azan = None
+    date = datetime.now(pytz.timezone(timezone))
+    for azan in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
+        if timings[azan] > date.strftime("%H:%M"):
+            close_azan = azan
+            break
+    if close_azan is None:
+        return None, None
+    h, m = int(timings[close_azan].split(":")[0]), int(timings[close_azan].split(":")[1])
+    return close_azan, datetime.fromtimestamp(datetime(date.year, date.month, date.day).timestamp() + (h * 3600) + (m * 60))
 
 
 def get_quran_embed(player: lavalink.DefaultPlayer, audio_track: t.Optional[lavalink.AudioTrack] = None, *, reader: t.Optional[str] = None, user_id: int) -> discord.Embed:
