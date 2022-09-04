@@ -1,13 +1,12 @@
 from datetime import datetime
 import json
-import os
 import discord
 from discord.ext import commands
 from discord import app_commands
 import time
 from cogs.utlits.db import AzanDatabase, Database
 from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
-from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time, get_pray
+from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
 import platform
 import aiohttp
 
@@ -89,7 +88,8 @@ class General(commands.Cog):
         embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
         embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
         embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
-        embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
+        if next_azan != (None, None):
+            embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="info", description="معلومات عن البوت 🤖")
