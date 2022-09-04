@@ -30,7 +30,7 @@ class Pray(commands.GroupCog, name="pray"):
     async def pray_sabah(self, interaction: discord.Interaction, hide: t.Optional[bool] = False):
         prays = self.get_prays("أذكار الصباح")
         embed = prosses_pray_embed(prays[0], self.bot.user.avatar.url)
-        embed.set_footer(text=f"0/{len(prays)}")
+        embed.set_footer(text=f"1/{len(prays)}")
         view = PrayView(interaction.user.id, prays, self.bot)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=hide)
         view.message = await interaction.original_response()
