@@ -9,7 +9,6 @@ from .utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
 import typing as t
 import pytz
 import json
-import random
 
 
 class Tasks(commands.Cog):
@@ -114,10 +113,11 @@ class Tasks(commands.Cog):
                         f"سنن بعد الصلاة: {sunau_after}",
                     inline=False
                 )
-                embed.add_field(
-                    name=f"وقت الصلاة التالي {AZAN_DATA[next_azan[0]]['name']} بعد:",
-                    value=discord.utils.format_dt(next_azan[1], "R")
-                )
+                if next_azan != (None, None):
+                    embed.add_field(
+                        name=f"وقت الصلاة التالي {AZAN_DATA[next_azan[0]]['name']} بعد:",
+                        value=discord.utils.format_dt(next_azan[1], "R")
+                    )
                 await hook.send(
                     content=("<@&%d>" % data.role_id) if data.role_id else "",
                     embed=embed, 
