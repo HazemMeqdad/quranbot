@@ -170,7 +170,7 @@ def get_next_azan_time(timings: t.Dict[str, str], timezone: str) -> t.Tuple[t.Op
     close_azan = None
     date = datetime.now(pytz.timezone(timezone))
     for azan in ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]:
-        if timings[azan] > date.strftime("%H:%M"):
+        if timings[azan] > datetime(date.year, date.month, date.day, date.hour, date.minute+2).strftime("%H:%M"):
             close_azan = azan
             break
     if close_azan is None:
@@ -207,6 +207,7 @@ def get_pray():
     prays = data[random_type]
     date = datetime.now()
     if random_type == "azkar":
+        pray_list = prays
         if date.hour <= 10:
             pray_list = list(filter(lambda x: x["category"] == "أذكار الصباح", prays))
         if date.hour >= 18:
