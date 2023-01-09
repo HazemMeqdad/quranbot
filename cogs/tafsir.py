@@ -9,7 +9,6 @@ from cogs.utlits.views import TafsirView, TafsirAyahView
 from .utlits import convert_number_to_000
 
 
-surahs_cache = []
 tafsir_cache = {}
 surah_text_cache = {}
 
@@ -19,14 +18,11 @@ class Tafsir(commands.GroupCog, name="tafsir"):
         self.bot = bot
     
     async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
-        global surahs_cache
-        if not surahs_cache:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"https://cdn.fdrbot.com/reciters/surah.json") as resp:
-                    surahs_cache = await resp.json()
+        with open("json/surahs.json", "r", encoding="utf-8") as f:
+            surahs = json.load(f)
         if not current:
-            return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache)][:25]
-        return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
+            return [app_commands.Choice(name=i, value=c+1) for c, i in enumerate(surahs)][:25]
+        return [app_commands.Choice(name=i, value=c+1) for c, i in enumerate(surahs) if current in i][:25]
 
     @app_commands.command(name="ayah", description="الحصول على نفسير الآية")
     @app_commands.describe(
@@ -54,7 +50,9 @@ class Tafsir(commands.GroupCog, name="tafsir"):
 
         if ayah > data["count"]:
             return await interaction.response.send_message("الآية المطلوبة غير موجودة", ephemeral=True)
-        surah_name = surahs_cache[data["index"]-1]["titleAr"]
+        with open("json/surahs.json", "r", encoding="utf-8") as f:
+            surahs = json.load(f)
+        surah_name = surahs[data["index"]-1]["titleAr"]
         embed = discord.Embed(
             title=f"سورة {surah_name} الآية {ayah} حسب التفسير المیسر", 
             description=f"قال الله تعالى ({surah_text['verse'][f'verse_' + str(ayah)]})\n\n"
