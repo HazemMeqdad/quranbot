@@ -7,10 +7,8 @@ from . import convert_number_to_000, HELP_DATA, get_quran_embed, prosses_pray_em
 from discord.ext import commands
 import typing as t
 from discord.app_commands import AppCommand
-import aiohttp
 import lavalink
-
-surahs_cache = []
+import json
 
 class BaseView(View):
     async def on_timeout(self) -> None:
@@ -432,12 +430,9 @@ class TafsirAyahView(BaseView):
         await interaction.response.send_modal(MoveModule(self, self.tafsir_data["count"]))
 
     async def get_page(self) -> discord.Embed:
-        global surahs_cache
-        if not surahs_cache:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"https://cdn.fdrbot.com/reciters/surah.json") as resp:
-                    surahs_cache = await resp.json()
-        surah_name = surahs_cache[self.tafsir_data["index"]-1]["titleAr"]
+        with open(f"json/surahs.json", "r", encoding="utf-8") as f:
+            surahs = json.load(f)
+        surah_name = surahs[self.tafsir_data["index"]-1]["titleAr"]
         embed = discord.Embed(
             title=f"سورة {surah_name} الآية رقم {self.postion} حسب التفسير المیسر", 
             description=f"قال الله تعالى ({self.surah_text['verse'][f'verse_' + str(self.postion)]})\n\n"
