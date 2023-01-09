@@ -8,9 +8,8 @@ from cogs.utlits.views import VoiceView
 from .utlits.voice_client import LavalinkVoiceClient
 from .utlits import get_quran_embed
 from discord.ui import View
+import json
 
-surahs_cache = []
-cdn_surah_audio_cache = []
 cdn_radio_cache = []
 
 
@@ -87,25 +86,19 @@ class Player(commands.GroupCog, name="quran"):
 
     async def reader_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
         """Autocomplete for reader selection."""
-        global cdn_surah_audio_cache
-        if not cdn_surah_audio_cache:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://cdn.fdrbot.com/reciters/cdn_surah_audio.json") as resp:
-                    cdn_surah_audio_cache = await resp.json()
-        data = cdn_surah_audio_cache
+
+        with open("json/cdn_surah_audio.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
         if not current:
             return [app_commands.Choice(name=i["name"], value=i["identifier"]) for i in data][:25]
-        return [app_commands.Choice(name=i["name"], value=i["identifier"]) for i in data if current in i["reciter"]][:25]
+        return [app_commands.Choice(name=i["name"], value=i["identifier"]) for i in data if current in i["name"]][:25]
 
     async def surah_autocomplete(self, interaction: discord.Interaction, current: t.Optional[str] = None) -> t.List[app_commands.Choice]:
-        global surahs_cache
-        if not surahs_cache:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"https://cdn.fdrbot.com/reciters/surah.json") as resp:
-                    surahs_cache = await resp.json()
+        with open("json/surahs.json", "r", encoding="utf-8") as f:
+            surahs = json.load(f)
         if not current:
-            return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache)][:25]
-        return [app_commands.Choice(name=i["titleAr"], value=c+1) for c, i in enumerate(surahs_cache) if current in i["titleAr"]][:25]
+            return [app_commands.Choice(name=i, value=c+1) for c, i in enumerate(surahs)][:25]
+        return [app_commands.Choice(name=i, value=c+1) for c, i in enumerate(surahs) if current in i][:25]
 
     @app_commands.command(name="play", description="تشغيل القرآن الكريم بالصوت")
     @app_commands.autocomplete(quran_reader=reader_autocomplete, surah=surah_autocomplete)
@@ -119,12 +112,13 @@ class Player(commands.GroupCog, name="quran"):
         if len(player.queue) != 0:
             await interaction.response.send_message("يجب عليك إيقاف المشغل حاليا حتى تستطيع أستخدام الأمر", ephemeral=True)
             return
-        reader_name = [i for i in cdn_surah_audio_cache if i["identifier"] == quran_reader][0]["name"]
+        with open("json/cdn_surah_audio.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        reader_name = [i for i in data if i["identifier"] == quran_reader][0]["name"]
         view = VoiceView(player, interaction.user.id, reader_name)
         if surah is not None:
             if surah > 114:
                 return await interaction.response.send_message("السورة غير موجودة يرجى التأكد من أختبار احد الخيارت المتاحة", ephemeral=True)
-            surah_name = surahs_cache[surah-1]["titleAr"]
             results = await self.lavalink.get_tracks(f"https://cdn.islamic.network/quran/audio-surah/128/{quran_reader}/{surah}.mp3")
             player.add(results.tracks[0])
             if not player.is_playing:

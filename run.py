@@ -3,7 +3,7 @@ import os
 import discord
 from discord.app_commands import CommandTree
 from discord.ext import commands
-import aioredis
+import redis.asyncio as aioredis
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -12,6 +12,31 @@ except ImportError:
 from cogs.utlits.views import OpenMoshafView, ZkaatView
 import lavalink
 
+import logging
+
+FMT = "[{levelname:^9}] {name}: {message}"
+
+FORMATS = {
+    logging.DEBUG: f"\33[93m{FMT}\33[0m",
+    logging.INFO: f"\33[32m{FMT}\33[0m",
+    logging.WARNING: f"\33[33m{FMT}\33[0m",
+    logging.ERROR: f"\33[31m{FMT}\33[0m",
+    logging.CRITICAL: "\33[35m{message}\33[0m",
+}
+
+class CustomFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log_fmt = FORMATS[record.levelno]
+        formatter = logging.Formatter(log_fmt, style="{")
+        return formatter.format(record)
+
+def setup_logger() -> None:
+    handler = logging.StreamHandler()
+    handler.setFormatter(CustomFormatter())
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=[handler],
+    )    
 
 cogs = [
     "cogs.general",
@@ -52,7 +77,7 @@ class Bot(commands.Bot):
         self.add_view(OpenMoshafView())
         self.add_view(ZkaatView())
         if os.getenv("REDIS_URL"):
-            self.redis = aioredis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
+            self.redis = aioredis.from_url(os.getenv("REDIS_URL"))
         for cog in cogs:
             await self.load_extension(cog)
         if os.getenv("DEBUG_GUILD"):
@@ -62,7 +87,7 @@ class Bot(commands.Bot):
             self.app_commands = await self.tree.sync()
 
     async def on_ready(self):
-        print("Bot is ready")
+        logging.info(f"Bot is ready - {self.user}")
     
     def run(self):
         super().run(
@@ -71,5 +96,7 @@ class Bot(commands.Bot):
         )
 
 
-bot = Bot()
-bot.run()
+if __name__ == "__main__":
+    setup_logger()
+    bot = Bot()
+    bot.run()

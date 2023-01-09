@@ -1,6 +1,6 @@
 pymongo[srv]
 discord.py
-lavalink==4.0.1
+lavalink==4.0.4
 hijri-converter
-aioredis
+redis
 pytz
