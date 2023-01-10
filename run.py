@@ -9,7 +9,8 @@ try:
     load_dotenv()
 except ImportError:
     ...
-from utlits.views import OpenMoshafView, ZkaatView
+from cogs.general import ZkaatView
+from utlits.views import OpenMoshafView
 import lavalink
 
 import logging

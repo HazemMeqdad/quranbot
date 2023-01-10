@@ -5,9 +5,163 @@ from discord import app_commands
 import aiohttp
 import typing as t
 from utlits.db import SavesDatabase
-from utlits.views import TafsirView, TafsirAyahView
+from utlits import BaseView
+from utlits.modals import MoveModule
 from utlits import convert_number_to_000
 
+
+class TafsirView(BaseView):
+    def __init__(self, postion: int, user_id: int, message: t.Optional[discord.Message] = None):
+        super().__init__(timeout=60 * 5)
+        self.user_id = user_id
+        self.postion = postion
+        self.message = message
+
+    def set_position(self, position: int) -> None:
+        self.postion = position
+
+    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.grey, custom_id="tafsir:first")
+    async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.edit_message()
+        self.postion = 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.grey, custom_id="tafsir:prev")
+    async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.send_message(content="لا يمكنك الرجوع للصفحة السابقة", ephemeral=True)
+        self.postion -= 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏹️", style=discord.ButtonStyle.red, custom_id="tafsir:close")
+    async def close(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.edit_message(view=None)
+
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.grey, custom_id="tafsir:next")
+    async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 114:
+            return await interaction.response.send_message(content="لا يمكنك التقدم للصفحة التالية", ephemeral=True)
+        self.postion += 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.grey, custom_id="tafsir:last")
+    async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 114:
+            return await interaction.response.edit_message()
+        self.postion = 114
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="📌", style=discord.ButtonStyle.green, custom_id="tafsir:save")
+    async def save_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        db = SavesDatabase()
+        data = db.find_one(f"tafsir_{self.user_id}")
+        if not data:
+            db.insert(f"tafsir_{self.user_id}", data={"postion": self.postion})
+            return
+        db.update(f"tafsir_{self.user_id}", data={"postion": self.postion})
+        await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
+
+    @discord.ui.button(label="🔢", style=discord.ButtonStyle.grey, custom_id="tafsir:page")
+    async def page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.send_modal(MoveModule(self, 114))
+
+    async def get_page(self) -> discord.Embed:
+        embed = discord.Embed(
+            title="قائمة بطاقات القرآن الكريم",
+            color=0xffd430
+        )
+        embed.set_image(url=f"https://raw.githubusercontent.com/rn0x/albitaqat_quran/main/images/{convert_number_to_000(self.postion)}.jpg")
+        embed.set_footer(text=f"البطاقة الحالية: {self.postion}/114")
+        return embed
+
+class TafsirAyahView(BaseView):
+    def __init__(self, tafsir_data: dict, surah_text: dict, postion: int, user_id: int, message: t.Optional[discord.Message] = None) -> None:
+        super().__init__(timeout=3600)
+        self.tafsir_data = tafsir_data
+        self.surah_text = surah_text
+        self.postion = postion
+        self.user_id = user_id
+        self.message = message
+
+    def set_position(self, position: int) -> None:
+        self.postion = position
+
+    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.grey, custom_id="tafsir:ayah:first")
+    async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.edit_message()
+        self.postion = 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.grey, custom_id="tafsir:ayah:prev")
+    async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.send_message(content="لا يمكنك الرجوع للصفحة السابقة", ephemeral=True)
+        self.postion -= 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏹️", style=discord.ButtonStyle.red, custom_id="tafsir:ayah:close")
+    async def close(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.edit_message(view=None)
+
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.grey, custom_id="tafsir:ayah:next")
+    async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == self.tafsir_data["count"]:
+            return await interaction.response.send_message(content="لا يمكنك التقدم للصفحة التالية", ephemeral=True)
+        self.postion += 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.grey, custom_id="tafsir:ayah:last")
+    async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        if self.postion == self.tafsir_data["count"]:
+            return await interaction.response.edit_message()
+        self.postion = self.tafsir_data["count"]
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="🔢", style=discord.ButtonStyle.grey, custom_id="tafsir:ayah:page")
+    async def page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.send_modal(MoveModule(self, self.tafsir_data["count"]))
+
+    async def get_page(self) -> discord.Embed:
+        with open(f"json/surahs.json", "r", encoding="utf-8") as f:
+            surahs = json.load(f)
+        surah_name = surahs[self.tafsir_data["index"]-1]["titleAr"]
+        embed = discord.Embed(
+            title=f"سورة {surah_name} الآية رقم {self.postion} حسب التفسير المیسر", 
+            description=f"قال الله تعالى ({self.surah_text['verse'][f'verse_' + str(self.postion)]})\n\n"
+                        "-------------------------\n\n"
+                        f"{self.tafsir_data['verse'][f'verse_' + str(self.postion)]}",
+            color=0xffd430
+        )
+        embed.set_footer(text=f"{self.postion}/{self.tafsir_data['count']}")
+        return embed
 
 tafsir_cache = {}
 surah_text_cache = {}

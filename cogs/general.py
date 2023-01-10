@@ -5,11 +5,125 @@ from discord.ext import commands
 from discord import app_commands
 import time
 from utlits.db import AzanDatabase, Database
-from utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
+from utlits.buttons import SupportButtons
+from utlits import BaseView
 from utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
 import platform
 import aiohttp
+import typing as t
 
+class ZkaatView(BaseView):
+    def __init__(self):
+        super().__init__(timeout=None)
+    
+    @discord.ui.button(label="نصاب زكاة المال", style=discord.ButtonStyle.grey, custom_id="zakat:money")
+    async def zakat_money(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.send_message(
+            content="ليس كل مال عليه زكاة، بل يجب أن يمضي على المال بحوزتك"
+                    "مدة عام كامل وأن تكون قيمته قد بلغت قيمة نصاب الزكاة،"
+                    "ونصاب زكاة المال يختلف من دولة إلى اخرى ومن عام إلى آخر،"
+                    "فمن اختصاص وزارة الأوقاف والشؤون الدينية في الدولة تحديد نصاب"
+                    "زكاة المال للمواطنين واصدار نشرة بهذا النصاب من وقت إلى آخر،"
+                    "وفي حال كنت لا تعرف نصاب زكاة المال في بلدك فعليك الإتصال"
+                    "بوزارة الأوقاف والشؤون الدينية لسؤالهم عن نصاب الزكاة،"
+                    "فقد تكون قيمة المال المدخرة بحوزتك وبلغ عليها عام"
+                    "كامل لم تصل نصاب الزكاة في بلدك وبذلك فانت معفى من تزكية هذا المال.",
+            ephemeral=True
+        )
+
+    @discord.ui.button(label="لمن تعطي الزكاة", style=discord.ButtonStyle.grey, custom_id="zakat:forwho")
+    async def zakat_forwho(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.send_message(
+            content="> **1-** الفقراء: من لا يجدون كفايتهم لمدة نصف عام.\n"
+                    "> **2-** المساكين: اشخاص مالهم قليل لكنهم افضل حالاً من الفقراء.\n"
+                    "> **3-** الغارمين: اشخاص عليهم ديون وتعذر عليهم سدادها.\n"
+                    "> **4-** ابن السبيل: شخص مسافر نفذت منه امواله، يعطى حتى يبلغ مقصده او يستطيع العودة إلى بلده، حتى لو كان غني في بلده.\n"
+                    "> **5-** في سبيل الله: للاشخاص الذين خرجوا لقتال العدو من أجل اعلاء كلمة لا اله إلا الله.\n"
+                    "> **6-** العاملون عليها: الاشخاص الذين قد يوليهم الحاكم على جمع اموال الزكاة وتوزيعها.\n"
+                    "\n\n"
+                    "> كانت تعطى ايضاً الزكاة للرقاب، اي لتحرير العبيد وايضاً للمؤلفة قلوبهم وهؤلاء غير موجدون في ايامنا هذه.",
+            ephemeral=True
+        )
+
+class MsbahaView(BaseView):
+    def __init__(self, msbaha, user_id: int, message: t.Optional[discord.Message] = None):
+        super().__init__(timeout=60 * 5)
+        self.msbaha = msbaha
+        self.count = 0
+        self.message = message
+        self.user_id = user_id
+    
+    @discord.ui.button(label="0", emoji="👆", style=discord.ButtonStyle.grey, custom_id="msbaha:click")
+    async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
+        if self.user_id != interaction.author.id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
+        self.count += 1
+        button.label = f"{self.count}"
+        await interaction.response.edit_message(view=self)
+    
+    @discord.ui.button(label="تصفير", style=discord.ButtonStyle.red, custom_id="msbaha:reset")
+    async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
+        if self.user_id != interaction.author.id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
+        self.count = 0
+        self.children[0].label = "0"
+        await interaction.response.edit_message(view=self)
+
+
+class HelpView(SupportButtons, BaseView):
+    def __init__(self, bot: commands.Bot, user_id: t.Optional[int] = None, message: t.Optional[discord.Message] = None):
+        super().__init__(timeout=60 * 5)
+        self.bot = bot
+        self.user_id = user_id
+        self.message = message
+
+    @discord.ui.select(
+        placeholder="أختر فئة الأوامر التي تريد الحصول على معلوماتها", 
+        custom_id="help:menu", 
+        options=[
+            discord.SelectOption(label="الصفحة الرئيسية", value="main"),
+            discord.SelectOption(label="أوامر العامة", value="general"),
+            discord.SelectOption(label="أوامر المصحف الشريف", value="moshaf"),
+            discord.SelectOption(label="أوامر التاريخ الهجري", value="hijri"),
+            discord.SelectOption(label="أوامر القرآن الكريم الصوتية", value="quran_voice"),
+            discord.SelectOption(label="أوامر مشرفي السيرفر", value="admin"),
+            discord.SelectOption(label="أوامر الحديث النبوي الشريف", value="hadith"),
+            discord.SelectOption(label="أوامر تفسير المصحف الشريف", value="tafsir"),
+            discord.SelectOption(label="أوامر البريميوم", value="premium"),
+            discord.SelectOption(label="أوامر الأذكار", value="pray"),
+        ]
+    )
+    async def help_menu(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if not self.user_id or interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        values = interaction.data["values"]
+        if not values:
+            return await interaction.response.edit_message()
+        value = values[0]
+        data = HELP_DATA[value]
+        embed = discord.Embed(
+            title=data["title"],
+            description=data["description"] + "\n\n",
+            color=0xffd430
+        )
+        if data["cog"]:
+            cogs = {k.lower(): v for k, v in self.bot.cogs.items()}
+            cog = cogs.get(data["cog"].lower())
+            if not cog:
+                ...
+            else:
+                cog_commands = cog.walk_app_commands()
+                normal_commands = [i.name for i in cog.get_app_commands()]
+                app_commands: t.List[discord.app_commands.AppCommand] = self.bot.app_commands
+                for command in cog_commands:
+                    if command.name in normal_commands:
+                        command_id = discord.utils.get(app_commands, name=command.name).id
+                        embed.description += f"</{command.name}:{command_id}> -  {command.description}\n"
+                    else:
+                        command_id = discord.utils.get(app_commands, name=command.parent.name).id
+                        embed.description += f"</{command.parent.name} {command.name}:{command_id}> -  {command.description}\n"
+
+        await interaction.response.edit_message(embed=embed)
 
 with open("json/msbaha.json", "r", encoding="utf-8") as f:
     msbaha_types = json.load(f)

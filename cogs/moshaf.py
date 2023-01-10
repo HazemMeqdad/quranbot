@@ -2,12 +2,93 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from utlits.db import SavesDatabase
-from utlits.views import MoshafView
+from utlits import BaseView
+from utlits.modals import MoveModule
 from utlits.msohaf_data import moshaf_types, moshafs
 import typing as t
-import aiohttp
 
 surahs_cache = []
+
+class MoshafView(BaseView):
+    def __init__(self, moshaf_type: int, page_number: int, page_end: int, user_id: int, message: t.Optional[discord.Message] = None):
+        super().__init__(timeout=60 * 5)
+        self.moshaf_type = moshaf_type
+        self.postion = page_number
+        self.page_end = page_end
+        self.user_id = user_id
+        self.message = message
+
+    def set_position(self, position: int) -> None:
+        self.postion = position
+
+    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.grey, custom_id="moshaf:first")
+    async def first_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.edit_message()
+        self.postion = 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.grey, custom_id="moshaf:prev")
+    async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        if self.postion == 1:
+            return await interaction.response.send_message(content="لا يمكنك الرجوع للصفحة السابقة", ephemeral=True)
+        self.postion -= 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏹️", style=discord.ButtonStyle.red, custom_id="moshaf:close")
+    async def close(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        await interaction.response.edit_message(view=None)
+
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.grey, custom_id="moshaf:next")
+    async def next_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        if self.postion == self.page_end:
+            return await interaction.response.send_message(content="لا يمكنك التقدم للصفحة التالية", ephemeral=True)
+        self.postion += 1
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.grey, custom_id="moshaf:last")
+    async def last_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        if self.postion == self.page_end:
+            return await interaction.response.edit_message()
+        self.postion = self.page_end
+        await interaction.response.edit_message(embed=await self.get_page())
+
+    @discord.ui.button(label="📌", style=discord.ButtonStyle.green, custom_id="moshaf:save")
+    async def save_page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
+        db = SavesDatabase()
+        data = db.find_one(f"moshaf_{self.user_id}")
+        if not data:
+            db.insert(f"moshaf_{self.user_id}", {"moshaf_type": self.moshaf_type, "page_number": self.postion})
+        else:
+            db.update(f"moshaf_{self.user_id}", data={"moshaf_type": self.moshaf_type, "page_number": self.postion})
+        await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
+
+    @discord.ui.button(label="🔢", style=discord.ButtonStyle.grey, custom_id="moshaf:page")
+    async def page(self, interaction: discord.Interaction, button: discord.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
+        await interaction.response.send_modal(MoveModule(self, self.page_end))
+
+    async def get_page(self) -> discord.Embed:
+        moshaf = [i for i in moshaf_types if int(i["value"]) == self.moshaf_type][0]
+
+        embed = discord.Embed(title=moshaf["name"], color=0xffd430)
+        embed.set_image(url=f"http://www.islamicbook.ws/{self.moshaf_type}/{self.postion}.{moshafs[str(self.moshaf_type)]['type']}")
+        embed.set_footer(text=f"الصفحة {self.postion}/{moshafs[str(moshaf['value'])]['page_end']}")
+        
+        return embed
 
 class Moshaf(commands.GroupCog, name="moshaf"):
     def __init__(self, bot: commands.Bot) -> None:
