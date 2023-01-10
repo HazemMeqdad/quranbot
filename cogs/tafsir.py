@@ -4,9 +4,9 @@ from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-from cogs.utlits.db import SavesDatabase
-from cogs.utlits.views import TafsirView, TafsirAyahView
-from .utlits import convert_number_to_000
+from utlits.db import SavesDatabase
+from utlits.views import TafsirView, TafsirAyahView
+from utlits import convert_number_to_000
 
 
 tafsir_cache = {}

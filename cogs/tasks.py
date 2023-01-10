@@ -1,11 +1,11 @@
 from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
-from .utlits.db import Azan, AzanDatabase, Database, DbGuild
+from utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import redis.asyncio as aioredis
-from .utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
+from utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
 import typing as t
 import pytz
 import json

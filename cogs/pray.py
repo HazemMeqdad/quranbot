@@ -3,8 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 import json
 import typing as t
-from .utlits import prosses_pray_embed, get_pray
-from .utlits.views import PrayView
+from utlits import prosses_pray_embed, get_pray
+from utlits.views import PrayView
 
 
 class Pray(commands.GroupCog, name="pray"):

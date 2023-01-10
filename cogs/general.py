@@ -4,9 +4,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
-from cogs.utlits.db import AzanDatabase, Database
-from .utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
-from .utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
+from utlits.db import AzanDatabase, Database
+from utlits.views import HelpView, MsbahaView, SupportButtons, ZkaatView
+from utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
 import platform
 import aiohttp
 

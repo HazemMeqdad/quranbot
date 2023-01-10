@@ -4,9 +4,9 @@ from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-from cogs.utlits.views import VoiceView
-from .utlits.voice_client import LavalinkVoiceClient
-from .utlits import get_quran_embed
+from utlits.views import VoiceView
+from utlits.voice_client import LavalinkVoiceClient
+from utlits import get_quran_embed
 from discord.ui import View
 import json
 

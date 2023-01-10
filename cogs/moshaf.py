@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from .utlits.db import SavesDatabase
-from .utlits.views import MoshafView
-from .utlits.msohaf_data import moshaf_types, moshafs
+from utlits.db import SavesDatabase
+from utlits.views import MoshafView
+from utlits.msohaf_data import moshaf_types, moshafs
 import typing as t
 import aiohttp
 

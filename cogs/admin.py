@@ -1,13 +1,13 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from .utlits.db import AzanDatabase, Database
-from .utlits import AZAN_DATA, format_time_str, get_next_azan_time, times
+from utlits.db import AzanDatabase, Database
+from utlits import AZAN_DATA, format_time_str, get_next_azan_time, times
 import aiohttp
-from .utlits.msohaf_data import moshafs, moshaf_types
+from utlits.msohaf_data import moshafs, moshaf_types
 from datetime import datetime
 import typing as t
-from .utlits.views import OpenMoshafView
+from utlits.views import OpenMoshafView
 
 
 @app_commands.default_permissions(administrator=True)
