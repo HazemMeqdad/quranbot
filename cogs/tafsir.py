@@ -4,11 +4,11 @@ from discord.ext import commands
 from discord import app_commands
 import aiohttp
 import typing as t
-from utlits.db import SavesDatabase
 from utlits import BaseView
 from utlits.modals import MoveModule
 from utlits import convert_number_to_000
-
+from database import Database, DataNotFound
+from database.objects import Saves
 
 class TafsirView(BaseView):
     def __init__(self, postion: int, user_id: int, message: t.Optional[discord.Message] = None):
@@ -66,12 +66,12 @@ class TafsirView(BaseView):
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه القائمة", ephemeral=True)
-        db = SavesDatabase()
-        data = db.find_one(f"tafsir_{self.user_id}")
+        data = await Database.find_one("saves", {"_id": f"tafsir_{self.user_id}"}, raise_not_found=False)
         if not data:
-            db.insert(f"tafsir_{self.user_id}", data={"postion": self.postion})
+            obj = Saves(f"tafsir_{self.user_id}", {"postion": self.postion})
+            await Database.insert("saves", obj)
             return
-        db.update(f"tafsir_{self.user_id}", data={"postion": self.postion})
+        await Database.update_one("saves", {"_id": f"tafsir_{self.user_id}"}, {"postion": self.postion})
         await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
 
     @discord.ui.button(label="🔢", style=discord.ButtonStyle.grey, custom_id="tafsir:page")
@@ -246,8 +246,7 @@ class Tafsir(commands.GroupCog, name="tafsir"):
 
     @app_commands.command(name="browser", description="فتح قائمة بطاقات القرآن الكريم")
     async def browser(self, interaction: discord.Interaction):
-        db = SavesDatabase()
-        user_data = db.find_one(f"tafsir_{interaction.user.id}")
+        user_data = await Database.find_one("saves", {"_id": f"tafsir_{interaction.user.id}"}, raise_not_found=False)
         postion = 1
         if user_data:
            postion = user_data.data["postion"]

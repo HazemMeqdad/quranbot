@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utlits.db import SavesDatabase
+from database.objects import Saves
+from database import Database, DataNotFound
 from utlits import BaseView
 from utlits.modals import MoveModule
 from utlits.msohaf_data import moshaf_types, moshafs
@@ -67,12 +68,12 @@ class MoshafView(BaseView):
     async def save_page(self, interaction: discord.Interaction, button: discord.Button):
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذا المصحف", ephemeral=True)
-        db = SavesDatabase()
-        data = db.find_one(f"moshaf_{self.user_id}")
-        if not data:
-            db.insert(f"moshaf_{self.user_id}", {"moshaf_type": self.moshaf_type, "page_number": self.postion})
-        else:
-            db.update(f"moshaf_{self.user_id}", data={"moshaf_type": self.moshaf_type, "page_number": self.postion})
+        try:
+            await Database.find_one("saves", {"_id": f"moshaf_{self.user_id}"})
+        except DataNotFound:
+            obj = Saves(f"moshaf_{self.user_id}", {"moshaf_type": self.moshaf_type, "page_number": self.postion})
+            await Database.insert("saves", obj)
+        await Database.update_one("saves", {"_id": f"moshaf_{self.user_id}"}, {"moshaf_type": self.moshaf_type, "page_number": self.postion})
         await interaction.response.send_message(content="تم حفظ الصفحة بنجاح", ephemeral=True)
 
     @discord.ui.button(label="🔢", style=discord.ButtonStyle.grey, custom_id="moshaf:page")
@@ -102,8 +103,7 @@ class Moshaf(commands.GroupCog, name="moshaf"):
         hide="جعل الرسالة بينك و بين البوت فقط, True(أخفاء الرسالة)/False(أضهار الرسالة)"
     )
     async def open(self, interaction: discord.Interaction, moshaf_type: int, page: t.Optional[int] = None, hide: bool = False) -> None:
-        db = SavesDatabase()
-        db_data = db.find_one(f"moshaf_{interaction.user.id}")
+        db_data = await Database.find_one("saves", {"_id": f"moshaf_{interaction.user.id}"}, raise_not_found=False)
         data = db_data.data if db_data else None
         page_number = page if page else 1
         if (data is not None and data["moshaf_type"] == moshaf_type) and page is None:

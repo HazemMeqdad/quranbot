@@ -4,7 +4,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
-from utlits.db import AzanDatabase, Database
+from database import Database, DataNotFound
+from database.objects import DbGuild
 from utlits.buttons import SupportButtons
 from utlits import BaseView
 from utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
@@ -153,12 +154,12 @@ class General(commands.Cog):
     @app_commands.command(name="server", description="معلومات عن السيرفر 📊")
     @app_commands.guild_only()
     async def server_command(self, interaction: discord.Interaction):
-        db, azan_db = Database(), AzanDatabase()
-        data = db.find_guild(interaction.guild.id)
-        azan_data = azan_db.find_guild(interaction.guild.id)
-        if not data:
-            db.insert_guild(interaction.guild.id)
-            data = db.find_guild(interaction.guild.id)
+        try:
+            data = await Database.find_one("guilds", {"_id": interaction.guild.id})
+        except DataNotFound:
+            data = DbGuild(interaction.guild_id)
+            await Database.insert(data)
+        azan_data = await Database.find_one("azan", {"_id": interaction.guild.id}, raise_not_found=False)
         embed = discord.Embed(
             description="إعدادات الخادم: %s" % interaction.guild.name,
             color=0xffd430

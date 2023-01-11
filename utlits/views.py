@@ -1,8 +1,8 @@
 import discord
 from .msohaf_data import moshaf_types, moshafs
-from .db import SavesDatabase, Database
 from cogs.moshaf import MoshafView
 from . import BaseView
+from database import Database
 
 class OpenMoshafView(BaseView):
     def __init__(self):
@@ -10,10 +10,9 @@ class OpenMoshafView(BaseView):
     
     @discord.ui.button(label="📖", style=discord.ButtonStyle.grey, custom_id="moshaf:open")
     async def open_moshaf(self, interaction: discord.Interaction, button: discord.Button):
-        db = SavesDatabase()
-        db_data = db.find_one(f"moshaf_{interaction.user.id}")
+        db_data = await Database.find_one("saves", {"_id": f"moshaf_{interaction.user.id}"}, raise_not_found=False)
         data = db_data.data if db_data else None
-        guild_data = Database().find_guild(interaction.guild.id)
+        guild_data = await Database.find_one("guilds", {"_id": interaction.guild.id})
         moshaf_type = guild_data.moshaf_type if guild_data.moshaf_type else 1
         page_number = 1
         if data is not None and data["moshaf_type"] == moshaf_type:
