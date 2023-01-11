@@ -27,8 +27,9 @@ class Database(object):
 
     @staticmethod
     async def find(collection: str, query: t.Dict) -> t.Dict:
-        data = await Database.DATABASE[collection].find(query)
-        return data
+        data = Database.DATABASE[collection].find(query)
+        as_list = await data.to_list(length=None)
+        return as_list
 
     @staticmethod
     async def find_one(collection: str, query: t.Dict, raise_not_found: bool = True) -> t.Union[t.Dict, DbGuild, Saves, Azan]:
