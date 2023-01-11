@@ -49,7 +49,7 @@ class Database(object):
     async def update_one(collection: str, query: t.Dict, new_values: t.Dict) -> None:
         await Database.DATABASE[collection].update_one(query, {"$set": new_values})
 
-    @classmethod
-    async def delete_one(collection: str, query: t.Dict):
+    @staticmethod
+    async def delete_one(collection: str, query: t.Dict) -> None:
         await Database.DATABASE[collection].delete_one(query)
 
