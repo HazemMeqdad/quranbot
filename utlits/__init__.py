@@ -6,7 +6,7 @@ from .msohaf_data import moshaf_types, moshafs
 from .prays import get_pray, times
 from .utlit import between_two_numbers, convert_number_to_000
 from .views import OpenMoshafView
-from voice_client import LavalinkVoiceClient
+from .voice_client import LavalinkVoiceClient
 
 
 
