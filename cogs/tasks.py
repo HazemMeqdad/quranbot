@@ -136,7 +136,7 @@ class Tasks(commands.Cog):
     async def azan_checker(self):
         data = await Database.find("azan", {})
         for a in data:
-            azan = Azan.from_kwargs(a)
+            azan = Azan.from_kwargs(**a)
             address = azan.address
             if await self.redis.exists(f"azan:{address}"):
                 data = json.loads(await self.redis.get(f"azan:{address}"))
