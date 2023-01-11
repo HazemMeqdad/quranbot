@@ -31,9 +31,9 @@ class Database(object):
         return data
 
     @staticmethod
-    async def find_one(collection: str, query: t.Dict) -> t.Union[t.Dict, DbGuild, Saves, Azan]:
+    async def find_one(collection: str, query: t.Dict, raise_not_found: bool = True) -> t.Union[t.Dict, DbGuild, Saves, Azan]:
         data = await Database.DATABASE[collection].find_one(query)
-        if not data:
+        if not data and raise_not_found:
             raise DataNotFound(f"Data of `{query}` is missing")
         match collection:
             case "guilds":
