@@ -1,14 +1,14 @@
-<h1 align="center"> fdrbot - بوت فاذكروني</h1>
+<h1 align="center"> QuranBot - بوت القرآن الكريم</h1>
 <p align="center">
-بوت فاذكروني لإحياء سنة ذكر الله
+بوت القرآن الكريم للتذكير بالله عز و جل
 </p>
 
 <p align="center">
-<a href="https://discord.gg/VX5F54YNuy">
+<a href="https://discord.gg/C5d6sMKcG4">
     <img alt="Discord" src="https://img.shields.io/discord/729526735749513267" />
 </a> 
-<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/hikari" />
-<img alt="GitHub top language" src="https://img.shields.io/github/languages/top/HazemMeqdad/fdrbot" /> 
+<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/discord.py" />
+<img alt="GitHub top language" src="https://img.shields.io/github/languages/top/HazemMeqdad/quranbot" /> 
 </p>
 
 ## About
@@ -29,9 +29,9 @@ bot work on python and use a [discord.py](https://github.com/Rapptz/discord.py) 
 
 ### Clone the repository. (required)
 ```bash
-git clone https://github.com/DwcTeam/fdrbot.git  # required git
+git clone https://github.com/HazemMeqdad/quranbot.git  # required git
 ```
-if you hava a problem or not donwload git tool then you can download it from [here](https://git-scm.com/downloads), or you can download repository from [here](https://github.com/HazemMeqdad/fdrbot/archive/refs/heads/master.zip)
+if you hava a problem or not donwload git tool then you can download it from [here](https://git-scm.com/downloads), or you can download repository from [here](https://github.com/HazemMeqdad/quranbot/archive/refs/heads/master.zip)
 
 * This steps to install in linux vps 
 ### Install docker latest version. (required)
