@@ -12,6 +12,7 @@ except ImportError:
 from cogs.general import ZkaatView
 from utlits.views import OpenMoshafView
 import lavalink
+from database import Database
 
 import logging
 
@@ -56,6 +57,7 @@ cogs = [
 
 class Bot(commands.Bot):
     def __init__(self):
+        Database.initialize()  # initialize database connection
         super().__init__(
             command_prefix=None,
             owner_ids=[int(i) for i in os.getenv("OWNER_IDS", "").split(",")],

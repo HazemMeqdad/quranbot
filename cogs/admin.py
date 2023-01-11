@@ -1,14 +1,14 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utlits.db import AzanDatabase, Database
 from utlits import AZAN_DATA, format_time_str, get_next_azan_time, times
 import aiohttp
 from utlits.msohaf_data import moshafs, moshaf_types
 from datetime import datetime
 import typing as t
 from utlits.views import OpenMoshafView
-
+from database import Database, DataNotFound
+from database.objects import DbGuild, Azan
 
 @app_commands.default_permissions(administrator=True)
 @app_commands.guild_only()
@@ -19,12 +19,12 @@ class Admin(commands.GroupCog, name="set"):
     @app_commands.command(name="embed", description="تغير خاصية أرسال الأذكار و الأدعية إلى أمبد 📋")
     @app_commands.describe(mode="تحديد الوضع True(تفعيل)/False(إيقاف)")
     async def set_embed_command(self, interaction: discord.Interaction, mode: bool) -> None:
-        db = Database()
-        data = db.find_guild(interaction.guild.id)
-        if not data:
-            db.insert_guild(interaction.guild.id)
-            data = db.find_guild(interaction.guild.id)
-        db.update_guild(interaction.guild.id, embed=mode)
+        try:
+            data = await Database.find_one("guilds", {"_id": interaction.guild_id})
+        except DataNotFound:
+            data = DbGuild(interaction.guild_id)
+            await Database.insert("guilds", data)
+        await Database.update_one("guilds", {"_id": interaction.guild_id}, {"embed": mode})
         if data.embed:
             await interaction.response.send_message("تم تفعيل خاصية الأمبد بنجاح ✅")
         else:
@@ -36,15 +36,15 @@ class Admin(commands.GroupCog, name="set"):
         time=[app_commands.Choice(name=times.get(i), value=i) for i in list(times.keys())]
     )
     async def set_time_command(self, interaction: discord.Interaction, *, time: int):
-        db = Database()
-        data = db.find_guild(interaction.guild.id)
-        if not data:
-            db.insert_guild(interaction.guild.id)
-            data = db.find_guild(interaction.guild.id)
+        try:
+            data = await Database.find_one("guilds", {"_id": interaction.guild_id})
+        except DataNotFound:
+            data = DbGuild(interaction.guild_id)
+            await Database.insert("guilds", data)
         if not data.channel_id:
             return await interaction.response.send_message("يجب تحديد قناة أولاً, أستخدم أمر `set pray` 📌", ephemeral=True)
 
-        db.update_guild(interaction.guild.id, time=time)
+        await Database.update_one("guilds", {"_id": interaction.guild_id}, {"time": time})
 
         await interaction.response.send_message(f"تم تغير وقت الأذكار و الأدعية إلى {times.get(time)} بنجاح ✅")
 
@@ -55,10 +55,11 @@ class Admin(commands.GroupCog, name="set"):
         role="الترتبة التي يتم منشنها عند أرسال الصلاة"
     )
     async def set_prayer_command(self, interaction: discord.Interaction, channel: discord.TextChannel, address: str, role: t.Optional[discord.Role] = None):
-        db, azan_db = Database(), AzanDatabase()
-        data = azan_db.find_guild(interaction.guild.id)
-        if data:
-            azan_db.delete(interaction.guild.id)
+        try:
+            await Database.find_one("guilds", {"_id": interaction.guild_id})
+            await Database.delete_one("azan", {"_id": interaction.guild_id})
+        except DataNotFound:
+            ...
         async with aiohttp.ClientSession() as session:
             async with session.get("http://api.aladhan.com/v1/timingsByAddress?address=%s&method=5" % (
                 address
@@ -72,11 +73,14 @@ class Admin(commands.GroupCog, name="set"):
             hook = hooks[0]
         else:
             hook = await channel.create_webhook(name="فاذكروني")
-        azan_db.insert(
-            interaction.guild.id, channel_id=channel.id, 
-            address=address, role_id=role.id if role else None,
+        obj = Azan(
+            interaction.guild_id, 
+            channel_id=channel.id, 
+            address=address,
+            role_id=role.id if role else None,
             webhook_url=hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
         )
+        await Database.insert("azan", obj)
         await interaction.response.send_message(f"تم تحديد القناة الخاصة بالأذكار بنجاح ✅")
         data = res["data"]
         next_azan = get_next_azan_time(data["timings"], data["meta"]["timezone"])
@@ -98,10 +102,11 @@ class Admin(commands.GroupCog, name="set"):
     @app_commands.command(name="pray", description="تعين قناة أرسال الأذكار و الأدعية 📌")
     @app_commands.describe(channel="القناة التي سيتم أرسال الأذكار و الأدعية فيها")
     async def set_pray_command(self, interaction: discord.Interaction, channel: discord.TextChannel):
-        db = Database()
-        data = db.find_guild(interaction.guild.id)
-        if not data:
-            db.insert_guild(interaction.guild.id)
+        try:
+            data = await Database.find_one("guilds", {"_id": interaction.guild_id})
+        except DataNotFound:
+            data = DbGuild(interaction.guild_id)
+            await Database.insert("guilds", data)
         if not interaction.guild.me.guild_permissions.manage_webhooks:
             return await interaction.response.send_message("البوت لا يمتلك صلاحات التحكم بالويب هوك\n`MANAGE_WEBHOOKS`", ephemeral=True)
         channel_hooks = await self.bot.http.channel_webhooks(channel.id)
@@ -110,11 +115,12 @@ class Admin(commands.GroupCog, name="set"):
             hook = hooks[0]
         else:
             hook = await channel.create_webhook(name="فاذكروني")
-        db.update_guild(
-            interaction.guild.id, 
-            channel_id=channel.id, 
-            webhook_url=hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
-        )
+        await Database.update_one(
+            "guilds", {"_id", interaction.guild_id}, 
+            {
+                "channel_id": channel.id, 
+                "webhook_url": hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
+            })
         await interaction.response.send_message(f"تم تعين قناة الأذكار و الأدعية إلى {channel.mention} بنجاح ✅")
 
     @app_commands.command(name="moshaf", description="تعين لوحة للقرآن الكريم 📚")
@@ -122,9 +128,11 @@ class Admin(commands.GroupCog, name="set"):
     @app_commands.describe(moshaf_type="نوع القرآن الكريم")
     @app_commands.default_permissions(manage_guild=True)
     async def setup(self, interaction: discord.Interaction, moshaf_type: int) -> None:
-        db = Database()
-        if not db.find_guild(interaction.guild.id):
-            db.insert_guild(interaction.guild.id)
+        try:
+            data = await Database.find_one("guilds", {"_id": interaction.guild_id})
+        except DataNotFound:
+            data = DbGuild(interaction.guild_id)
+            await Database.insert("guilds", data)
             
         moshaf = [i for i in moshaf_types if i["value"] == moshaf_type][0]
 
@@ -132,7 +140,7 @@ class Admin(commands.GroupCog, name="set"):
         embed.set_image(url=moshafs[str(moshaf["value"])]["cover"])
         embed.set_footer(text="أضغط على الزر الموجود أسفل لفتح المصحف")
 
-        db.update_guild(interaction.guild.id, moshaf_type=moshaf_type)
+        await Database.update_one("guilds", {"_id": interaction.guild_id}, {"moshaf_type": moshaf_type})
         await interaction.response.send_message("تم تعيين لوحة القرآن الكريم بنجاح", ephemeral=True)
         await interaction.channel.send(embed=embed, view=OpenMoshafView())
 
