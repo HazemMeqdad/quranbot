@@ -70,11 +70,11 @@ class Tasks(commands.Cog):
     @tasks.loop(minutes=15)
     async def pray_checker(self):
         await self.bot.wait_until_ready()
-        guilds = await Database.find("guilds", {{
+        guilds = await Database.find("guilds", {
             "next_zker": {"$lt": datetime.now()}, 
             "channel_id": {"$ne": None}, 
             "webhook_url": {"$ne": None}
-        }})
+        })
         for g in guilds:
             guild = DbGuild.from_kwargs(g)
             await self.process_guild(guild)
