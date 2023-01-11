@@ -1,7 +1,6 @@
 from discord.ext import commands
 from discord.ext import tasks
 from datetime import datetime
-from utlits.db import Azan, AzanDatabase, Database, DbGuild
 import aiohttp
 import discord
 import redis.asyncio as aioredis
@@ -9,6 +8,8 @@ from utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
 import typing as t
 import pytz
 import json
+from database import Database, DataNotFound
+from database.objects import Azan, DbGuild
 
 
 class Tasks(commands.Cog):
@@ -26,12 +27,11 @@ class Tasks(commands.Cog):
         self.azan_checker.cancel()
 
     async def process_guild(self, data: DbGuild):
-        db = Database()
         channel = self.bot.get_channel(data.channel_id)
         guild = self.bot.get_guild(data._id)
         pray = get_pray()
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
-            db.update_guild(data._id, channel_id=None, webhook=None)
+            await Database.update_one("guilds", {"_id": data._id}, {"channel_id": None, "webhook": None})
             return
         try:
             async with aiohttp.ClientSession() as session:
@@ -51,7 +51,7 @@ class Tasks(commands.Cog):
                 if pray.get("number") != False:
                     embed.add_field(name="تكرار", value=pray["number"])
                 new_datetime = datetime.now().timestamp() + data.time
-                db.update_guild(data._id, next_zker=datetime.fromtimestamp(new_datetime))
+                await Database.update_one("guilds", {"_id": data._id}, {"next_zker": datetime.fromtimestamp(new_datetime)})
                 if data.embed:
                     await hook.send(
                         embed=embed, 
@@ -65,14 +65,18 @@ class Tasks(commands.Cog):
                     avatar_url=self.bot.user.avatar.url
                 )
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
-            db.update_guild(data._id, channel_id=None, webhook=None)
+            await Database.update_one("guilds", {"_id": data._id}, {"channel_id": None, "webhook": None})
         
     @tasks.loop(minutes=15)
     async def pray_checker(self):
         await self.bot.wait_until_ready()
-        db = Database()
-        guilds = db.fetch_guilds_with_datetime()
-        for guild in guilds:
+        guilds = await Database.find("guilds", {{
+            "next_zker": {"$lt": datetime.now()}, 
+            "channel_id": {"$ne": None}, 
+            "webhook_url": {"$ne": None}
+        }})
+        for g in guilds:
+            guild = DbGuild.from_kwargs(g)
             await self.process_guild(guild)
 
     async def get_prayertimes_by_address(self, address: str):
@@ -82,13 +86,12 @@ class Tasks(commands.Cog):
                 return data["data"]
 
     async def process_azan(self, data: Azan, azan: t.Tuple[str, str], addres_data: dict):
-        db = AzanDatabase()
         guild = self.bot.get_guild(data._id)
         channel = self.bot.get_channel(data.channel_id)
         if await self.redis.exists(f"azan:guild:{guild.id}"):
             return
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
-            db.delete(data._id)
+            await Database.delete_one("azan", {"_id": data._id})
             return
         try:
             async with aiohttp.ClientSession() as session:
@@ -127,12 +130,13 @@ class Tasks(commands.Cog):
                 )
                 await self.redis.set(f"azan:guild:{guild.id}", "1", ex=60*60*2)
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
-            db.delete(data._id)
+            await Database.delete_one("azan", {"_id": data._id})
 
     @tasks.loop(minutes=2)
     async def azan_checker(self):
-        db = AzanDatabase()
-        for azan in db.find_all():
+        data = await Database.find("azan", {})
+        for a in data:
+            azan = Azan.from_kwargs(a)
             address = azan.address
             if await self.redis.exists(f"azan:{address}"):
                 data = json.loads(await self.redis.get(f"azan:{address}"))
