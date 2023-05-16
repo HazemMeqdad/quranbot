@@ -12,6 +12,9 @@ from utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_t
 import platform
 import aiohttp
 import typing as t
+import logging
+
+_LOG = logging.getLogger(__name__)
 
 class ZkaatView(BaseView):
     def __init__(self):
@@ -56,7 +59,7 @@ class MsbahaView(BaseView):
     
     @discord.ui.button(label="0", emoji="👆", style=discord.ButtonStyle.grey, custom_id="msbaha:click")
     async def msbaha_button(self, interaction: discord.Interaction, button: discord.Button):
-        if self.user_id != interaction.author.id:
+        if self.user_id != interaction.user.id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
         self.count += 1
         button.label = f"{self.count}"
@@ -64,7 +67,7 @@ class MsbahaView(BaseView):
     
     @discord.ui.button(label="تصفير", style=discord.ButtonStyle.red, custom_id="msbaha:reset")
     async def msbaha_reset(self, interaction: discord.Interaction, button: discord.Button):
-        if self.user_id != interaction.author.id:
+        if self.user_id != interaction.user.id:
             return await interaction.response.send_message("لا يمكنك أستخدام هذه المسبحة", ephemeral=True)
         self.count = 0
         self.children[0].label = "0"
@@ -266,7 +269,7 @@ class General(commands.Cog):
             description=msbaha["value"] if msbaha["value"] else None,
             color=0xffd430
         )
-        view = MsbahaView(msbaha)
+        view = MsbahaView(msbaha, interaction.user.id)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=hide)
         view.message = await interaction.original_response()
 

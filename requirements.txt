@@ -2,5 +2,5 @@ motor[srv]==3.1.1
 discord.py
 lavalink==4.0.4
 hijri-converter
-redis
 pytz
+quran-suras==1.1.4

@@ -283,7 +283,7 @@ class Player(commands.GroupCog, name="quran"):
         if len(player.queue) != 0:
             await interaction.response.send_message("يجب عليك إيقاف المشغل حاليا حتى تستطيع أستخدام الأمر", ephemeral=True)
             return
-        if not quran_reader.lower().startswith("https://qurango.net/radio/"):
+        if not quran_reader.lower().startswith("https://backup.qurango.net/radio/"):
             return await interaction.response.send_message("يرجى التأكد من أختيار قارئ من القائمة فقط")
         reader_name = [i for i in cdn_radio_cache if i["URL"] == quran_reader][0]["name"]
         results = await self.lavalink.get_tracks(quran_reader)

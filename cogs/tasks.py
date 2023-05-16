@@ -3,20 +3,21 @@ from discord.ext import tasks
 from datetime import datetime
 import aiohttp
 import discord
-import redis.asyncio as aioredis
 from utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
 import typing as t
 import pytz
 import json
-from database import Database, DataNotFound
+from database import Database
 from database.objects import Azan, DbGuild
+from utlits.cache import Cache
 
 
 class Tasks(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         super().__init__()
         self.bot = bot
-        self.redis: aioredis.Redis = bot.redis
+        self.cache: Cache = Cache(60 * 60 * 12)
+        self.azan_cache = Cache(60 * 60 * 1)
 
     async def cog_load(self) -> None:
         self.pray_checker.start()
@@ -76,7 +77,7 @@ class Tasks(commands.Cog):
             "webhook_url": {"$ne": None}
         })
         for g in guilds:
-            guild = DbGuild.from_kwargs(g)
+            guild = DbGuild.from_kwargs(**g)
             await self.process_guild(guild)
 
     async def get_prayertimes_by_address(self, address: str):
@@ -88,7 +89,7 @@ class Tasks(commands.Cog):
     async def process_azan(self, data: Azan, azan: t.Tuple[str, str], addres_data: dict):
         guild = self.bot.get_guild(data._id)
         channel = self.bot.get_channel(data.channel_id)
-        if await self.redis.exists(f"azan:guild:{guild.id}"):
+        if self.azan_cache.has(f"azan:guild:{guild.id}"):
             return
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
             await Database.delete_one("azan", {"_id": data._id})
@@ -128,7 +129,7 @@ class Tasks(commands.Cog):
                     avatar_url=self.bot.user.avatar.url,
                     allowed_mentions=discord.AllowedMentions.all(),
                 )
-                await self.redis.set(f"azan:guild:{guild.id}", "1", ex=60*60*2)
+                self.azan_cache.set(f"azan:guild:{guild.id}", "1")
         except (discord.HTTPException, discord.NotFound, discord.Forbidden):
             await Database.delete_one("azan", {"_id": data._id})
 
@@ -138,11 +139,11 @@ class Tasks(commands.Cog):
         for a in data:
             azan = Azan.from_kwargs(**a)
             address = azan.address
-            if await self.redis.exists(f"azan:{address}"):
-                data = json.loads(await self.redis.get(f"azan:{address}"))
+            if self.cache.has(f"azan:{address}"):
+                data = json.loads(self.cache.get(f"azan:{address}"))
             else:
                 data = await self.get_prayertimes_by_address(address)
-                await self.redis.set(f"azan:{address}", json.dumps(data), ex=3600)
+                self.cache.set(f"azan:{address}", json.dumps(data))
             now = datetime.now(tz=pytz.timezone(data["meta"]["timezone"]))
             close_azan = get_colser_azan(data["timings"], now)
             if not close_azan:
