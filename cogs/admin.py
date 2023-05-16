@@ -115,12 +115,14 @@ class Admin(commands.GroupCog, name="set"):
             hook = hooks[0]
         else:
             hook = await channel.create_webhook(name="فاذكروني")
-        await Database.update_one(
-            "guilds", {"_id", interaction.guild_id}, 
-            {
-                "channel_id": channel.id, 
-                "webhook_url": hook.url if isinstance(hook, discord.Webhook) else "https://discord.com/api/webhooks/%s/%s" % (hook["id"], hook["token"])
-            })
+        print(1)
+        await Database.update_one("guilds", {"_id": interaction.guild_id}, {"webhook_url": hook.url if isinstance(hook, discord.Webhook) else hook.get("url")})
+
+        print(2)
+        print(channel.id)
+        await Database.update_one("guilds", {"_id", interaction.guild_id}, {"channel_id": 123})
+        
+        print(3)
         await interaction.response.send_message(f"تم تعين قناة الأذكار و الأدعية إلى {channel.mention} بنجاح ✅")
 
     @app_commands.command(name="moshaf", description="تعين لوحة للقرآن الكريم 📚")

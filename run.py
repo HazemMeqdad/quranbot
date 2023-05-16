@@ -3,7 +3,6 @@ import os
 import discord
 from discord.app_commands import CommandTree
 from discord.ext import commands
-import redis.asyncio as aioredis
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -44,7 +43,7 @@ cogs = [
     "cogs.general",
     "cogs.voice",
     "cogs.owner",
-    "cogs.hadith",
+    # "cogs.hadith",  notice: Api is down
     "cogs.admin",
     "cogs.moshaf",
     "cogs.errors",
@@ -79,13 +78,11 @@ class Bot(commands.Bot):
         )
         self.add_view(OpenMoshafView())
         self.add_view(ZkaatView())
-        if os.getenv("REDIS_URL"):
-            self.redis = aioredis.from_url(os.getenv("REDIS_URL"))
         for cog in cogs:
             await self.load_extension(cog)
         if os.getenv("DEBUG_GUILD"):
             self.tree.copy_global_to(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
-            await self.tree.sync(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
+            self.app_commands = await self.tree.sync(guild=discord.Object(id=int(os.environ["DEBUG_GUILD"])))
         else:
             self.app_commands = await self.tree.sync()
 
