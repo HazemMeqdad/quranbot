@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utlits import AZAN_DATA, format_time_str, get_next_azan_time, times
+from utlits import Pray
 import aiohttp
 from utlits.msohaf_data import moshafs, moshaf_types
 from datetime import datetime
@@ -33,7 +33,7 @@ class Admin(commands.GroupCog, name="set"):
     @app_commands.command(name="time", description="تغير وقت الأذكار و الأدعية 🕒")
     @app_commands.describe(time="وقت الأذكار و الأدعية")
     @app_commands.choices(
-        time=[app_commands.Choice(name=times.get(i), value=i) for i in list(times.keys())]
+        time=[app_commands.Choice(name=Pray.times.get(i), value=i) for i in list(Pray.times.keys())]
     )
     async def set_time_command(self, interaction: discord.Interaction, *, time: int):
         try:
@@ -46,7 +46,7 @@ class Admin(commands.GroupCog, name="set"):
 
         await Database.update_one("guilds", {"_id": interaction.guild_id}, {"time": time})
 
-        await interaction.response.send_message(f"تم تغير وقت الأذكار و الأدعية إلى {times.get(time)} بنجاح ✅")
+        await interaction.response.send_message(f"تم تغير وقت الأذكار و الأدعية إلى {Pray.times.get(time)} بنجاح ✅")
 
     @app_commands.command(name="azan", description="تعين قناة أرسال الصلاة 📌")
     @app_commands.describe(
@@ -83,20 +83,20 @@ class Admin(commands.GroupCog, name="set"):
         await Database.insert("azan", obj)
         await interaction.response.send_message(f"تم تحديد القناة الخاصة بالأذكار بنجاح ✅")
         data = res["data"]
-        next_azan = get_next_azan_time(data["timings"], data["meta"]["timezone"])
+        next_azan = Pray.get_next_azan_time(data["timings"], data["meta"]["timezone"])
         embed = discord.Embed(
             title="أوقات الصلاة في %s" % address + " ليوم %s" % datetime.fromtimestamp(int(data["date"]["timestamp"])).strftime("%d/%m/%Y"),
             color=0xffd430,
             timestamp=datetime.fromtimestamp(int(data["date"]["timestamp"]))
         )
         embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/451230075875504128/ZRTmO08X.jpeg")
-        embed.add_field(name="صلاة الفجْر:", value=format_time_str(data["timings"]["Fajr"]))
-        embed.add_field(name="الشروق:", value=format_time_str(data["timings"]["Sunrise"]))
-        embed.add_field(name="صلاة الظُّهْر:", value=format_time_str(data["timings"]["Dhuhr"]))
-        embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
-        embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
-        embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
-        embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
+        embed.add_field(name="صلاة الفجْر:", value=Pray.format_time_str(data["timings"]["Fajr"]))
+        embed.add_field(name="الشروق:", value=Pray.format_time_str(data["timings"]["Sunrise"]))
+        embed.add_field(name="صلاة الظُّهْر:", value=Pray.format_time_str(data["timings"]["Dhuhr"]))
+        embed.add_field(name="صلاة العَصر:", value=Pray.format_time_str(data["timings"]["Asr"]))
+        embed.add_field(name="صلاة المَغرب:", value=Pray.format_time_str(data["timings"]["Maghrib"]))
+        embed.add_field(name="صلاة العِشاء:", value=Pray.format_time_str(data["timings"]["Isha"]))
+        embed.add_field(name=f"تبقى على وقت صلاة {Pray.AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
         await interaction.channel.send(embed=embed)
 
     @app_commands.command(name="pray", description="تعين قناة أرسال الأذكار و الأدعية 📌")

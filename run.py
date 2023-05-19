@@ -63,10 +63,13 @@ class Bot(commands.Bot):
             tree_cls=CommandTree,
             intents=discord.Intents.default(),
             status=discord.Status.dnd,
-            activity=discord.Activity(type=discord.ActivityType.playing, name="/help - fdrbot.com"),
+            activity=discord.Activity(type=discord.ActivityType.playing, name="/help - Quran Holy"),
             enable_debug_events=True
         )
-        
+    
+    async def on_message(self, message: discord.Message, /):
+        pass
+
     async def setup_hook(self) -> None:
         self.lavalink = lavalink.Client(self.user.id)
         self.lavalink.add_node(
