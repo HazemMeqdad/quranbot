@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import json
 import typing as t
-from utlits import prosses_pray_embed, get_pray
+from utlits import prosses_pray_embed, Pray
 from utlits import BaseView
 from utlits.modals import MoveModule
 
@@ -86,7 +86,7 @@ class Pray(commands.GroupCog, name="pray"):
 
     @app_commands.command(name="random", description="الحصول على ذِكر عشوائي")
     async def pray(self, interaction: discord.Interaction):
-        pray = get_pray()
+        pray = Pray.get_pray()
         embed = prosses_pray_embed(pray, self.bot.user.avatar.url)
         await interaction.response.send_message(embed=embed)
     

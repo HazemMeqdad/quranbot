@@ -1,9 +1,8 @@
-from .azan import (AZAN_DATA, get_next_azan, get_colser_azan, get_next_azan_time, format_time_str)
+from .pray import Pray
 from .buttons import (DownloadSurahView, SupportButtons, BaseView)
 from .embed import get_quran_embed, prosses_pray_embed
 from .modals import MoveModule
 from .msohaf_data import moshaf_types, moshafs
-from .prays import get_pray, times
 from .utlit import between_two_numbers, convert_number_to_000
 from .views import OpenMoshafView
 from .voice_client import LavalinkVoiceClient

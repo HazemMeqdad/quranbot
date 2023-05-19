@@ -8,7 +8,7 @@ from database import Database, DataNotFound
 from database.objects import DbGuild
 from utlits.buttons import SupportButtons
 from utlits import BaseView
-from utlits import times, HELP_DATA, format_time_str, AZAN_DATA, get_next_azan_time
+from utlits import HELP_DATA, Pray
 import platform
 import aiohttp
 import typing as t
@@ -171,7 +171,7 @@ class General(commands.Cog):
             embed.set_thumbnail(url=interaction.guild.icon.url)
         embed.set_footer(text="بوت فاذكروني لإحياء سنة ذِكر الله", icon_url=self.bot.user.avatar.url)
         embed.add_field(name="قناة الأذكار و الأدعية:", value="<#%s>" % data.channel_id if data.channel_id else "لم يتم تحديد قناة")
-        embed.add_field(name="وقت أرسال الأذكار و الأدعية:", value=times.get(data.time))
+        embed.add_field(name="وقت أرسال الأذكار و الأدعية:", value=Pray.times.get(data.time))
         embed.add_field(name="وضع الأمبد:", value="مفعل" if data.embed else "معطل")
         embed.add_field(name="رتبة القرآن الكريم:", value="<@&%s>" % data.role_id if data.role_id else "لم يتم تحديد رتبة")
         if data.channel_id:
@@ -194,21 +194,21 @@ class General(commands.Cog):
                 if res["code"] != 200:
                     return await interaction.response.send_message("لم يتم العثور على العنوان المدخل", ephemeral=True)
         data = res["data"]
-        next_azan = get_next_azan_time(data["timings"], data["meta"]["timezone"])
+        next_azan = Pray.get_next_azan_time(data["timings"], data["meta"]["timezone"])
         embed = discord.Embed(
             title="أوقات الصلاة في %s" % address + " ليوم %s" % datetime.fromtimestamp(int(data["date"]["timestamp"])).strftime("%d/%m/%Y"),
             color=0xffd430,
             timestamp=datetime.fromtimestamp(int(data["date"]["timestamp"]))
         )
         embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/451230075875504128/ZRTmO08X.jpeg")
-        embed.add_field(name="صلاة الفجْر:", value=format_time_str(data["timings"]["Fajr"]))
-        embed.add_field(name="الشروق:", value=format_time_str(data["timings"]["Sunrise"]))
-        embed.add_field(name="صلاة الظُّهْر:", value=format_time_str(data["timings"]["Dhuhr"]))
-        embed.add_field(name="صلاة العَصر:", value=format_time_str(data["timings"]["Asr"]))
-        embed.add_field(name="صلاة المَغرب:", value=format_time_str(data["timings"]["Maghrib"]))
-        embed.add_field(name="صلاة العِشاء:", value=format_time_str(data["timings"]["Isha"]))
+        embed.add_field(name="صلاة الفجْر:", value=Pray.format_time_str(data["timings"]["Fajr"]))
+        embed.add_field(name="الشروق:", value=Pray.format_time_str(data["timings"]["Sunrise"]))
+        embed.add_field(name="صلاة الظُّهْر:", value=Pray.format_time_str(data["timings"]["Dhuhr"]))
+        embed.add_field(name="صلاة العَصر:", value=Pray.format_time_str(data["timings"]["Asr"]))
+        embed.add_field(name="صلاة المَغرب:", value=Pray.format_time_str(data["timings"]["Maghrib"]))
+        embed.add_field(name="صلاة العِشاء:", value=Pray.format_time_str(data["timings"]["Isha"]))
         if next_azan != (None, None):
-            embed.add_field(name=f"تبقى على وقت صلاة {AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
+            embed.add_field(name=f"تبقى على وقت صلاة {Pray.AZAN_DATA[next_azan[0]]['name']}:", value=discord.utils.format_dt(next_azan[1], "R"))
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="info", description="معلومات عن البوت 🤖")

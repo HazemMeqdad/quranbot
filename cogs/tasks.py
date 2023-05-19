@@ -3,7 +3,7 @@ from discord.ext import tasks
 from datetime import datetime
 import aiohttp
 import discord
-from utlits import AZAN_DATA, get_colser_azan, get_next_azan_time, get_pray
+from utlits import Pray
 import typing as t
 import pytz
 import json
@@ -30,7 +30,7 @@ class Tasks(commands.Cog):
     async def process_guild(self, data: DbGuild):
         channel = self.bot.get_channel(data.channel_id)
         guild = self.bot.get_guild(data._id)
-        pray = get_pray()
+        pray = Pray.get_pray()
         if not channel or not guild or not guild.me.guild_permissions.manage_webhooks:
             await Database.update_one("guilds", {"_id": data._id}, {"channel_id": None, "webhook": None})
             return
@@ -61,7 +61,7 @@ class Tasks(commands.Cog):
                     )
                     return
                 await hook.send(
-                    f"**{pray['category']}**\n> {pray['text']}", 
+                    f"**{pray['category']}**\n> {pray['zekr']}", 
                     username=self.bot.user.name,
                     avatar_url=self.bot.user.avatar.url
                 )
@@ -98,8 +98,8 @@ class Tasks(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 hook = discord.Webhook.from_url(data.webhook_url, session=session)
                 date = datetime.now(pytz.timezone(addres_data["meta"]["timezone"]))
-                azan_data  = AZAN_DATA[azan[0]]
-                next_azan = get_next_azan_time(addres_data["timings"], addres_data["meta"]["timezone"])
+                azan_data  = Pray.AZAN_DATA[azan[0]]
+                next_azan = Pray.get_next_azan_time(addres_data["timings"], addres_data["meta"]["timezone"])
                 embed = discord.Embed(
                     title=f"**حان الآن وقت صلاة {azan_data['name']} بتوقيت {data.address}**",
                     description=f"**يوم {date.strftime('%d/%m/%Y')}م الموافق {addres_data['date']['hijri']['weekday']['ar']} {addres_data['date']['hijri']['date'].replace('-', '/')}هـ**",
@@ -119,7 +119,7 @@ class Tasks(commands.Cog):
                 )
                 if next_azan != (None, None):
                     embed.add_field(
-                        name=f"وقت الصلاة التالي {AZAN_DATA[next_azan[0]]['name']} بعد:",
+                        name=f"وقت الصلاة التالي {Pray.AZAN_DATA[next_azan[0]]['name']} بعد:",
                         value=discord.utils.format_dt(next_azan[1], "R")
                     )
                 await hook.send(
@@ -145,7 +145,7 @@ class Tasks(commands.Cog):
                 data = await self.get_prayertimes_by_address(address)
                 self.cache.set(f"azan:{address}", json.dumps(data))
             now = datetime.now(tz=pytz.timezone(data["meta"]["timezone"]))
-            close_azan = get_colser_azan(data["timings"], now)
+            close_azan = Pray.get_colser_azan(data["timings"], now)
             if not close_azan:
                 continue
             await self.process_azan(azan, close_azan, data)
