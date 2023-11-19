@@ -114,15 +114,8 @@ class Admin(commands.GroupCog, name="set"):
         if hooks:
             hook = hooks[0]
         else:
-            hook = await channel.create_webhook(name="فاذكروني")
-        print(1)
+            hook = await channel.create_webhook(name=self.bot.user.username)
         await Database.update_one("guilds", {"_id": interaction.guild_id}, {"webhook_url": hook.url if isinstance(hook, discord.Webhook) else hook.get("url")})
-
-        print(2)
-        print(channel.id)
-        await Database.update_one("guilds", {"_id", interaction.guild_id}, {"channel_id": 123})
-        
-        print(3)
         await interaction.response.send_message(f"تم تعين قناة الأذكار و الأدعية إلى {channel.mention} بنجاح ✅")
 
     @app_commands.command(name="moshaf", description="تعين لوحة للقرآن الكريم 📚")
