@@ -1,0 +1,40 @@
+version: '3'
+
+
+services:
+  quranbot:
+    build: .
+    environment:
+      - TOKEN=${TOKEN}
+      - MONGO_URL=${MONGO_URL}
+      - OWNER_IDS=${OWNER_IDS:-}
+
+      - LAVALINK_NODE_IP=lavalink
+      - LAVALINK_NODE_PORT=2333
+      - LAVALINK_NODE_PASSWORD=${LAVALINK_NODE_PASSWORD:-}
+    restart: always
+    container_name: quranbot
+    depends_on:
+      - lavalink
+      # - db  # (if you want to use a database)
+  lavalink:
+    image: fredboat/lavalink
+    volumes:
+      - ./application.yml:/opt/Lavalink/application.yml
+      - ./logs:/opt/Lavalink/logs
+    ports:
+      - "127.0.0.1:2333:2333"
+    hostname: lavalink
+    container_name: lavalink
+    
+  # db:
+  #   image: mongo
+  #   volumes:
+  #     - $HOME/data/mongodb:/data/db
+  #   ports:
+  #     - 27019:27017
+  #   # network_mode: host
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: root_password
